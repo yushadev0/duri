@@ -1,0 +1,57 @@
+.stage {
+  position: fixed;
+  inset: 0;
+}
+
+/* Centers the island; the bounce animation scales this wrapper. */
+.anchor {
+  position: absolute;
+  top: var(--top);
+  left: 50%;
+  translate: -50% 0;
+  transform-origin: 50% 0;
+}
+
+.island {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  /* Content layers keep their final size and stay centered while the island
+     morphs around them; enter and exit layers overlap in one cell. */
+  grid-template-columns: 100%;
+  grid-template-rows: 100%;
+  justify-items: unsafe center;
+  align-items: start;
+  background: var(--island-bg);
+  color: var(--island-fg);
+  box-shadow: 0 0 0 1px var(--island-keyline);
+  transition: box-shadow 240ms ease;
+}
+
+.island[data-mode="compact"],
+.island[data-mode="expanded"] {
+  box-shadow:
+    0 0 0 1px var(--island-keyline),
+    0 12px 32px rgba(0, 0, 0, 0.38);
+}
+
+.layer {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.minimal {
+  position: absolute;
+  top: var(--top);
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--island-bg);
+  box-shadow: 0 0 0 1px var(--island-keyline);
+  cursor: pointer;
+  overflow: hidden;
+}

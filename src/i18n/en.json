@@ -1,0 +1,72 @@
+{
+  "format": { "decimal": "." },
+  "island": {
+    "label": "Duri island",
+    "openSettings": "Settings",
+    "switchTo": "Open {{name}}",
+    "home": "Apps"
+  },
+  "apps": {
+    "music": { "name": "Music", "description": "See and control what's playing in any media app." },
+    "timer": { "name": "Timer", "description": "Count down, with several timers at once." },
+    "stopwatch": { "name": "Stopwatch", "description": "Measure time and record laps." }
+  },
+  "music": {
+    "nothingPlaying": "Not Playing",
+    "nothingPlayingHint": "Play something in Spotify, your browser or any media app.",
+    "play": "Play",
+    "pause": "Pause",
+    "next": "Next Track",
+    "previous": "Previous Track",
+    "switchSource": "Switch to another player",
+    "seek": "Playback position",
+    "unknownTitle": "Unknown Title"
+  },
+  "timer": {
+    "title": "Timer",
+    "new": "New Timer",
+    "start": "Start",
+    "pause": "Pause",
+    "resume": "Resume",
+    "cancel": "Cancel",
+    "dismiss": "Dismiss",
+    "repeat": "Repeat",
+    "done": "Timer Done",
+    "noTimers": "No timers running",
+    "decrease": "Shorter",
+    "increase": "Longer",
+    "notifyBody": "Your {{duration}} timer is done.",
+    "units": { "h": "h", "min": "min", "s": "s" }
+  },
+  "stopwatch": {
+    "title": "Stopwatch",
+    "start": "Start",
+    "stop": "Stop",
+    "lap": "Lap",
+    "reset": "Reset",
+    "lapN": "Lap {{n}}",
+    "fastest": "Fastest",
+    "slowest": "Slowest"
+  },
+  "settings": {
+    "windowTitle": "Duri Settings",
+    "panes": { "general": "General", "apps": "Apps", "about": "About" },
+    "language": "Language",
+    "languageSystem": "System",
+    "launchAtLogin": "Open at Login",
+    "launchAtLoginHint": "Start Duri when you sign in to Windows.",
+    "usage": "Using the Island",
+    "usageHint": "Hover the island to peek, click to open an app. Right-click the tray icon to hide it.",
+    "appsHint": "Turn off apps you don't need. They disappear from the island.",
+    "tagline": "A dynamic island for Windows.",
+    "version": "Version {{version}}",
+    "github": "View on GitHub",
+    "license": "Open source under the MIT License."
+  },
+  "tray": {
+    "settings": "Settings…",
+    "hide": "Hide Island",
+    "show": "Show Island",
+    "quit": "Quit Duri"
+  }
+}

@@ -1,0 +1,189 @@
+.pill {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 0 9px;
+}
+
+.pillTime {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.compact {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+}
+
+.meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sub {
+  font-size: 12px;
+  color: var(--island-fg-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bigTime {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.bigLabel {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.doneIcon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent-timer) 20%, transparent);
+  animation: wiggle 1.2s ease-in-out infinite;
+}
+
+@keyframes wiggle {
+  0%,
+  60%,
+  100% {
+    transform: rotate(0);
+  }
+  70% {
+    transform: rotate(-14deg);
+  }
+  80% {
+    transform: rotate(14deg);
+  }
+  90% {
+    transform: rotate(-6deg);
+  }
+}
+
+.expanded {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.emptyList {
+  flex: 1;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  color: var(--island-fg-3);
+  font-size: 13px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 4px;
+}
+
+.row + .row {
+  border-top: 1px solid var(--island-fill);
+}
+
+.rowTime {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.presets,
+.custom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.presets > * {
+  flex: 1;
+}
+
+.customValue {
+  min-width: 84px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* Stopwatch */
+.swHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.swTime {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.swControls {
+  display: flex;
+  gap: 10px;
+}
+
+.lap {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 4px;
+  font-size: 13px;
+  color: var(--island-fg);
+}
+
+.lap > :last-child {
+  margin-left: auto;
+}
+
+.lap + .lap {
+  border-top: 1px solid var(--island-fill);
+}
+
+.lap[data-tag="fastest"] {
+  color: var(--accent-go);
+}
+
+.lap[data-tag="slowest"] {
+  color: var(--accent-stop);
+}
+
+.lapTag {
+  font-size: 11px;
+  opacity: 0.85;
+}

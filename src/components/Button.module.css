@@ -1,0 +1,55 @@
+.btn {
+  --tone: var(--island-fg);
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--island-fg);
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    transform 120ms ease,
+    opacity 120ms ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.plain:hover:not(:disabled) {
+  background: var(--island-fill);
+}
+
+.tinted {
+  background: color-mix(in srgb, var(--tone) 22%, transparent);
+  color: var(--tone);
+}
+
+.tinted:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--tone) 32%, transparent);
+}
+
+.filled {
+  background: var(--tone);
+  color: #000;
+}
+
+.filled:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--tone) 85%, white);
+}
+
+.text {
+  height: 32px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}

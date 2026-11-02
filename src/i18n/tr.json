@@ -1,0 +1,72 @@
+{
+  "format": { "decimal": "," },
+  "island": {
+    "label": "Duri adası",
+    "openSettings": "Ayarlar",
+    "switchTo": "{{name}} uygulamasını aç",
+    "home": "Uygulamalar"
+  },
+  "apps": {
+    "music": { "name": "Müzik", "description": "Herhangi bir medya uygulamasında çalanı gör ve kontrol et." },
+    "timer": { "name": "Zamanlayıcı", "description": "Geri sayım yap, aynı anda birden fazla zamanlayıcıyla." },
+    "stopwatch": { "name": "Kronometre", "description": "Süre ölç ve tur kaydet." }
+  },
+  "music": {
+    "nothingPlaying": "Çalmıyor",
+    "nothingPlayingHint": "Spotify'da, tarayıcında veya herhangi bir medya uygulamasında bir şey çal.",
+    "play": "Oynat",
+    "pause": "Duraklat",
+    "next": "Sonraki Parça",
+    "previous": "Önceki Parça",
+    "switchSource": "Başka bir oynatıcıya geç",
+    "seek": "Çalma konumu",
+    "unknownTitle": "Bilinmeyen Parça"
+  },
+  "timer": {
+    "title": "Zamanlayıcı",
+    "new": "Yeni Zamanlayıcı",
+    "start": "Başlat",
+    "pause": "Duraklat",
+    "resume": "Devam Et",
+    "cancel": "İptal",
+    "dismiss": "Kapat",
+    "repeat": "Tekrarla",
+    "done": "Süre Doldu",
+    "noTimers": "Çalışan zamanlayıcı yok",
+    "decrease": "Kısalt",
+    "increase": "Uzat",
+    "notifyBody": "{{duration}} zamanlayıcın doldu.",
+    "units": { "h": "sa", "min": "dk", "s": "sn" }
+  },
+  "stopwatch": {
+    "title": "Kronometre",
+    "start": "Başlat",
+    "stop": "Durdur",
+    "lap": "Tur",
+    "reset": "Sıfırla",
+    "lapN": "Tur {{n}}",
+    "fastest": "En hızlı",
+    "slowest": "En yavaş"
+  },
+  "settings": {
+    "windowTitle": "Duri Ayarları",
+    "panes": { "general": "Genel", "apps": "Uygulamalar", "about": "Hakkında" },
+    "language": "Dil",
+    "languageSystem": "Sistem",
+    "launchAtLogin": "Oturum Açılınca Başlat",
+    "launchAtLoginHint": "Windows'a giriş yaptığında Duri'yi başlat.",
+    "usage": "Adayı Kullanmak",
+    "usageHint": "Göz atmak için adanın üzerine gel, bir uygulamayı açmak için tıkla. Gizlemek için tepsi simgesine sağ tıkla.",
+    "appsHint": "İhtiyacın olmayan uygulamaları kapat. Adadan kaybolurlar.",
+    "tagline": "Windows için dinamik ada.",
+    "version": "Sürüm {{version}}",
+    "github": "GitHub'da Görüntüle",
+    "license": "MIT Lisansı ile açık kaynak."
+  },
+  "tray": {
+    "settings": "Ayarlar…",
+    "hide": "Adayı Gizle",
+    "show": "Adayı Göster",
+    "quit": "Duri'den Çık"
+  }
+}
