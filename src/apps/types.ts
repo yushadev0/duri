@@ -52,6 +52,13 @@ export interface DuriApp {
   useBackdrop?: () => string | null;
   Pill: ComponentType;
   pillWidth: number;
+  /**
+   * Width of each end of the pill (content at both edges). The idle info
+   * (clock, CPU…) goes in between; defaults to `PILL_SIDE`.
+   */
+  pillSide?: number;
+  /** Set false for pills that use their full width (e.g. the volume bar). */
+  pillCenter?: boolean;
   Minimal: ComponentType;
   Compact: ComponentType;
   compactSize?: Size;

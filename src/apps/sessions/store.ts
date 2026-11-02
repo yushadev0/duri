@@ -68,9 +68,20 @@ export function needsYou(s: Session, acknowledged: string[]) {
   return s.status === "waiting" && !acknowledged.includes(ackKey(s));
 }
 
-/** The session the island talks about. The backend list is already ranked. */
+let lastFocus: string | null = null;
+
+/**
+ * The session the island talks about. A session that needs you always wins;
+ * otherwise the one already shown stays, so busy sessions that keep flipping
+ * between working and done don't make the island swap text back and forth.
+ */
 export function focusSession(sessions: Session[], acknowledged: string[]): Session | undefined {
-  return sessions.find((s) => needsYou(s, acknowledged)) ?? sessions[0];
+  const pick =
+    sessions.find((s) => needsYou(s, acknowledged)) ??
+    sessions.find((s) => s.id === lastFocus && s.status !== "idle") ??
+    sessions[0];
+  lastFocus = pick?.id ?? null;
+  return pick;
 }
 
 export const sessionActions = {

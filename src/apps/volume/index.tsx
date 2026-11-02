@@ -50,6 +50,7 @@ export const volumeApp: DuriApp = {
   },
   Pill,
   pillWidth: 230,
+  pillCenter: false,
   Minimal,
   Compact: Panel,
   compactSize: { w: 340, h: 60 },

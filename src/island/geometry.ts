@@ -17,6 +17,8 @@ export const IDLE_PILL: Record<IdleInfo, Size> = {
   both: { w: 222, h: PILL_HEIGHT },
 };
 export const MINIMAL_SIZE = 34;
+/** Default width of each end of an activity pill when idle info sits between them. */
+export const PILL_SIDE = 48;
 export const MINIMAL_GAP = 8;
 export const COMPACT_DEFAULT: Size = { w: 372, h: 72 };
 /** Clock + launcher; wide enough for every app icon plus Settings. */

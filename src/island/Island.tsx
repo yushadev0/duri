@@ -16,6 +16,7 @@ import {
   EMPTY_PILL,
   HOME_SIZE,
   IDLE_PILL,
+  PILL_SIDE,
   HOVER_DELAY_MS,
   LEAVE_DELAY_EXPANDED_MS,
   LEAVE_DELAY_MS,
@@ -76,6 +77,33 @@ function resolveView(
   return primary ? { kind: "pill", app: primary } : { kind: "empty" };
 }
 
+const viewKeyOf = (v: View) => `${v.kind}:${"app" in v ? v.app.id : ""}`;
+
+/**
+ * While the island is open in compact form, switching to another app's
+ * compact view waits until the change has held for a moment. Activity can
+ * flicker (a session going working → done → working), and every switch
+ * cross-fades the content; without this the text visibly blinks.
+ */
+function useSteadyView(view: View): View {
+  const key = viewKeyOf(view);
+  const [shown, setShown] = useState({ key, view });
+  const latest = useRef(view);
+  useEffect(() => {
+    latest.current = view;
+  });
+  const hold = shown.key !== key && shown.view.kind === "compact" && view.kind === "compact";
+  if (shown.key !== key && !hold) setShown({ key, view });
+  useEffect(() => {
+    if (!hold) return;
+    const id = setTimeout(() => setShown({ key, view: latest.current }), STEADY_MS);
+    return () => clearTimeout(id);
+  }, [hold, key]);
+  return hold ? shown.view : view;
+}
+
+const STEADY_MS = 180;
+
 const noBackdrop = () => null;
 
 interface ProbeProps {
@@ -134,6 +162,7 @@ export function Island() {
 
   useEffect(() => {
     const un = listen<boolean>("island://pointer", (e) => dispatch({ type: "pointer", inside: e.payload }));
+    invoke<boolean>("island_pointer").then((inside) => dispatch({ type: "pointer", inside })).catch(() => {});
     return () => {
       un.then((f) => f());
     };
@@ -202,11 +231,22 @@ export function Island() {
     }
   }, [alertKey, alertAppId, reduceMotion, animate, scope]);
 
-  const view = resolveView(state.mode, state.appId, state.attention, state.peek, primary?.app, apps);
+  const resolved = resolveView(state.mode, state.appId, state.attention, state.peek, primary?.app, apps);
+  const view = useSteadyView(resolved);
+
+  // Activity pills show the idle info (clock, CPU…) in the middle, between
+  // the app's content at both ends, so the pill has no empty gap.
+  const centerInfo =
+    view.kind === "pill" && view.app.pillCenter !== false && settings.idleInfo !== "none" ? settings.idleInfo : null;
 
   // The idle pill (and its bubble) scale with the Pill size setting; the
   // content is drawn at base size and zoomed so it stays crisp.
-  const base = view.kind === "empty" ? (IDLE_PILL[settings.idleInfo] ?? EMPTY_PILL) : sizeOf(view);
+  const base =
+    view.kind === "empty"
+      ? (IDLE_PILL[settings.idleInfo] ?? EMPTY_PILL)
+      : centerInfo && view.kind === "pill"
+        ? { w: IDLE_PILL[centerInfo].w + 2 * (view.app.pillSide ?? PILL_SIDE), h: PILL_HEIGHT }
+        : sizeOf(view);
   const zoom = view.kind === "pill" || view.kind === "empty" ? PILL_SCALE[settings.pillSize] ?? 1 : 1;
   const size = { w: Math.round(base.w * zoom), h: Math.round(base.h * zoom) };
   const bubbleZoom = PILL_SCALE[settings.pillSize] ?? 1;
@@ -240,7 +280,16 @@ export function Island() {
       content = <IdleInfo mode={settings.idleInfo} />;
       break;
     case "pill":
-      content = <view.app.Pill />;
+      content = (
+        <>
+          <view.app.Pill />
+          {centerInfo && (
+            <div className={styles.pillCenter}>
+              <IdleInfo mode={centerInfo} />
+            </div>
+          )}
+        </>
+      );
       break;
     case "home":
       content = <Home apps={apps} onOpen={open} onSettings={openSettings} />;

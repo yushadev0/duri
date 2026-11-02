@@ -146,6 +146,7 @@ export const stopwatchApp: DuriApp = {
   },
   Pill: StopwatchPill,
   pillWidth: 168,
+  pillSide: 70,
   Minimal: StopwatchMinimal,
   Compact: StopwatchCompact,
   compactSize: { w: 372, h: 72 },

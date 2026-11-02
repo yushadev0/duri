@@ -295,6 +295,7 @@ export const sessionsApp: DuriApp = {
   },
   Pill: SessionsPill,
   pillWidth: 150,
+  pillSide: 62,
   Minimal: SessionsMinimal,
   Compact: SessionsCompact,
   compactSize: { w: 392, h: 72 },

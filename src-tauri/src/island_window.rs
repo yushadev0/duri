@@ -289,6 +289,13 @@ pub fn spawn_hit_test(app: AppHandle) {
         .expect("failed to spawn hit-test thread");
 }
 
+/// Whether the pointer is over the island right now (the UI asks on load,
+/// since a reloaded page would otherwise miss the last pointer event).
+#[tauri::command]
+pub fn island_pointer(state: State<'_, IslandState>) -> bool {
+    state.0.lock().map(|s| s.inside).unwrap_or(false)
+}
+
 /// Rectangles are in logical pixels relative to the window's top-left corner.
 #[tauri::command]
 pub fn island_set_hit_rects(state: State<'_, IslandState>, rects: Vec<Rect>) {

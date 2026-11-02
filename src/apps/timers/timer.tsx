@@ -219,6 +219,7 @@ export const timerApp: DuriApp = {
   },
   Pill: TimerPill,
   pillWidth: 168,
+  pillSide: 66,
   Minimal: TimerMinimal,
   Compact: TimerCompact,
   compactSize: { w: 372, h: 72 },

@@ -39,6 +39,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             island_window::island_set_hit_rects,
             island_window::island_set_focus,
+            island_window::island_pointer,
             apps::clipboard::clips_list,
             apps::clipboard::clip_copy,
             apps::clipboard::clip_paste,

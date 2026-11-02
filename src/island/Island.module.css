@@ -74,8 +74,16 @@
 }
 
 .layer {
+  position: relative;
   grid-area: 1 / 1;
   min-width: 0;
+}
+
+/* Idle info centered between the two ends of an activity pill. */
+.pillCenter {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 .minimal {
