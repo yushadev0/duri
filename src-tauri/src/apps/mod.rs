@@ -3,6 +3,7 @@
 //! `<app>://<event>`. Register new commands in `lib.rs`.
 
 pub mod music;
+pub mod sessions;
 pub mod timers;
 
 use crate::db::Db;
@@ -12,4 +13,5 @@ use tauri::AppHandle;
 pub fn init(app: &AppHandle, db: Arc<Db>) {
     timers::init(app, db);
     music::init(app);
+    sessions::init(app);
 }

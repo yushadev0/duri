@@ -6,6 +6,7 @@ import { Info, LayoutGrid, SlidersHorizontal } from "lucide-react";
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { registry } from "../apps/registry";
+import { refreshHooks, sessionActions, useHookStatus } from "../apps/sessions/store";
 import { DuriMark } from "../components/DuriMark";
 import { updateSettings, useSettings, type LanguagePref } from "../lib/settings";
 import styles from "./Settings.module.css";
@@ -131,6 +132,59 @@ function Apps() {
             />
           </Row>
         ))}
+      </section>
+      <Integrations />
+    </>
+  );
+}
+
+function Integrations() {
+  const { t } = useTranslation();
+  const hooks = useHookStatus();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    refreshHooks();
+  }, []);
+
+  const run = async (action: () => Promise<void>) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await action();
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const hint = !hooks
+    ? undefined
+    : !hooks.serverRunning
+      ? t("settings.serverDown")
+      : hooks.installed
+        ? t("settings.claudeConnected")
+        : t("settings.claudeNotConnected");
+
+  return (
+    <>
+      <h2 className={styles.groupTitle}>{t("settings.integrations")}</h2>
+      <section className={styles.group}>
+        <Row title="Claude Code" hint={error ?? hint}>
+          {hooks && (
+            <button
+              type="button"
+              className={hooks.installed ? styles.button : styles.buttonPrimary}
+              disabled={busy}
+              onClick={() => run(hooks.installed ? sessionActions.uninstallHooks : sessionActions.installHooks)}
+            >
+              {hooks.installed ? t("settings.disconnect") : t("settings.connect")}
+            </button>
+          )}
+        </Row>
+        <Row title="Codex" hint={t("settings.codexHint")} />
       </section>
     </>
   );

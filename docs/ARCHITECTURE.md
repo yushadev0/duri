@@ -43,7 +43,7 @@ Every app implements `DuriApp` (`src/apps/types.ts`). It provides four presentat
 
 Backend modules own their state and background threads. They expose `#[tauri::command]`s and emit `<app>://<event>` events. The frontend mirrors their state in small stores (`src/lib/store.ts`, read via `useSyncExternalStore`).
 
-Current priorities: timer finished 100 · timer 60 · music playing 40 · stopwatch running 30 · stopwatch paused 10.
+Current priorities: timer finished 100 · session needs you 90 · timer 60 · session working 50 · music playing 40 · session just finished 35 · stopwatch running 30 · stopwatch paused 10.
 
 ## Time
 

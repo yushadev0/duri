@@ -43,6 +43,11 @@ export interface DuriApp {
   /** Called once when the island starts, to begin listening to the backend. */
   start?: () => void;
   useActivity: () => Activity | null;
+  /**
+   * Optional CSS background painted behind the Compact and Expanded views
+   * (the Pill always stays black). Return null for plain black.
+   */
+  useBackdrop?: () => string | null;
   Pill: ComponentType;
   pillWidth: number;
   Minimal: ComponentType;

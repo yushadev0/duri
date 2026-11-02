@@ -22,7 +22,7 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = ["image-png", "tray-icon"] }
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde_json = { version = "1", features = ["preserve_order"] }
 tauri-plugin-autostart = "2.7.0"
 tauri-plugin-notification = "2.8.0"
 tauri-plugin-single-instance = "2.5.5"
@@ -32,6 +32,7 @@ rusqlite = { version = "0.41.1", features = ["bundled"] }
 uuid = { version = "1.29.0", features = ["v4"] }
 windows = { version = "0.62.2", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Media_Control", "Foundation", "Foundation_Collections", "Storage_Streams"] }
 tauri-plugin-opener = "2.7.2"
+tiny_http = "0.12.0"
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration

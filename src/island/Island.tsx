@@ -12,6 +12,7 @@ import { ExpandedChrome } from "./ExpandedChrome";
 import {
   COMPACT_DEFAULT,
   EMPTY_PILL,
+  HOME_SIZE,
   HOVER_DELAY_MS,
   LEAVE_DELAY_EXPANDED_MS,
   LEAVE_DELAY_MS,
@@ -41,7 +42,7 @@ function sizeOf(view: View): Size {
     case "pill":
       return { w: view.app.pillWidth, h: PILL_HEIGHT };
     case "home":
-      return COMPACT_DEFAULT;
+      return HOME_SIZE;
     case "compact":
       return view.app.compactSize ?? COMPACT_DEFAULT;
     case "expanded":
@@ -68,10 +69,21 @@ function resolveView(
   return primary ? { kind: "pill", app: primary } : { kind: "empty" };
 }
 
-/** Mounts each app's activity hook in its own component (hooks can't loop). */
-function ActivityProbe({ app, report }: { app: DuriApp; report: (id: string, a: Activity | null) => void }) {
+const noBackdrop = () => null;
+
+interface ProbeProps {
+  app: DuriApp;
+  report: (id: string, a: Activity | null) => void;
+  reportBackdrop: (id: string, b: string | null) => void;
+}
+
+/** Mounts each app's hooks in its own component (hooks can't run in a loop). */
+function AppProbe({ app, report, reportBackdrop }: ProbeProps) {
   const activity = app.useActivity();
+  const useBackdrop = app.useBackdrop ?? noBackdrop;
+  const backdrop = useBackdrop();
   useEffect(() => report(app.id, activity), [app.id, activity, report]);
+  useEffect(() => reportBackdrop(app.id, backdrop), [app.id, backdrop, reportBackdrop]);
   return null;
 }
 
@@ -92,6 +104,11 @@ export function Island() {
   const report = useCallback(
     (id: string, a: Activity | null) =>
       setActivities((prev) => (sameActivity(prev[id], a) ? prev : { ...prev, [id]: a })),
+    [],
+  );
+  const [backdrops, setBackdrops] = useState<Record<string, string | null>>({});
+  const reportBackdrop = useCallback(
+    (id: string, b: string | null) => setBackdrops((prev) => (prev[id] === b ? prev : { ...prev, [id]: b })),
     [],
   );
   const ranked = rankActivities(apps, activities);
@@ -137,6 +154,7 @@ export function Island() {
   const mode = state.mode;
   const showMinimal = mode === "idle" && !!secondary;
   const viewKey = `${view.kind}:${"app" in view ? view.app.id : ""}`;
+  const backdrop = view.kind === "compact" || view.kind === "expanded" ? (backdrops[view.app.id] ?? null) : null;
 
   // Tell the backend which parts of the window are clickable.
   useEffect(() => {
@@ -177,7 +195,7 @@ export function Island() {
   return (
     <div className={styles.stage} style={{ "--top": `${TOP_INSET}px` } as CSSProperties}>
       {apps.map((app) => (
-        <ActivityProbe key={app.id} app={app} report={report} />
+        <AppProbe key={app.id} app={app} report={report} reportBackdrop={reportBackdrop} />
       ))}
 
       <div ref={scope} className={styles.anchor}>
@@ -191,6 +209,11 @@ export function Island() {
           transition={transition}
           onClick={onIslandClick}
         >
+          <div
+            className={styles.backdrop}
+            style={{ backgroundImage: backdrop ?? undefined, opacity: backdrop ? 1 : 0 }}
+            aria-hidden
+          />
           <AnimatePresence initial={false}>
             <motion.div
               key={viewKey}

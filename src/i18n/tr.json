@@ -1,5 +1,7 @@
 {
-  "format": { "decimal": "," },
+  "format": {
+    "decimal": ","
+  },
   "island": {
     "label": "Duri adası",
     "openSettings": "Ayarlar",
@@ -7,9 +9,22 @@
     "home": "Uygulamalar"
   },
   "apps": {
-    "music": { "name": "Müzik", "description": "Herhangi bir medya uygulamasında çalanı gör ve kontrol et." },
-    "timer": { "name": "Zamanlayıcı", "description": "Geri sayım yap, aynı anda birden fazla zamanlayıcıyla." },
-    "stopwatch": { "name": "Kronometre", "description": "Süre ölç ve tur kaydet." }
+    "music": {
+      "name": "Müzik",
+      "description": "Herhangi bir medya uygulamasında çalanı gör ve kontrol et."
+    },
+    "timer": {
+      "name": "Zamanlayıcı",
+      "description": "Geri sayım yap, aynı anda birden fazla zamanlayıcıyla."
+    },
+    "stopwatch": {
+      "name": "Kronometre",
+      "description": "Süre ölç ve tur kaydet."
+    },
+    "sessions": {
+      "name": "Oturumlar",
+      "description": "Claude Code ve Codex oturumlarını takip et."
+    }
   },
   "music": {
     "nothingPlaying": "Çalmıyor",
@@ -36,7 +51,11 @@
     "decrease": "Kısalt",
     "increase": "Uzat",
     "notifyBody": "{{duration}} zamanlayıcın doldu.",
-    "units": { "h": "sa", "min": "dk", "s": "sn" }
+    "units": {
+      "h": "sa",
+      "min": "dk",
+      "s": "sn"
+    }
   },
   "stopwatch": {
     "title": "Kronometre",
@@ -50,7 +69,11 @@
   },
   "settings": {
     "windowTitle": "Duri Ayarları",
-    "panes": { "general": "Genel", "apps": "Uygulamalar", "about": "Hakkında" },
+    "panes": {
+      "general": "Genel",
+      "apps": "Uygulamalar",
+      "about": "Hakkında"
+    },
     "language": "Dil",
     "languageSystem": "Sistem",
     "launchAtLogin": "Oturum Açılınca Başlat",
@@ -61,12 +84,38 @@
     "tagline": "Windows için dinamik ada.",
     "version": "Sürüm {{version}}",
     "github": "GitHub'da Görüntüle",
-    "license": "MIT Lisansı ile açık kaynak."
+    "license": "MIT Lisansı ile açık kaynak.",
+    "integrations": "Entegrasyonlar",
+    "claudeConnected": "Bağlı. Yeni Claude Code oturumları Duri’ye bildirilir.",
+    "claudeNotConnected": "~/.claude/settings.json dosyasına hook ekler ve yedeğini alır. Kendi hook’larına dokunmaz.",
+    "connect": "Bağla",
+    "disconnect": "Bağlantıyı Kes",
+    "codexHint": "~/.codex/sessions altındaki oturumlar otomatik algılanır.",
+    "serverDown": "Duri 47321 portunu açamadı, bu yüzden Claude Code ona ulaşamıyor. O portu kullanan uygulamayı kapatıp Duri’yi yeniden başlat."
   },
   "tray": {
     "settings": "Ayarlar…",
     "hide": "Adayı Gizle",
     "show": "Adayı Göster",
     "quit": "Duri'den Çık"
+  },
+  "sessions": {
+    "status": {
+      "working": "Çalışıyor",
+      "waiting": "Seni Bekliyor",
+      "done": "Bitti",
+      "idle": "Boşta"
+    },
+    "agent": {
+      "claude": "Claude Code",
+      "codex": "Codex"
+    },
+    "acknowledge": "Tamam",
+    "remove": "Listeden kaldır",
+    "now": "şimdi",
+    "empty": "Aktif Oturum Yok",
+    "emptyHint": "Claude Code veya Codex başlat, burada görünsün.",
+    "connect": "Claude Code’u Bağla",
+    "connectHint": "Duri, oturumlarını takip edebilmek için Claude Code ayarlarına birkaç hook ekler. Kendi hook’ların olduğu gibi kalır."
   }
 }

@@ -28,5 +28,6 @@ Read `docs/ARCHITECTURE.md` and `docs/ADDING_AN_APP.md`. In short:
 
 ## Roadmap
 
-Done: shell, settings, tray, Music, Timer, Stopwatch.
-Next: Sessions (Claude Code hooks → local HTTP endpoint; Codex `~/.codex/sessions/**/*.jsonl` watcher), Clipboard (text/image/file history), Notes, GitHub Releases + tauri updater.
+Done: shell, settings, tray, Music (+ cover gradient), Timer, Stopwatch, Sessions (Claude hooks verified with simulated payloads; Codex parser written from the rollout format but untested on a real install).
+Ideas queue lives in TODO.md (do after the planned items).
+Next: Clipboard (text/image/file history), Notes, GitHub Releases + tauri updater.

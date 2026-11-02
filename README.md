@@ -13,7 +13,7 @@ Duri's features are called **apps**. Each one can be switched off in Settings �
 | 🎵 Music | Shows what is playing in Spotify, your browser, or any media app, and lets you control it: play/pause, skip, seek, switch players | ✅ |
 | ⏳ Timer | Several countdowns at once, with an alert, sound, and notification when one ends | ✅ |
 | ⏱️ Stopwatch | Laps, fastest/slowest lap, survives restarts | ✅ |
-| 🤖 Sessions | Tracks Claude Code and Codex sessions: working, waiting for you, done | 🗺️ planned |
+| 🤖 Sessions | Tracks Claude Code and Codex sessions: working, needs you (permission prompts), done. Connect Claude Code in Settings › Apps | ✅ (Codex: beta) |
 | 📋 Clipboard | History of text, images, and files | 🗺️ planned |
 | 📝 Notes | Quick notes from the island | 🗺️ planned |
 

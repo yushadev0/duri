@@ -11,6 +11,8 @@ export const EMPTY_PILL: Size = { w: 124, h: PILL_HEIGHT };
 export const MINIMAL_SIZE = 34;
 export const MINIMAL_GAP = 8;
 export const COMPACT_DEFAULT: Size = { w: 372, h: 72 };
+/** Clock + launcher; wide enough for every app icon plus Settings. */
+export const HOME_SIZE: Size = { w: 420, h: 72 };
 /** Height of the shared expanded header (app title + switcher). */
 export const EXPANDED_HEADER = 44;
 /** Inner padding of compact/expanded content; inner corner radius = outer − this. */

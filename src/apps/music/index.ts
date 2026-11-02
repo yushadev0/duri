@@ -18,6 +18,12 @@ export const musicApp: DuriApp = {
     const active = state.available && state.playing;
     return useMemo(() => (active ? PLAYING : null), [active]);
   },
+  useBackdrop() {
+    const { state, artwork, accent } = useMusic();
+    if (!state.available || !artwork) return null;
+    // Album color glowing in from the top-left corner, fading into black.
+    return `radial-gradient(130% 150% at 0% 0%, color-mix(in srgb, ${accent} 52%, black) 0%, color-mix(in srgb, ${accent} 20%, black) 42%, #000 78%)`;
+  },
   Pill: MusicPill,
   pillWidth: 200,
   Minimal: MusicMinimal,

@@ -1,5 +1,7 @@
 {
-  "format": { "decimal": "." },
+  "format": {
+    "decimal": "."
+  },
   "island": {
     "label": "Duri island",
     "openSettings": "Settings",
@@ -7,9 +9,22 @@
     "home": "Apps"
   },
   "apps": {
-    "music": { "name": "Music", "description": "See and control what's playing in any media app." },
-    "timer": { "name": "Timer", "description": "Count down, with several timers at once." },
-    "stopwatch": { "name": "Stopwatch", "description": "Measure time and record laps." }
+    "music": {
+      "name": "Music",
+      "description": "See and control what's playing in any media app."
+    },
+    "timer": {
+      "name": "Timer",
+      "description": "Count down, with several timers at once."
+    },
+    "stopwatch": {
+      "name": "Stopwatch",
+      "description": "Measure time and record laps."
+    },
+    "sessions": {
+      "name": "Sessions",
+      "description": "Follow your Claude Code and Codex sessions."
+    }
   },
   "music": {
     "nothingPlaying": "Not Playing",
@@ -36,7 +51,11 @@
     "decrease": "Shorter",
     "increase": "Longer",
     "notifyBody": "Your {{duration}} timer is done.",
-    "units": { "h": "h", "min": "min", "s": "s" }
+    "units": {
+      "h": "h",
+      "min": "min",
+      "s": "s"
+    }
   },
   "stopwatch": {
     "title": "Stopwatch",
@@ -50,7 +69,11 @@
   },
   "settings": {
     "windowTitle": "Duri Settings",
-    "panes": { "general": "General", "apps": "Apps", "about": "About" },
+    "panes": {
+      "general": "General",
+      "apps": "Apps",
+      "about": "About"
+    },
     "language": "Language",
     "languageSystem": "System",
     "launchAtLogin": "Open at Login",
@@ -61,12 +84,38 @@
     "tagline": "A dynamic island for Windows.",
     "version": "Version {{version}}",
     "github": "View on GitHub",
-    "license": "Open source under the MIT License."
+    "license": "Open source under the MIT License.",
+    "integrations": "Integrations",
+    "claudeConnected": "Connected. New Claude Code sessions report to Duri.",
+    "claudeNotConnected": "Adds hooks to ~/.claude/settings.json and keeps a backup. Your own hooks stay untouched.",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "codexHint": "Sessions in ~/.codex/sessions are picked up automatically.",
+    "serverDown": "Duri couldn’t open port 47321, so Claude Code can’t reach it. Close whatever uses that port and restart Duri."
   },
   "tray": {
     "settings": "Settings…",
     "hide": "Hide Island",
     "show": "Show Island",
     "quit": "Quit Duri"
+  },
+  "sessions": {
+    "status": {
+      "working": "Working",
+      "waiting": "Needs You",
+      "done": "Done",
+      "idle": "Idle"
+    },
+    "agent": {
+      "claude": "Claude Code",
+      "codex": "Codex"
+    },
+    "acknowledge": "Got It",
+    "remove": "Remove from list",
+    "now": "now",
+    "empty": "No Active Sessions",
+    "emptyHint": "Start Claude Code or Codex and it shows up here.",
+    "connect": "Connect Claude Code",
+    "connectHint": "Duri adds a few hooks to Claude Code’s settings so it can follow your sessions. Your own hooks stay as they are."
   }
 }

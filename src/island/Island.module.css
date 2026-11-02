@@ -35,6 +35,16 @@
     0 12px 32px rgba(0, 0, 0, 0.38);
 }
 
+/* App-provided tint (e.g. album color) under the content; fills the island
+   at whatever size it is mid-morph. */
+.backdrop {
+  grid-area: 1 / 1;
+  justify-self: stretch;
+  align-self: stretch;
+  pointer-events: none;
+  transition: opacity 360ms ease;
+}
+
 .layer {
   grid-area: 1 / 1;
   min-width: 0;

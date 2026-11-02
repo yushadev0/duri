@@ -1,0 +1,213 @@
+.pill {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px 0 12px;
+}
+
+.pillRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--island-fg-2);
+}
+
+/* Working: three dots breathing in sequence. */
+.dots {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: breathe 1.2s ease-in-out infinite;
+}
+
+.dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.bang {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #000;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.idleDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--island-fg-3);
+}
+
+.minimal {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid;
+}
+
+.compact {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px 0 14px;
+}
+
+.tile {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--island-fill);
+}
+
+.meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.project {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.detail {
+  font-size: 12px;
+  color: var(--island-fg-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip {
+  --tone: var(--island-fg);
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 18%, transparent);
+}
+
+.list {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 2px;
+}
+
+.row + .row {
+  border-top: 1px solid var(--island-fill);
+}
+
+.rowIcon {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--island-fill);
+}
+
+.rowTop {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ago {
+  flex: none;
+  font-size: 11px;
+  color: var(--island-fg-3);
+}
+
+.empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  padding: 0 24px 8px;
+}
+
+.emptyTitle {
+  margin: 4px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.emptyHint {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--island-fg-2);
+  max-width: 320px;
+}
+
+.error {
+  margin: 0;
+  font-size: 11px;
+  color: var(--accent-stop);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dots i {
+    animation: none;
+    opacity: 1;
+  }
+}
