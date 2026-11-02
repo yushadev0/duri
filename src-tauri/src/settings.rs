@@ -19,6 +19,8 @@ pub struct Settings {
     pub pill_size: String,
     /// Volume keys show Duri's indicator instead of the Windows popup.
     pub replace_volume_flyout: bool,
+    /// What the empty idle pill shows: "none", "clock", "stats" or "both".
+    pub idle_info: String,
 }
 
 impl Default for Settings {
@@ -29,6 +31,7 @@ impl Default for Settings {
             island_style: "floating".into(),
             pill_size: "default".into(),
             replace_volume_flyout: false,
+            idle_info: "clock".into(),
         }
     }
 }

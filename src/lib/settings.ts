@@ -6,6 +6,7 @@ export type LanguagePref = "system" | "en" | "tr";
 
 export type IslandStyle = "floating" | "attached";
 export type PillSize = "compact" | "default" | "large";
+export type IdleInfo = "none" | "clock" | "stats" | "both";
 
 export interface Settings {
   language: LanguagePref;
@@ -13,6 +14,7 @@ export interface Settings {
   islandStyle: IslandStyle;
   pillSize: PillSize;
   replaceVolumeFlyout: boolean;
+  idleInfo: IdleInfo;
 }
 
 export const settingsStore = createStore<Settings>({
@@ -21,6 +23,7 @@ export const settingsStore = createStore<Settings>({
   islandStyle: "floating",
   pillSize: "default",
   replaceVolumeFlyout: false,
+  idleInfo: "clock",
 });
 
 let started = false;

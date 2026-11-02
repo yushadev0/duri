@@ -8,12 +8,14 @@ import { registry } from "../apps/registry";
 import type { Activity, DuriApp, Size } from "../apps/types";
 import { contentIn, contentOut, morphSpring, reducedTransition, settleSpring } from "../design/motion";
 import { useSettings } from "../lib/settings";
+import { startSystemStats } from "../lib/systemStats";
 import { IslandContext, setIslandFocus, type IslandControls } from "./context";
 import { ExpandedChrome } from "./ExpandedChrome";
 import {
   COMPACT_DEFAULT,
   EMPTY_PILL,
   HOME_SIZE,
+  IDLE_PILL,
   HOVER_DELAY_MS,
   LEAVE_DELAY_EXPANDED_MS,
   LEAVE_DELAY_MS,
@@ -28,6 +30,7 @@ import {
   topInset,
 } from "./geometry";
 import { Home } from "./Home";
+import { IdleInfo } from "./IdleInfo";
 import styles from "./Island.module.css";
 import { initialIslandState, islandReducer, type IslandState } from "./state";
 
@@ -101,7 +104,10 @@ export function Island() {
     [settings.disabledApps],
   );
 
-  useEffect(() => registry.forEach((a) => a.start?.()), []);
+  useEffect(() => {
+    registry.forEach((a) => a.start?.());
+    startSystemStats();
+  }, []);
 
   const [activities, setActivities] = useState<Record<string, Activity | null>>({});
   const report = useCallback(
@@ -190,7 +196,7 @@ export function Island() {
 
   // The idle pill (and its bubble) scale with the Pill size setting; the
   // content is drawn at base size and zoomed so it stays crisp.
-  const base = sizeOf(view);
+  const base = view.kind === "empty" ? (IDLE_PILL[settings.idleInfo] ?? EMPTY_PILL) : sizeOf(view);
   const zoom = view.kind === "pill" || view.kind === "empty" ? PILL_SCALE[settings.pillSize] ?? 1 : 1;
   const size = { w: Math.round(base.w * zoom), h: Math.round(base.h * zoom) };
   const bubbleZoom = PILL_SCALE[settings.pillSize] ?? 1;
@@ -220,6 +226,9 @@ export function Island() {
 
   let content: React.ReactNode = null;
   switch (view.kind) {
+    case "empty":
+      content = <IdleInfo mode={settings.idleInfo} />;
+      break;
     case "pill":
       content = <view.app.Pill />;
       break;
@@ -272,9 +281,9 @@ export function Island() {
               key={viewKey}
               className={styles.layer}
               style={{ width: base.w, height: base.h, zoom }}
-              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.94, filter: "blur(6px)" }}
-              animate={{ opacity: 1, scale: 1, filter: "blur(0px)", transition: contentIn }}
-              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.94, filter: "blur(6px)", transition: contentOut }}
+              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1, transition: contentIn }}
+              exit={{ opacity: 0, transition: contentOut }}
             >
               {content}
             </motion.div>

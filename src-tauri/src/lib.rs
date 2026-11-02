@@ -2,6 +2,7 @@ mod apps;
 mod db;
 mod island_window;
 mod settings;
+mod system;
 mod time;
 mod tray;
 
@@ -28,6 +29,7 @@ pub fn run() {
             app.manage(island_window::IslandState::default());
 
             apps::init(app.handle(), db, &dir);
+            system::init(app.handle());
             island_window::create(app.handle())?;
             island_window::spawn_hit_test(app.handle().clone());
             tray::create(app.handle())?;
@@ -48,6 +50,7 @@ pub fn run() {
             apps::notes::note_delete,
             apps::notes::note_set_pinned,
             settings::settings_get,
+            system::system_stats,
             settings::settings_set,
             tray::open_settings_window,
             tray::tray_set_labels,

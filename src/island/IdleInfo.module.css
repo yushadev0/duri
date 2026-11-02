@@ -1,0 +1,39 @@
+.idle {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 15px;
+}
+
+.time {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.date {
+  font-size: 12px;
+  color: var(--island-fg-2);
+  white-space: nowrap;
+}
+
+.stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--island-fg-2);
+}
+
+.stat svg {
+  color: var(--island-fg-3);
+}

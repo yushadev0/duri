@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { registry } from "../apps/registry";
 import { refreshHooks, sessionActions, useHookStatus } from "../apps/sessions/store";
 import { DuriMark } from "../components/DuriMark";
-import { updateSettings, useSettings, type IslandStyle, type LanguagePref, type PillSize } from "../lib/settings";
+import { updateSettings, useSettings, type IdleInfo, type IslandStyle, type LanguagePref, type PillSize } from "../lib/settings";
 import styles from "./Settings.module.css";
 
 type Pane = "general" | "apps" | "about";
@@ -146,6 +146,19 @@ function General() {
               { value: "compact", label: t("settings.sizeCompact") },
               { value: "default", label: t("settings.sizeDefault") },
               { value: "large", label: t("settings.sizeLarge") },
+            ]}
+          />
+        </Row>
+        <Row title={t("settings.idleInfo")} hint={t("settings.idleInfoHint")}>
+          <Segmented<IdleInfo>
+            label={t("settings.idleInfo")}
+            value={settings.idleInfo}
+            onChange={(idleInfo) => updateSettings({ idleInfo })}
+            options={[
+              { value: "none", label: t("settings.idleNone") },
+              { value: "clock", label: t("settings.idleClock") },
+              { value: "stats", label: t("settings.idleStats") },
+              { value: "both", label: t("settings.idleBoth") },
             ]}
           />
         </Row>

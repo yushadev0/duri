@@ -115,7 +115,13 @@
     "sizeDefault": "Default",
     "sizeLarge": "Large",
     "replaceFlyout": "Replace Windows Volume Popup",
-    "replaceFlyoutHint": "The volume keys show Duri’s indicator instead of the Windows popup."
+    "replaceFlyoutHint": "The volume keys show Duri’s indicator instead of the Windows popup.",
+    "idleInfo": "When Idle",
+    "idleInfoHint": "What the pill shows when nothing is going on.",
+    "idleNone": "Nothing",
+    "idleClock": "Clock",
+    "idleStats": "CPU & RAM",
+    "idleBoth": "Both"
   },
   "tray": {
     "settings": "Settings…",
@@ -189,5 +195,9 @@
     "unmute": "Unmute",
     "level": "Volume",
     "muted": "Muted"
+  },
+  "idle": {
+    "cpu": "CPU usage",
+    "memory": "Memory usage"
   }
 }

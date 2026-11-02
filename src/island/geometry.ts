@@ -1,5 +1,5 @@
 import type { Size } from "../apps/types";
-import type { IslandStyle, PillSize } from "../lib/settings";
+import type { IdleInfo, IslandStyle, PillSize } from "../lib/settings";
 
 /** Keep in sync with WIDTH/HEIGHT in src-tauri/src/island_window.rs. */
 export const WINDOW_WIDTH = 640;
@@ -9,6 +9,13 @@ export const TOP_INSET = 6;
 
 export const PILL_HEIGHT = 34;
 export const EMPTY_PILL: Size = { w: 124, h: PILL_HEIGHT };
+/** Idle pill width for each Settings › Island › Idle pill option. */
+export const IDLE_PILL: Record<IdleInfo, Size> = {
+  none: EMPTY_PILL,
+  clock: { w: 168, h: PILL_HEIGHT },
+  stats: { w: 176, h: PILL_HEIGHT },
+  both: { w: 236, h: PILL_HEIGHT },
+};
 export const MINIMAL_SIZE = 34;
 export const MINIMAL_GAP = 8;
 export const COMPACT_DEFAULT: Size = { w: 372, h: 72 };

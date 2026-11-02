@@ -20,7 +20,7 @@ Duri's features are called **apps**. Each one can be switched off in Settings â€
 
 ## How it behaves
 
-- **Idle:** a pill showing the most important live activity. A second activity appears as a small bubble beside it.
+- **Idle:** a pill showing the most important live activity. A second activity appears as a small bubble beside it. With nothing going on, the pill can show the time, CPU and RAM usage, or both.
 - **Hover:** a compact view of that activity, or the clock and an app launcher.
 - **Click:** the full app, with a switcher for the other apps.
 - Clicks on empty space around the island pass through to the windows underneath, and the island never takes focus from what you are typing in.

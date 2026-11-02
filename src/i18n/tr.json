@@ -115,7 +115,13 @@
     "sizeDefault": "Varsayılan",
     "sizeLarge": "Büyük",
     "replaceFlyout": "Windows Ses Penceresinin Yerine Geç",
-    "replaceFlyoutHint": "Ses tuşlarına basınca Windows’un penceresi yerine Duri’nin göstergesi çıkar."
+    "replaceFlyoutHint": "Ses tuşlarına basınca Windows’un penceresi yerine Duri’nin göstergesi çıkar.",
+    "idleInfo": "Boştayken",
+    "idleInfoHint": "Bir şey olmadığında pill’de ne görünsün.",
+    "idleNone": "Hiçbiri",
+    "idleClock": "Saat",
+    "idleStats": "CPU ve RAM",
+    "idleBoth": "İkisi"
   },
   "tray": {
     "settings": "Ayarlar…",
@@ -189,5 +195,9 @@
     "unmute": "Sesi Aç",
     "level": "Ses",
     "muted": "Sessiz"
+  },
+  "idle": {
+    "cpu": "İşlemci kullanımı",
+    "memory": "Bellek kullanımı"
   }
 }
