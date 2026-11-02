@@ -37,4 +37,4 @@ Ideas queue lives in TODO.md (do after the planned items).
 Done too: Clipboard (search, pin, paste back; verified end to end).
 Done too: Notes (autosave, focus verified with a scratch window).
 Done too: TODO ideas (island style, pill size, bottom dock, volume HUD + flyout replacement, music volume slider).
-Next: GitHub Releases + tauri updater (user postponed it; ask before starting).
+Next: see TODO.md › Next (GitHub page, demo video, Releases + updater, 12/24h clock, transparency, tuck away, hide in fullscreen). TODO.md › Suggestions are Claude's ideas: ask before doing them.
