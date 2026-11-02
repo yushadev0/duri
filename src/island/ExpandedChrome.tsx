@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { DuriApp } from "../apps/types";
 import { IconButton } from "../components/Button";
 import styles from "./ExpandedChrome.module.css";
-import { CONTENT_PADDING, EXPANDED_HEADER } from "./geometry";
+import { CONTENT_PADDING, EXPANDED_DOCK } from "./geometry";
 
 interface Props {
   apps: DuriApp[];
@@ -14,38 +14,47 @@ interface Props {
   children: ReactNode;
 }
 
-/** Shared header of every expanded app: its name, then the other apps. */
+/**
+ * Frame of every expanded app: the app's content on top, a dock of all apps
+ * at the bottom. The current app is shown with its name in its own color.
+ */
 export function ExpandedChrome({ apps, current, onSelect, onSettings, children }: Props) {
   const { t } = useTranslation();
   return (
     <div
       className={styles.expanded}
-      style={{ "--header": `${EXPANDED_HEADER}px`, "--pad": `${CONTENT_PADDING}px` } as CSSProperties}
+      style={{ "--dock": `${EXPANDED_DOCK}px`, "--pad": `${CONTENT_PADDING}px` } as CSSProperties}
     >
-      <header className={styles.header}>
-        <span className={styles.title} style={{ color: current.accent }}>
-          <current.Icon size={15} />
-          {t(current.nameKey)}
-        </span>
-        <nav className={styles.switcher}>
-          {apps
-            .filter((a) => a.id !== current.id)
-            .map((app) => (
+      <div className={styles.body}>{children}</div>
+      <nav className={styles.dock} aria-label={t("island.home")}>
+        <div className={styles.apps}>
+          {apps.map((app) =>
+            app.id === current.id ? (
+              <span
+                key={app.id}
+                className={styles.current}
+                style={{ "--tone": app.accent } as CSSProperties}
+                aria-current="page"
+              >
+                <app.Icon size={15} />
+                {t(app.nameKey)}
+              </span>
+            ) : (
               <IconButton
                 key={app.id}
                 label={t("island.switchTo", { name: t(app.nameKey) })}
-                size={28}
+                size={30}
                 onClick={() => onSelect(app.id)}
               >
                 <app.Icon size={15} />
               </IconButton>
-            ))}
-          <IconButton label={t("island.openSettings")} size={28} onClick={onSettings}>
-            <Settings2 size={15} />
-          </IconButton>
-        </nav>
-      </header>
-      <div className={styles.body}>{children}</div>
+            ),
+          )}
+        </div>
+        <IconButton label={t("island.openSettings")} size={30} onClick={onSettings}>
+          <Settings2 size={15} />
+        </IconButton>
+      </nav>
     </div>
   );
 }

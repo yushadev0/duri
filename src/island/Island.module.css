@@ -45,6 +45,34 @@
   transition: opacity 360ms ease;
 }
 
+/* Attached style: concave curves joining the island to the screen edge. */
+.fillet {
+  position: absolute;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+}
+
+.filletLeft {
+  right: 100%;
+  background: radial-gradient(circle at 0 100%, transparent 11.5px, var(--island-bg) 12px);
+}
+
+.filletRight {
+  left: 100%;
+  background: radial-gradient(circle at 100% 100%, transparent 11.5px, var(--island-bg) 12px);
+}
+
+.stage[data-style="attached"] .island {
+  box-shadow: none;
+}
+
+.stage[data-style="attached"] .island[data-mode="compact"],
+.stage[data-style="attached"] .island[data-mode="expanded"] {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.38);
+}
+
 .layer {
   grid-area: 1 / 1;
   min-width: 0;
@@ -53,8 +81,6 @@
 .minimal {
   position: absolute;
   top: var(--top);
-  width: 34px;
-  height: 34px;
   padding: 0;
   border: 0;
   border-radius: 50%;

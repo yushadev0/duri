@@ -9,9 +9,9 @@
 
 ## Ideas (after the planned work)
 
-- [ ] **Island style setting:** *attached* (flush with the top edge, flat top corners, like a notch) or *floating* (current)
-- [ ] **Pill size setting:** compact / default / large
-- [ ] **App switcher at the bottom** of the expanded view instead of the header
+- [x] **Island style setting:** *attached* (flush with the top edge, flat top corners, like a notch) or *floating* (current)
+- [x] **Pill size setting:** compact / default / large
+- [x] **App switcher at the bottom** of the expanded view instead of the header
 - [ ] **Volume HUD in the pill:** show the system volume level in the island when it changes
 - [ ] **Setting to hide the Windows volume flyout** (so Duri's HUD replaces it)
 - [ ] **Volume slider in the Music app**

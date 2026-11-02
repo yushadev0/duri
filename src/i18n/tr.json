@@ -100,7 +100,16 @@
     "connect": "Bağla",
     "disconnect": "Bağlantıyı Kes",
     "codexHint": "~/.codex/sessions altındaki oturumlar otomatik algılanır.",
-    "serverDown": "Duri 47321 portunu açamadı, bu yüzden Claude Code ona ulaşamıyor. O portu kullanan uygulamayı kapatıp Duri’yi yeniden başlat."
+    "serverDown": "Duri 47321 portunu açamadı, bu yüzden Claude Code ona ulaşamıyor. O portu kullanan uygulamayı kapatıp Duri’yi yeniden başlat.",
+    "island": "Ada",
+    "islandStyle": "Stil",
+    "islandStyleHint": "Yapışık stil, çentik gibi ekranın üst kenarından sarkar.",
+    "floating": "Yüzen",
+    "attached": "Yapışık",
+    "pillSize": "Pill Boyutu",
+    "sizeCompact": "Küçük",
+    "sizeDefault": "Varsayılan",
+    "sizeLarge": "Büyük"
   },
   "tray": {
     "settings": "Ayarlar…",

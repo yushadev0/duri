@@ -15,7 +15,7 @@ An app has a UI half (`src/apps/<id>/`) and, if it needs Windows APIs, backgroun
 
 1. Create `src/apps/<id>/` with:
    - a store mirroring the backend state (`createStore` + `listen`) and a `start()` that subscribes once;
-   - the four presentations: `Minimal` (34×34 bubble), `Pill` (height 34, `pillWidth` wide), `Compact` (hover, default 372×72), `Expanded` (click; the top 44 px are the shared header);
+   - the four presentations: `Minimal` (34×34 bubble), `Pill` (height 34, `pillWidth` wide), `Compact` (hover, default 372×72), `Expanded` (click; the bottom 44 px are the shared app dock);
    - a `useActivity()` hook returning `null` or a **stable** `Activity` object (use constants or `useMemo`).
 2. Export a `DuriApp` object and add it to `src/apps/registry.ts`.
 3. Add `apps.<id>.name` / `apps.<id>.description` and every string you use to `src/i18n/en.json` and `tr.json`.

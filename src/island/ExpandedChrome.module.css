@@ -4,31 +4,44 @@
   flex-direction: column;
 }
 
-.header {
-  flex: none;
-  height: var(--header);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 12px 0 22px;
-}
-
-.title {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.switcher {
-  display: flex;
-  gap: 2px;
-  color: var(--island-fg-2);
-}
-
 .body {
   flex: 1;
   min-height: 0;
-  padding: 0 var(--pad) var(--pad);
+  padding: var(--pad) var(--pad) 4px;
+}
+
+.dock {
+  flex: none;
+  height: var(--dock);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px 4px;
+  color: var(--island-fg-2);
+}
+
+.apps {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* The open app: icon + name in its identity color. */
+.current {
+  --tone: var(--island-fg);
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px 0 10px;
+  margin-right: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tone) 20%, transparent);
+  color: var(--tone);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
 }

@@ -1,4 +1,5 @@
 import type { Size } from "../apps/types";
+import type { IslandStyle, PillSize } from "../lib/settings";
 
 /** Keep in sync with WIDTH/HEIGHT in src-tauri/src/island_window.rs. */
 export const WINDOW_WIDTH = 640;
@@ -13,8 +14,8 @@ export const MINIMAL_GAP = 8;
 export const COMPACT_DEFAULT: Size = { w: 372, h: 72 };
 /** Clock + launcher; wide enough for every app icon plus Settings. */
 export const HOME_SIZE: Size = { w: 500, h: 72 };
-/** Height of the shared expanded header (app title + switcher). */
-export const EXPANDED_HEADER = 44;
+/** Height of the shared app dock at the bottom of the expanded island. */
+export const EXPANDED_DOCK = 44;
 /** Inner padding of compact/expanded content; inner corner radius = outer − this. */
 export const CONTENT_PADDING = 14;
 
@@ -24,10 +25,31 @@ export const LEAVE_DELAY_EXPANDED_MS = 520;
 
 export type Mode = "idle" | "compact" | "expanded";
 
+/** Idle pill scale per Settings › General › Pill size. */
+export const PILL_SCALE: Record<PillSize, number> = { compact: 0.85, default: 1, large: 1.2 };
+
+export function topInset(style: IslandStyle) {
+  return style === "attached" ? 0 : TOP_INSET;
+}
+
 export function cornerRadius(mode: Mode, size: Size): number {
   if (mode === "idle") return size.h / 2;
   if (mode === "compact") return Math.min(30, size.h / 2);
   return 34;
+}
+
+export interface Corners {
+  borderTopLeftRadius: number;
+  borderTopRightRadius: number;
+  borderBottomRightRadius: number;
+  borderBottomLeftRadius: number;
+}
+
+/** Attached islands hang from the screen edge, so their top corners are square. */
+export function corners(mode: Mode, size: Size, style: IslandStyle): Corners {
+  const r = cornerRadius(mode, size);
+  const top = style === "attached" ? 0 : r;
+  return { borderTopLeftRadius: top, borderTopRightRadius: top, borderBottomRightRadius: r, borderBottomLeftRadius: r };
 }
 
 export interface Rect {
@@ -37,17 +59,12 @@ export interface Rect {
   h: number;
 }
 
-export function islandRect(size: Size): Rect {
-  return { x: (WINDOW_WIDTH - size.w) / 2, y: TOP_INSET, w: size.w, h: size.h };
+export function islandRect(size: Size, top: number): Rect {
+  return { x: (WINDOW_WIDTH - size.w) / 2, y: top, w: size.w, h: size.h };
 }
 
-export function minimalRect(main: Size): Rect {
-  return {
-    x: (WINDOW_WIDTH + main.w) / 2 + MINIMAL_GAP,
-    y: TOP_INSET,
-    w: MINIMAL_SIZE,
-    h: MINIMAL_SIZE,
-  };
+export function minimalRect(main: Size, top: number, side: number): Rect {
+  return { x: (WINDOW_WIDTH + main.w) / 2 + MINIMAL_GAP, y: top, w: side, h: side };
 }
 
 export function inflate(r: Rect, by: number): Rect {

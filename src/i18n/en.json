@@ -100,7 +100,16 @@
     "connect": "Connect",
     "disconnect": "Disconnect",
     "codexHint": "Sessions in ~/.codex/sessions are picked up automatically.",
-    "serverDown": "Duri couldn’t open port 47321, so Claude Code can’t reach it. Close whatever uses that port and restart Duri."
+    "serverDown": "Duri couldn’t open port 47321, so Claude Code can’t reach it. Close whatever uses that port and restart Duri.",
+    "island": "Island",
+    "islandStyle": "Style",
+    "islandStyleHint": "Attached hangs from the top edge of the screen, like a notch.",
+    "floating": "Floating",
+    "attached": "Attached",
+    "pillSize": "Pill Size",
+    "sizeCompact": "Small",
+    "sizeDefault": "Default",
+    "sizeLarge": "Large"
   },
   "tray": {
     "settings": "Settings…",

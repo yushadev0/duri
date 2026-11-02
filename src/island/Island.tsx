@@ -18,12 +18,14 @@ import {
   LEAVE_DELAY_EXPANDED_MS,
   LEAVE_DELAY_MS,
   MINIMAL_GAP,
+  MINIMAL_SIZE,
   PILL_HEIGHT,
-  TOP_INSET,
-  cornerRadius,
+  PILL_SCALE,
+  corners,
   inflate,
   islandRect,
   minimalRect,
+  topInset,
 } from "./geometry";
 import { Home } from "./Home";
 import styles from "./Island.module.css";
@@ -186,7 +188,15 @@ export function Island() {
 
   const view = resolveView(state.mode, state.appId, state.attention, primary?.app, apps);
 
-  const size = sizeOf(view);
+  // The idle pill (and its bubble) scale with the Pill size setting; the
+  // content is drawn at base size and zoomed so it stays crisp.
+  const base = sizeOf(view);
+  const zoom = view.kind === "pill" || view.kind === "empty" ? PILL_SCALE[settings.pillSize] ?? 1 : 1;
+  const size = { w: Math.round(base.w * zoom), h: Math.round(base.h * zoom) };
+  const bubbleZoom = PILL_SCALE[settings.pillSize] ?? 1;
+  const bubble = Math.round(MINIMAL_SIZE * bubbleZoom);
+  const attached = settings.islandStyle === "attached";
+  const top = topInset(settings.islandStyle);
   const mode = state.mode;
   const showMinimal = mode === "idle" && !!secondary;
   const viewKey = `${view.kind}:${"app" in view ? view.app.id : ""}`;
@@ -194,10 +204,10 @@ export function Island() {
 
   // Tell the backend which parts of the window are clickable.
   useEffect(() => {
-    const rects = [inflate(islandRect(size), 2)];
-    if (showMinimal) rects.push(minimalRect(size));
+    const rects = [inflate(islandRect(size, top), 2)];
+    if (showMinimal) rects.push(minimalRect(size, top, bubble));
     invoke("island_set_hit_rects", { rects }).catch(() => {});
-  }, [size.w, size.h, showMinimal]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [size.w, size.h, showMinimal, top, bubble]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const transition = reduceMotion ? reducedTransition : state.growing ? morphSpring : settleSpring;
 
@@ -230,19 +240,25 @@ export function Island() {
 
   return (
     <IslandContext.Provider value={controls}>
-    <div className={styles.stage} style={{ "--top": `${TOP_INSET}px` } as CSSProperties}>
+    <div className={styles.stage} data-style={settings.islandStyle} style={{ "--top": `${top}px` } as CSSProperties}>
       {apps.map((app) => (
         <AppProbe key={app.id} app={app} report={report} reportBackdrop={reportBackdrop} />
       ))}
 
       <div ref={scope} className={styles.anchor}>
+        {attached && (
+          <>
+            <span className={`${styles.fillet} ${styles.filletLeft}`} aria-hidden />
+            <span className={`${styles.fillet} ${styles.filletRight}`} aria-hidden />
+          </>
+        )}
         <motion.div
           className={styles.island}
           data-mode={mode}
           role="region"
           aria-label={t("island.label")}
           initial={false}
-          animate={{ width: size.w, height: size.h, borderRadius: cornerRadius(mode, size) }}
+          animate={{ width: size.w, height: size.h, ...corners(mode, size, settings.islandStyle) }}
           transition={transition}
           onClick={onIslandClick}
         >
@@ -255,7 +271,7 @@ export function Island() {
             <motion.div
               key={viewKey}
               className={styles.layer}
-              style={{ width: size.w, height: size.h }}
+              style={{ width: base.w, height: base.h, zoom }}
               initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.94, filter: "blur(6px)" }}
               animate={{ opacity: 1, scale: 1, filter: "blur(0px)", transition: contentIn }}
               exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.94, filter: "blur(6px)", transition: contentOut }}
@@ -272,7 +288,7 @@ export function Island() {
             key={secondary.app.id}
             type="button"
             className={styles.minimal}
-            style={{ left: `calc(50% + ${size.w / 2 + MINIMAL_GAP}px)` }}
+            style={{ left: `calc(50% + ${size.w / 2 + MINIMAL_GAP}px)`, width: bubble, height: bubble }}
             aria-label={t("island.switchTo", { name: t(secondary.app.nameKey) })}
             initial={{ opacity: 0, scale: 0.3, x: -24 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
@@ -280,7 +296,9 @@ export function Island() {
             transition={reduceMotion ? reducedTransition : morphSpring}
             onClick={() => open(secondary.app.id)}
           >
-            <secondary.app.Minimal />
+            <span style={{ zoom: bubbleZoom, display: "grid", placeItems: "center" }}>
+              <secondary.app.Minimal />
+            </span>
           </motion.button>
         )}
       </AnimatePresence>

@@ -13,6 +13,10 @@ pub struct Settings {
     pub language: String,
     /// App ids the user switched off in Settings › Apps.
     pub disabled_apps: Vec<String>,
+    /// "floating" (below the screen edge) or "attached" (hangs from it).
+    pub island_style: String,
+    /// "compact", "default" or "large": scale of the idle pill.
+    pub pill_size: String,
 }
 
 impl Default for Settings {
@@ -20,6 +24,8 @@ impl Default for Settings {
         Self {
             language: "system".into(),
             disabled_apps: Vec::new(),
+            island_style: "floating".into(),
+            pill_size: "default".into(),
         }
     }
 }

@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { registry } from "../apps/registry";
 import { refreshHooks, sessionActions, useHookStatus } from "../apps/sessions/store";
 import { DuriMark } from "../components/DuriMark";
-import { updateSettings, useSettings, type LanguagePref } from "../lib/settings";
+import { updateSettings, useSettings, type IslandStyle, type LanguagePref, type PillSize } from "../lib/settings";
 import styles from "./Settings.module.css";
 
 type Pane = "general" | "apps" | "about";
@@ -42,6 +42,35 @@ function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: 
     >
       <span className={styles.knob} />
     </button>
+  );
+}
+
+function Segmented<T extends string>({
+  value,
+  options,
+  onChange,
+  label,
+}: {
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (v: T) => void;
+  label: string;
+}) {
+  return (
+    <div className={styles.segmented} role="radiogroup" aria-label={label}>
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          role="radio"
+          aria-checked={value === o.value}
+          className={styles.segment}
+          onClick={() => onChange(o.value)}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -95,7 +124,31 @@ function General() {
           <Switch checked={!!autostart} onChange={toggleAutostart} label={t("settings.launchAtLogin")} />
         </Row>
       </section>
+      <h2 className={styles.groupTitle}>{t("settings.island")}</h2>
       <section className={styles.group}>
+        <Row title={t("settings.islandStyle")} hint={t("settings.islandStyleHint")}>
+          <Segmented<IslandStyle>
+            label={t("settings.islandStyle")}
+            value={settings.islandStyle}
+            onChange={(islandStyle) => updateSettings({ islandStyle })}
+            options={[
+              { value: "floating", label: t("settings.floating") },
+              { value: "attached", label: t("settings.attached") },
+            ]}
+          />
+        </Row>
+        <Row title={t("settings.pillSize")}>
+          <Segmented<PillSize>
+            label={t("settings.pillSize")}
+            value={settings.pillSize}
+            onChange={(pillSize) => updateSettings({ pillSize })}
+            options={[
+              { value: "compact", label: t("settings.sizeCompact") },
+              { value: "default", label: t("settings.sizeDefault") },
+              { value: "large", label: t("settings.sizeLarge") },
+            ]}
+          />
+        </Row>
         <Row title={t("settings.usage")} hint={t("settings.usageHint")} />
       </section>
     </>

@@ -4,12 +4,22 @@ import { createStore, useStore } from "./store";
 
 export type LanguagePref = "system" | "en" | "tr";
 
+export type IslandStyle = "floating" | "attached";
+export type PillSize = "compact" | "default" | "large";
+
 export interface Settings {
   language: LanguagePref;
   disabledApps: string[];
+  islandStyle: IslandStyle;
+  pillSize: PillSize;
 }
 
-export const settingsStore = createStore<Settings>({ language: "system", disabledApps: [] });
+export const settingsStore = createStore<Settings>({
+  language: "system",
+  disabledApps: [],
+  islandStyle: "floating",
+  pillSize: "default",
+});
 
 let started = false;
 

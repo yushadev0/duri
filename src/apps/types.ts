@@ -55,8 +55,8 @@ export interface DuriApp {
   compactSize?: Size;
   Expanded: ComponentType;
   /**
-   * Full island size when expanded. The top `EXPANDED_HEADER` px hold the
-   * shared header; the body gets the rest minus `CONTENT_PADDING`.
+   * Full island size when expanded. The bottom `EXPANDED_DOCK` px hold the
+   * shared app dock; the body gets the rest minus `CONTENT_PADDING`.
    */
   expandedSize: Size;
 }
