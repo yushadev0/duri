@@ -132,6 +132,18 @@ fn worker(app: AppHandle, rx: Receiver<Cmd>) {
         }
 
         let (mut state, session) = read_state(mgr, &selected);
+        // Reading media properties sometimes fails for a moment; don't let
+        // the title blink to empty while the same player is still playing.
+        if state.available
+            && state.source_app_id == last.source_app_id
+            && state.title.is_empty()
+            && !last.title.is_empty()
+        {
+            state.title = last.title.clone();
+            state.artist = last.artist.clone();
+            state.album = last.album.clone();
+            state.track_key = last.track_key.clone();
+        }
         if state.position_updated_at <= 0 {
             // Player did not report when the position was measured.
             let same = state.track_key == last.track_key && state.position_ms == last.position_ms;

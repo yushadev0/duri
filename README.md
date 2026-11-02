@@ -24,7 +24,7 @@ Duri's features are called **apps**. Each one can be switched off in Settings â€
 - **Hover:** a compact view of that activity, or the clock and an app launcher.
 - **Click:** the full app, with a switcher for the other apps.
 - Clicks on empty space around the island pass through to the windows underneath, and the island never takes focus from what you are typing in.
-- Tray icon: open Settings, hide or show the island, quit.
+- Tray icon or right-click on the island: open Settings, hide or show the island, quit.
 
 ## Install
 

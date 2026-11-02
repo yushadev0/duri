@@ -25,7 +25,13 @@ if (label === "island") {
     }).catch(() => {});
   syncTray();
   i18n.on("languageChanged", syncTray);
-  if (!import.meta.env.DEV) document.addEventListener("contextmenu", (e) => e.preventDefault());
+  // Right-click shows Duri's own menu (Settings, Hide, Quit) instead of the browser's.
+  document.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    invoke("island_context_menu").catch(() => {});
+  });
+} else if (!import.meta.env.DEV) {
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
 }
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

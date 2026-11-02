@@ -13,7 +13,12 @@ function Clock({ withDate }: { withDate: boolean }) {
   return (
     <>
       <span className={`${styles.time} tabular`}>{time}</span>
-      {withDate && <span className={styles.date}>{date}</span>}
+      {withDate && (
+        <>
+          <span className={styles.sep} aria-hidden />
+          <span className={styles.date}>{date}</span>
+        </>
+      )}
     </>
   );
 }
@@ -45,6 +50,7 @@ export function IdleInfo({ mode }: { mode: IdleInfoMode }) {
       {mode === "both" && (
         <>
           <Clock withDate={false} />
+          <span className={styles.sep} aria-hidden />
           <Stats />
         </>
       )}

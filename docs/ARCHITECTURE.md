@@ -30,7 +30,7 @@ Because the window is much bigger than the visible pill, it ignores cursor event
 
 ## Focus
 
-Clicking the island must not take focus from the app the person is typing in. `WS_EX_NOACTIVATE` alone isn't enough, because a click on WebView2 can still activate the window. So the hit-test thread also remembers the last foreground window that isn't Duri's (`last_external`). Whenever the island ends up in front without being in typing mode, focus goes straight back to that window.
+Hovering never takes focus (`WS_EX_NOACTIVATE`). A click does bring the island to the front (WebView2 activates it), and Duri keeps it that way while the island is open: bouncing focus back right away made the whole screen flicker. When the island rests again (pointer left, Esc, or the person clicked elsewhere), `island_set_focus(false)` hands focus back to `last_external`, the last foreground window that isn't Duri's, which the hit-test thread keeps track of. If another app is already in front by then, it is left alone.
 
 Text fields (Clipboard search, Notes) call `useIsland().setTyping(true)`. That removes `WS_EX_NOACTIVATE`, brings the island to the front, and locks it open so the pointer leaving doesn't collapse it. Windows usually refuses that because the click went to WebView2's process, so `force_activate` briefly attaches to the foreground thread's input (`AttachThreadInput`). Leaving typing mode is debounced by 150 ms: taking focus makes the field blur and refocus, and reacting to that blur would send the next keystrokes to another app. `setTyping(false)`, Esc, or collapsing gives focus back to `last_external`. Pasting (`clip_paste`) does the same and then sends Ctrl+V, so the paste lands where the person was.
 

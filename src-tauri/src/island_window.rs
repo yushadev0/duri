@@ -196,7 +196,8 @@ fn island_hwnd(app: &AppHandle) -> Option<isize> {
 }
 
 /// Lets the island take keyboard focus (for text fields), or gives focus back
-/// to the app the person was using.
+/// to the app the person was using. Clicking the island also brings it to the
+/// front; that focus is kept until the island rests again (see `Island.tsx`).
 #[cfg(windows)]
 pub fn set_focused(app: &AppHandle, focused: bool) {
     use windows::Win32::Foundation::HWND;
@@ -206,19 +207,26 @@ pub fn set_focused(app: &AppHandle, focused: bool) {
     let hwnd = HWND(raw as _);
     let state = app.state::<IslandState>();
     let Ok(mut s) = state.0.lock() else { return };
-    if focused == s.focused {
-        return;
-    }
-    s.focused = focused;
     unsafe {
         let ex = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
         if focused {
+            if s.focused {
+                return;
+            }
+            s.focused = true;
             SetWindowLongPtrW(hwnd, GWL_EXSTYLE, ex & !(WS_EX_NOACTIVATE.0 as isize));
             fg::force_activate(raw);
             let _ = win.set_focus();
         } else {
-            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, ex | WS_EX_NOACTIVATE.0 as isize);
-            fg::activate(s.last_external);
+            if std::mem::replace(&mut s.focused, false) {
+                SetWindowLongPtrW(hwnd, GWL_EXSTYLE, ex | WS_EX_NOACTIVATE.0 as isize);
+            }
+            // A click on the island makes it the foreground window. Hand
+            // focus back only if it still is: if the person already clicked
+            // into another app, leave that alone.
+            if fg::current() == raw {
+                fg::activate(s.last_external);
+            }
         }
     }
 }
@@ -235,19 +243,13 @@ pub fn release_focus(app: &AppHandle) {
     }
 }
 
-/// Remembers the last foreground window outside Duri. Clicking the webview
-/// can activate the island even with WS_EX_NOACTIVATE; unless someone is
-/// typing in the island, focus goes straight back to that window.
+/// Remembers the last foreground window outside Duri: where focus goes back
+/// to when the island lets go of it, and where pasting goes.
 #[cfg(windows)]
-fn track_foreground(app: &AppHandle, s: &mut Inner) {
+fn track_foreground(s: &mut Inner) {
     let current = fg::current();
-    if current == 0 {
-        return;
-    }
-    if !fg::is_ours(current) {
+    if current != 0 && !fg::is_ours(current) {
         s.last_external = current;
-    } else if !s.focused && Some(current) == island_hwnd(app) && s.last_external != 0 {
-        fg::activate(s.last_external);
     }
 }
 
@@ -275,7 +277,7 @@ pub fn spawn_hit_test(app: AppHandle) {
             let state = app.state::<IslandState>();
             let Ok(mut s) = state.0.lock() else { continue };
             #[cfg(windows)]
-            track_foreground(&app, &mut s);
+            track_foreground(&mut s);
             let inside = !s.hidden && s.rects.iter().any(|r| r.contains(lx, ly));
             if inside != s.inside {
                 s.inside = inside;

@@ -12,12 +12,17 @@ export interface IslandState {
   growing: boolean;
   /** Held open while someone types in it; pointer leaving doesn't collapse. */
   locked: boolean;
+  /**
+   * App shown in compact while hovering, fixed when the hover starts so the
+   * view doesn't jump if activity priorities change underneath (null = home).
+   */
+  peek: string | null;
 }
 
 export type IslandAction =
   | { type: "pointer"; inside: boolean }
-  /** Debounced: pointer has rested on the island. */
-  | { type: "hover" }
+  /** Debounced: pointer has rested on the island; `appId` is the app to peek at. */
+  | { type: "hover"; appId: string | null }
   /** Debounced: pointer has left the island. */
   | { type: "leave" }
   | { type: "open"; appId: string }
@@ -33,6 +38,7 @@ export const initialIslandState: IslandState = {
   pointerInside: false,
   growing: true,
   locked: false,
+  peek: null,
 };
 
 const rank: Record<Mode, number> = { idle: 0, compact: 1, expanded: 2 };
@@ -51,7 +57,7 @@ export function islandReducer(s: IslandState, a: IslandAction): IslandState {
     case "pointer":
       return s.pointerInside === a.inside ? s : { ...s, pointerInside: a.inside };
     case "hover":
-      return s.mode === "idle" && s.pointerInside ? withMode(s, "compact") : s;
+      return s.mode === "idle" && s.pointerInside ? withMode(s, "compact", { peek: a.appId }) : s;
     case "leave":
       if (s.pointerInside || s.locked) return s;
       return s.mode === restingMode(s) ? s : withMode(s, restingMode(s));

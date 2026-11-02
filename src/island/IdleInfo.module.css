@@ -2,9 +2,16 @@
   height: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 0 15px;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+}
+
+.sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--island-fg-3);
 }
 
 .time {
@@ -22,7 +29,6 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  margin-left: auto;
 }
 
 .stat {

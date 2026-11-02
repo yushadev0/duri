@@ -5,14 +5,14 @@ const run = (actions: Parameters<typeof r>[1][], from: IslandState = init) => ac
 
 describe("islandReducer", () => {
   it("hover opens compact only while the pointer is inside", () => {
-    expect(run([{ type: "hover" }]).mode).toBe("idle");
-    const s = run([{ type: "pointer", inside: true }, { type: "hover" }]);
+    expect(run([{ type: "hover", appId: null }]).mode).toBe("idle");
+    const s = run([{ type: "pointer", inside: true }, { type: "hover", appId: null }]);
     expect(s.mode).toBe("compact");
     expect(s.growing).toBe(true);
   });
 
   it("leave collapses unless the pointer came back", () => {
-    const open = run([{ type: "pointer", inside: true }, { type: "hover" }]);
+    const open = run([{ type: "pointer", inside: true }, { type: "hover", appId: null }]);
     expect(run([{ type: "leave" }], open).mode).toBe("compact");
     const left = run([{ type: "pointer", inside: false }, { type: "leave" }], open);
     expect(left.mode).toBe("idle");
@@ -51,5 +51,10 @@ describe("islandReducer", () => {
     expect(s.mode).toBe("expanded");
     expect(run([{ type: "lock", locked: false }, { type: "leave" }], s).mode).toBe("idle");
     expect(run([{ type: "collapse" }], s)).toMatchObject({ mode: "idle", locked: false });
+  });
+
+  it("hover remembers which app to peek at", () => {
+    const s = run([{ type: "pointer", inside: true }, { type: "hover", appId: "music" }]);
+    expect(s).toMatchObject({ mode: "compact", peek: "music" });
   });
 });

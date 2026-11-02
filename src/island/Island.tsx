@@ -60,6 +60,7 @@ function resolveView(
   mode: IslandState["mode"],
   appId: string | null,
   attention: string | null,
+  peek: string | null,
   primary: DuriApp | undefined,
   apps: DuriApp[],
 ): View {
@@ -69,7 +70,7 @@ function resolveView(
     return app ? { kind: "expanded", app } : { kind: "home" };
   }
   if (mode === "compact") {
-    const app = byId(attention) ?? primary;
+    const app = byId(attention) ?? byId(peek);
     return app ? { kind: "compact", app } : { kind: "home" };
   }
   return primary ? { kind: "pill", app: primary } : { kind: "empty" };
@@ -125,6 +126,11 @@ export function Island() {
   const secondary = ranked[1];
 
   const [state, dispatch] = useReducer(islandReducer, initialIslandState);
+  // Read by the hover timer, so it peeks at whatever is on top at that moment.
+  const primaryRef = useRef<string | null>(null);
+  useEffect(() => {
+    primaryRef.current = primary?.app.id ?? null;
+  });
 
   useEffect(() => {
     const un = listen<boolean>("island://pointer", (e) => dispatch({ type: "pointer", inside: e.payload }));
@@ -137,14 +143,18 @@ export function Island() {
   useEffect(() => {
     const inside = state.pointerInside;
     const delay = inside ? HOVER_DELAY_MS : state.mode === "expanded" ? LEAVE_DELAY_EXPANDED_MS : LEAVE_DELAY_MS;
-    const id = setTimeout(() => dispatch({ type: inside ? "hover" : "leave" }), delay);
+    const id = setTimeout(
+      () => dispatch(inside ? { type: "hover", appId: primaryRef.current } : { type: "leave" }),
+      delay,
+    );
     return () => clearTimeout(id);
   }, [state.pointerInside, state.mode, state.locked]);
 
-  // Give keyboard focus back whenever the island rests, and let Esc close it.
+  // Clicking the island brings it to the front; give focus back to the
+  // previous app as soon as it rests again (pointer left, Esc, outside click).
   useEffect(() => {
-    if (state.mode === "idle") setIslandFocus(false);
-  }, [state.mode]);
+    if (state.mode !== "expanded" && !state.locked) setIslandFocus(false);
+  }, [state.mode, state.locked]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && dispatch({ type: "collapse" });
     window.addEventListener("keydown", onKey);
@@ -192,7 +202,7 @@ export function Island() {
     }
   }, [alertKey, alertAppId, reduceMotion, animate, scope]);
 
-  const view = resolveView(state.mode, state.appId, state.attention, primary?.app, apps);
+  const view = resolveView(state.mode, state.appId, state.attention, state.peek, primary?.app, apps);
 
   // The idle pill (and its bubble) scale with the Pill size setting; the
   // content is drawn at base size and zoomed so it stays crisp.

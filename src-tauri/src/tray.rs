@@ -92,6 +92,34 @@ pub fn create(app: &AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
+/// The island's right-click menu: the same commands as the tray.
+#[tauri::command]
+pub async fn island_context_menu(app: AppHandle, window: tauri::WebviewWindow) -> Result<(), String> {
+    let labels = app.state::<Tray>().inner.lock().map_err(|e| e.to_string())?.labels.clone();
+    let item = |id: &str, text: &str| MenuItem::with_id(&app, id, text, true, None::<&str>);
+    let menu = Menu::with_items(
+        &app,
+        &[
+            &item("ctx-settings", &labels.settings).map_err(|e| e.to_string())?,
+            &item("ctx-hide", &labels.hide).map_err(|e| e.to_string())?,
+            &PredefinedMenuItem::separator(&app).map_err(|e| e.to_string())?,
+            &item("ctx-quit", &labels.quit).map_err(|e| e.to_string())?,
+        ],
+    )
+    .map_err(|e| e.to_string())?;
+    window.popup_menu(&menu).map_err(|e| e.to_string())
+}
+
+/// App-wide menu handler; tray items are handled by the tray itself.
+pub fn handle_menu_event(app: &AppHandle, id: &str) {
+    match id {
+        "ctx-settings" => open_settings(app),
+        "ctx-hide" => toggle_island(app),
+        "ctx-quit" => app.exit(0),
+        _ => {}
+    }
+}
+
 fn toggle_island(app: &AppHandle) {
     let tray = app.state::<Tray>();
     let Ok(mut inner) = tray.inner.lock() else { return };
