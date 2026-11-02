@@ -12,7 +12,7 @@
 - [x] **Island style setting:** *attached* (flush with the top edge, flat top corners, like a notch) or *floating* (current)
 - [x] **Pill size setting:** compact / default / large
 - [x] **App switcher at the bottom** of the expanded view instead of the header
-- [ ] **Volume HUD in the pill:** show the system volume level in the island when it changes
-- [ ] **Setting to hide the Windows volume flyout** (so Duri's HUD replaces it)
-- [ ] **Volume slider in the Music app**
+- [x] **Volume HUD in the pill:** show the system volume level in the island when it changes
+- [x] **Setting to hide the Windows volume flyout** (so Duri's HUD replaces it)
+- [x] **Volume slider in the Music app**
 - [x] Music app: background gradient from the album cover color into black

@@ -7,6 +7,7 @@ pub mod music;
 pub mod notes;
 pub mod sessions;
 pub mod timers;
+pub mod volume;
 
 use crate::db::Db;
 use std::path::Path;
@@ -14,9 +15,11 @@ use std::sync::Arc;
 use tauri::AppHandle;
 
 pub fn init(app: &AppHandle, db: Arc<Db>, data_dir: &Path) {
+    let settings = crate::settings::load(&db);
     clipboard::init(app, db.clone(), data_dir);
     notes::init(app, db.clone());
     timers::init(app, db);
     music::init(app);
     sessions::init(app);
+    volume::init(app, settings.replace_volume_flyout);
 }

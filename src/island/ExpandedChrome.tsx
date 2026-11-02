@@ -28,7 +28,7 @@ export function ExpandedChrome({ apps, current, onSelect, onSettings, children }
       <div className={styles.body}>{children}</div>
       <nav className={styles.dock} aria-label={t("island.home")}>
         <div className={styles.apps}>
-          {apps.map((app) =>
+          {apps.filter((a) => !a.hidden || a.id === current.id).map((app) =>
             app.id === current.id ? (
               <span
                 key={app.id}

@@ -32,6 +32,10 @@
     "notes": {
       "name": "Notlar",
       "description": "Yaptığın işi bırakmadan not al."
+    },
+    "volume": {
+      "name": "Ses",
+      "description": "Ses seviyesi değişince adada gösterir."
     }
   },
   "music": {
@@ -109,7 +113,9 @@
     "pillSize": "Pill Boyutu",
     "sizeCompact": "Küçük",
     "sizeDefault": "Varsayılan",
-    "sizeLarge": "Büyük"
+    "sizeLarge": "Büyük",
+    "replaceFlyout": "Windows Ses Penceresinin Yerine Geç",
+    "replaceFlyoutHint": "Ses tuşlarına basınca Windows’un penceresi yerine Duri’nin göstergesi çıkar."
   },
   "tray": {
     "settings": "Ayarlar…",
@@ -177,5 +183,11 @@
     "placeholder": "Yazmaya başla…",
     "noResults": "Eşleşme Yok",
     "count": "{{count}} not"
+  },
+  "volume": {
+    "mute": "Sesi Kapat",
+    "unmute": "Sesi Aç",
+    "level": "Ses",
+    "muted": "Sessiz"
   }
 }

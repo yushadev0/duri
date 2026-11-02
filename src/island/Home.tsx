@@ -25,7 +25,7 @@ export function Home({ apps, onOpen, onSettings }: HomeProps) {
         <span className={styles.date}>{date}</span>
       </div>
       <nav className={styles.launcher} aria-label={t("island.home")}>
-        {apps.map((app) => (
+        {apps.filter((a) => !a.hidden).map((app) => (
           <IconButton
             key={app.id}
             label={t("island.switchTo", { name: t(app.nameKey) })}

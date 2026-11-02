@@ -178,6 +178,18 @@ mod fg {
     }
 }
 
+/// Brings one of Duri's normal windows (e.g. Settings) to the front, even
+/// when the request came from a click inside the island.
+pub fn bring_to_front(win: &WebviewWindow) {
+    let _ = win.show();
+    let _ = win.unminimize();
+    #[cfg(windows)]
+    if let Ok(h) = win.hwnd() {
+        fg::force_activate(h.0 as isize);
+    }
+    let _ = win.set_focus();
+}
+
 #[cfg(windows)]
 fn island_hwnd(app: &AppHandle) -> Option<isize> {
     app.get_webview_window(LABEL).and_then(|w| w.hwnd().ok()).map(|h| h.0 as isize)

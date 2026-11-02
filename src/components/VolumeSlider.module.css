@@ -1,0 +1,40 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--island-fg-2);
+}
+
+.track {
+  flex: 1;
+  padding: 8px 0;
+  cursor: pointer;
+  touch-action: none;
+  outline: none;
+}
+
+.rail {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--island-fill);
+  overflow: hidden;
+  transition: height 120ms ease;
+}
+
+.track:hover .rail,
+.track[data-dragging="true"] .rail,
+.track:focus-visible .rail {
+  height: 7px;
+}
+
+.fill {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.value {
+  width: 26px;
+  text-align: right;
+  font-size: 11px;
+  color: var(--island-fg-3);
+}

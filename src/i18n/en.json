@@ -32,6 +32,10 @@
     "notes": {
       "name": "Notes",
       "description": "Jot things down without leaving what you are doing."
+    },
+    "volume": {
+      "name": "Volume",
+      "description": "Shows the volume level in the island when it changes."
     }
   },
   "music": {
@@ -109,7 +113,9 @@
     "pillSize": "Pill Size",
     "sizeCompact": "Small",
     "sizeDefault": "Default",
-    "sizeLarge": "Large"
+    "sizeLarge": "Large",
+    "replaceFlyout": "Replace Windows Volume Popup",
+    "replaceFlyoutHint": "The volume keys show Duri’s indicator instead of the Windows popup."
   },
   "tray": {
     "settings": "Settings…",
@@ -177,5 +183,11 @@
     "placeholder": "Start typing…",
     "noResults": "No Matches",
     "count": "{{count}} notes"
+  },
+  "volume": {
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "level": "Volume",
+    "muted": "Muted"
   }
 }

@@ -36,4 +36,5 @@ Done: shell, settings, tray, Music (+ cover gradient), Timer, Stopwatch, Session
 Ideas queue lives in TODO.md (do after the planned items).
 Done too: Clipboard (search, pin, paste back; verified end to end).
 Done too: Notes (autosave, focus verified with a scratch window).
-Next: GitHub Releases + tauri updater, then the TODO.md ideas.
+Done too: TODO ideas (island style, pill size, bottom dock, volume HUD + flyout replacement, music volume slider).
+Next: GitHub Releases + tauri updater (user postponed it; ask before starting).

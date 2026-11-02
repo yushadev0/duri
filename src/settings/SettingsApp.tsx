@@ -149,6 +149,13 @@ function General() {
             ]}
           />
         </Row>
+        <Row title={t("settings.replaceFlyout")} hint={t("settings.replaceFlyoutHint")}>
+          <Switch
+            checked={settings.replaceVolumeFlyout}
+            onChange={(replaceVolumeFlyout) => updateSettings({ replaceVolumeFlyout })}
+            label={t("settings.replaceFlyout")}
+          />
+        </Row>
         <Row title={t("settings.usage")} hint={t("settings.usageHint")} />
       </section>
     </>

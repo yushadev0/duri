@@ -17,6 +17,8 @@ pub struct Settings {
     pub island_style: String,
     /// "compact", "default" or "large": scale of the idle pill.
     pub pill_size: String,
+    /// Volume keys show Duri's indicator instead of the Windows popup.
+    pub replace_volume_flyout: bool,
 }
 
 impl Default for Settings {
@@ -26,17 +28,23 @@ impl Default for Settings {
             disabled_apps: Vec::new(),
             island_style: "floating".into(),
             pill_size: "default".into(),
+            replace_volume_flyout: false,
         }
     }
 }
 
+pub fn load(db: &Db) -> Settings {
+    db.get_json(NS, KEY).unwrap_or_default()
+}
+
 #[tauri::command]
 pub fn settings_get(db: State<'_, Arc<Db>>) -> Settings {
-    db.get_json(NS, KEY).unwrap_or_default()
+    load(&db)
 }
 
 #[tauri::command]
 pub fn settings_set(app: AppHandle, db: State<'_, Arc<Db>>, settings: Settings) -> Result<(), String> {
     db.set_json(NS, KEY, &settings)?;
+    crate::apps::volume::set_replace_flyout(settings.replace_volume_flyout);
     app.emit("settings://changed", &settings).map_err(|e| e.to_string())
 }

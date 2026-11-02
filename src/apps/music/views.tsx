@@ -2,6 +2,7 @@ import { ChevronsUpDown, Music2, Pause, Play, SkipBack, SkipForward } from "luci
 import { useRef, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton } from "../../components/Button";
+import { VolumeSlider } from "../../components/VolumeSlider";
 import { formatTrackTime } from "../../lib/format";
 import { useNow } from "../../lib/useNow";
 import styles from "./music.module.css";
@@ -203,6 +204,7 @@ export function MusicExpanded() {
           <SkipForward size={20} {...filled} />
         </IconButton>
       </div>
+      <VolumeSlider tone={accent} />
     </div>
   );
 }

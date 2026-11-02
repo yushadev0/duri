@@ -1,6 +1,7 @@
 import { Music2 } from "lucide-react";
 import { useMemo } from "react";
 import type { Activity, DuriApp } from "../types";
+import { startVolume } from "../volume/store";
 import { startMusic, useMusic } from "./store";
 import { MusicCompact, MusicExpanded, MusicMinimal, MusicPill } from "./views";
 
@@ -12,7 +13,10 @@ export const musicApp: DuriApp = {
   descriptionKey: "apps.music.description",
   Icon: Music2,
   accent: "var(--accent-music)",
-  start: startMusic,
+  start() {
+    startMusic();
+    startVolume();
+  },
   useActivity() {
     const { state } = useMusic();
     const active = state.available && state.playing;
@@ -30,5 +34,5 @@ export const musicApp: DuriApp = {
   Compact: MusicCompact,
   compactSize: { w: 372, h: 72 },
   Expanded: MusicExpanded,
-  expandedSize: { w: 440, h: 222 },
+  expandedSize: { w: 440, h: 256 },
 };

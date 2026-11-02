@@ -109,9 +109,7 @@ fn toggle_island(app: &AppHandle) {
 
 pub fn open_settings(app: &AppHandle) {
     if let Some(w) = app.get_webview_window(SETTINGS_LABEL) {
-        let _ = w.unminimize();
-        let _ = w.show();
-        let _ = w.set_focus();
+        island_window::bring_to_front(&w);
         return;
     }
     let result = WebviewWindowBuilder::new(app, SETTINGS_LABEL, WebviewUrl::App("index.html".into()))
@@ -122,8 +120,9 @@ pub fn open_settings(app: &AppHandle) {
         .minimizable(false)
         .center()
         .build();
-    if let Err(e) = result {
-        log::error!("failed to open settings: {e}");
+    match result {
+        Ok(w) => island_window::bring_to_front(&w),
+        Err(e) => log::error!("failed to open settings: {e}"),
     }
 }
 

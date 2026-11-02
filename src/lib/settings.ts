@@ -12,6 +12,7 @@ export interface Settings {
   disabledApps: string[];
   islandStyle: IslandStyle;
   pillSize: PillSize;
+  replaceVolumeFlyout: boolean;
 }
 
 export const settingsStore = createStore<Settings>({
@@ -19,6 +20,7 @@ export const settingsStore = createStore<Settings>({
   disabledApps: [],
   islandStyle: "floating",
   pillSize: "default",
+  replaceVolumeFlyout: false,
 });
 
 let started = false;

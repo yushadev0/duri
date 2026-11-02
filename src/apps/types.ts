@@ -40,6 +40,8 @@ export interface DuriApp {
   Icon: ComponentType<IconProps>;
   /** Identity color used for the icon tile in Settings and the switcher. */
   accent: string;
+  /** System apps (e.g. Volume) that only appear on their own, never in the launcher or dock. */
+  hidden?: boolean;
   /** Called once when the island starts, to begin listening to the backend. */
   start?: () => void;
   useActivity: () => Activity | null;
