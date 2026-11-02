@@ -28,6 +28,10 @@
     "clipboard": {
       "name": "Pano",
       "description": "Kopyaladığın her şey: yazı, görsel ve dosya."
+    },
+    "notes": {
+      "name": "Notlar",
+      "description": "Yaptığın işi bırakmadan not al."
     }
   },
   "music": {
@@ -143,5 +147,20 @@
     "items": "{{count}} öğe",
     "files": "{{count}} dosya",
     "image": "Görsel"
+  },
+  "notes": {
+    "search": "Notlarda ara",
+    "new": "Yeni Not",
+    "back": "Tüm Notlar",
+    "pin": "Sabitle",
+    "unpin": "Sabitlemeyi Kaldır",
+    "delete": "Notu sil",
+    "confirmDelete": "Silinsin mi?",
+    "empty": "Henüz Not Yok",
+    "emptyHint": "Yazmak için + işaretine tıkla. Notlar sen yazdıkça kaydedilir.",
+    "untitled": "Yeni Not",
+    "placeholder": "Yazmaya başla…",
+    "noResults": "Eşleşme Yok",
+    "count": "{{count}} not"
   }
 }

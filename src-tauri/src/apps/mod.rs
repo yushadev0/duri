@@ -4,6 +4,7 @@
 
 pub mod clipboard;
 pub mod music;
+pub mod notes;
 pub mod sessions;
 pub mod timers;
 
@@ -14,6 +15,7 @@ use tauri::AppHandle;
 
 pub fn init(app: &AppHandle, db: Arc<Db>, data_dir: &Path) {
     clipboard::init(app, db.clone(), data_dir);
+    notes::init(app, db.clone());
     timers::init(app, db);
     music::init(app);
     sessions::init(app);

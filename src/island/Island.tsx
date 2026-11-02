@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { AnimatePresence, motion, useAnimate, useReducedMotion } from "motion/react";
-import { useCallback, useEffect, useMemo, useReducer, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { rankActivities, sameActivity } from "../apps/activity";
 import { registry } from "../apps/registry";
@@ -143,12 +143,26 @@ export function Island() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Leaving typing mode waits a moment: taking focus makes the field blur and
+  // refocus briefly, and reacting to that blur would hand the keystrokes
+  // that follow to another app.
+  const releaseTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const controls = useMemo<IslandControls>(
     () => ({
       collapse: () => dispatch({ type: "collapse" }),
       setTyping: (typing) => {
-        dispatch({ type: "lock", locked: typing });
-        setIslandFocus(typing);
+        clearTimeout(releaseTimer.current);
+        if (typing) {
+          dispatch({ type: "lock", locked: true });
+          setIslandFocus(true);
+          return;
+        }
+        releaseTimer.current = setTimeout(() => {
+          const el = document.activeElement;
+          if (document.hasFocus() && el instanceof HTMLElement && el.matches("input, textarea")) return;
+          dispatch({ type: "lock", locked: false });
+          setIslandFocus(false);
+        }, 150);
       },
     }),
     [],

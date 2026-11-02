@@ -156,6 +156,26 @@ mod fg {
             }
         }
     }
+
+    /// Brings one of Duri's own windows to the front even when Windows'
+    /// foreground lock would refuse it (the click that asked for focus went
+    /// to WebView2's process, not ours). Briefly sharing the current
+    /// foreground thread's input state is the standard way around that.
+    pub fn force_activate(h: isize) {
+        use windows::Win32::System::Threading::{AttachThreadInput, GetCurrentThreadId};
+        use windows::Win32::UI::WindowsAndMessaging::BringWindowToTop;
+        unsafe {
+            let target = HWND(h as _);
+            let fg_thread = GetWindowThreadProcessId(GetForegroundWindow(), None);
+            let me = GetCurrentThreadId();
+            let attached = fg_thread != 0 && fg_thread != me && AttachThreadInput(me, fg_thread, true).as_bool();
+            let _ = BringWindowToTop(target);
+            let _ = SetForegroundWindow(target);
+            if attached {
+                let _ = AttachThreadInput(me, fg_thread, false);
+            }
+        }
+    }
 }
 
 #[cfg(windows)]
@@ -182,7 +202,7 @@ pub fn set_focused(app: &AppHandle, focused: bool) {
         let ex = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
         if focused {
             SetWindowLongPtrW(hwnd, GWL_EXSTYLE, ex & !(WS_EX_NOACTIVATE.0 as isize));
-            fg::activate(raw);
+            fg::force_activate(raw);
             let _ = win.set_focus();
         } else {
             SetWindowLongPtrW(hwnd, GWL_EXSTYLE, ex | WS_EX_NOACTIVATE.0 as isize);

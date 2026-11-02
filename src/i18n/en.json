@@ -28,6 +28,10 @@
     "clipboard": {
       "name": "Clipboard",
       "description": "Everything you copied: text, images and files."
+    },
+    "notes": {
+      "name": "Notes",
+      "description": "Jot things down without leaving what you are doing."
     }
   },
   "music": {
@@ -143,5 +147,20 @@
     "items": "{{count}} items",
     "files": "{{count}} files",
     "image": "Image"
+  },
+  "notes": {
+    "search": "Search notes",
+    "new": "New Note",
+    "back": "All Notes",
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "delete": "Delete note",
+    "confirmDelete": "Delete?",
+    "empty": "No Notes Yet",
+    "emptyHint": "Click + to write one. Notes save as you type.",
+    "untitled": "New Note",
+    "placeholder": "Start typing…",
+    "noResults": "No Matches",
+    "count": "{{count}} notes"
   }
 }

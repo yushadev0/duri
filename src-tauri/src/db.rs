@@ -33,6 +33,15 @@ const MIGRATIONS: &[&str] = &[
         used_at    INTEGER NOT NULL
     );
     CREATE INDEX clips_order ON clips (pinned DESC, used_at DESC);",
+    // 3: notes
+    "CREATE TABLE notes (
+        id         TEXT PRIMARY KEY,
+        body       TEXT NOT NULL,
+        pinned     INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+    );
+    CREATE INDEX notes_order ON notes (pinned DESC, updated_at DESC);",
 ];
 
 pub struct Db(Mutex<Connection>);

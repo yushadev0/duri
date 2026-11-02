@@ -15,7 +15,7 @@ Duri's features are called **apps**. Each one can be switched off in Settings �
 | ⏱️ Stopwatch | Laps, fastest/slowest lap, survives restarts | ✅ |
 | 🤖 Sessions | Tracks Claude Code and Codex sessions: working, needs you (permission prompts), done. Connect Claude Code in Settings › Apps | ✅ (Codex: beta) |
 | 📋 Clipboard | History of text, images, and files. Search, pin, and click to paste back where you were typing. Skips content that password managers mark private | ✅ |
-| 📝 Notes | Quick notes from the island | 🗺️ planned |
+| 📝 Notes | Quick plain-text notes from the island. Saved as you type, searchable, pinnable | ✅ |
 
 ## How it behaves
 

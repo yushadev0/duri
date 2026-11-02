@@ -27,10 +27,13 @@ Read `docs/ARCHITECTURE.md` and `docs/ADDING_AN_APP.md`. In short:
 - windows-rs 0.62: wait on WinRT async with `.join()`, not `.get()`.
 - Focus model (see ARCHITECTURE › Focus): the island hands focus back to `last_external` unless an app calls `useIsland().setTyping(true)`. Never show the island with plain activation.
 - Debug: `curl http://127.0.0.1:47321/duri/sessions` lists the sessions Duri sees.
+- Vite's watcher sometimes misses edits made by scripts; if the UI looks stale, restart `pnpm tauri dev`.
+- When testing typing/paste with SendKeys, first put a scratch window in front so stray keys land there, never in the user's apps.
 
 ## Roadmap
 
 Done: shell, settings, tray, Music (+ cover gradient), Timer, Stopwatch, Sessions (Claude hooks verified with simulated payloads; Codex parser written from the rollout format but untested on a real install).
 Ideas queue lives in TODO.md (do after the planned items).
 Done too: Clipboard (search, pin, paste back; verified end to end).
-Next: Notes, GitHub Releases + tauri updater.
+Done too: Notes (autosave, focus verified with a scratch window).
+Next: GitHub Releases + tauri updater, then the TODO.md ideas.
