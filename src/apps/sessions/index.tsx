@@ -2,7 +2,6 @@ import { Asterisk, Bot, Check, SquareTerminal, X } from "lucide-react";
 import { useMemo, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton, TextButton } from "../../components/Button";
-import { useAgo } from "../../lib/useAgo";
 import { useNow } from "../../lib/useNow";
 import type { Activity, DuriApp } from "../types";
 import {
@@ -106,7 +105,7 @@ export function SessionsCompact() {
       </span>
       <div className={styles.meta}>
         <span className={styles.project}>{session.project || t(`sessions.agent.${session.agent}`)}</span>
-        <span className={styles.detail}>{session.detail ?? t(`sessions.agent.${session.agent}`)}</span>
+        <span className={styles.detail}>{session.detail ?? session.prompt ?? t(`sessions.agent.${session.agent}`)}</span>
       </div>
       {alert ? (
         <TextButton variant="filled" tone={STATUS_COLOR.waiting} onClick={() => sessionActions.acknowledge(session)}>
@@ -143,44 +142,122 @@ function Empty() {
   );
 }
 
-function SessionRow({ session, alert }: { session: Session; alert: boolean }) {
+function pad(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+/** "02:13" or "1:02:13" since `since`, ticking every second. */
+function Elapsed({ since, live }: { since: number; live: boolean }) {
+  const now = useNow(live, 1000);
+  const s = Math.max(0, Math.floor((now - since) / 1000));
+  const h = Math.floor(s / 3600);
+  const text = h ? `${h}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}` : `${pad(Math.floor(s / 60))}:${pad(s % 60)}`;
+  return <span className="tabular">{text}</span>;
+}
+
+/** The person-facing name of where a session runs, e.g. "~/PROJECTS/duri". */
+function shortPath(cwd: string) {
+  const parts = cwd.split(/[\\/]/).filter(Boolean);
+  return parts.length > 2 ? `…/${parts.slice(-2).join("/")}` : parts.join("/");
+}
+
+function useSelected() {
+  const { sessions, acknowledged, selectedId } = useSessions();
+  const selected = sessions.find((s) => s.id === selectedId) ?? focusSession(sessions, acknowledged);
+  return { sessions, acknowledged, selected };
+}
+
+function StepCard({ session, alert }: { session: Session; alert: boolean }) {
   const { t } = useTranslation();
-  const ago = useAgo();
+  const color = STATUS_COLOR[session.status];
+  const label =
+    session.status === "waiting"
+      ? t("sessions.status.waiting")
+      : session.status === "working"
+        ? t("sessions.step.now")
+        : t("sessions.step.last");
+  const text =
+    session.detail ??
+    (session.status === "done" ? t("sessions.step.finished") : session.status === "idle" ? t("sessions.step.ready") : "…");
   return (
-    <li className={styles.row}>
-      <span className={styles.rowIcon}>
-        <AgentIcon agent={session.agent} size={16} />
-      </span>
-      <div className={styles.meta}>
-        <span className={styles.rowTop}>
-          <span className={styles.project}>{session.project || t(`sessions.agent.${session.agent}`)}</span>
-          <span className={styles.ago}>{ago(session.statusSince)}</span>
-        </span>
-        <span className={styles.detail}>{session.detail ?? t(`sessions.agent.${session.agent}`)}</span>
+    <div className={styles.card} style={{ "--tone": color } as CSSProperties} role={alert ? "alert" : undefined}>
+      <div className={styles.cardText}>
+        <span className={styles.cardLabel}>{label}</span>
+        <span className={styles.cardDetail}>{text}</span>
       </div>
-      {alert ? (
-        <TextButton variant="filled" tone={STATUS_COLOR.waiting} onClick={() => sessionActions.acknowledge(session)}>
+      {alert && (
+        <TextButton variant="filled" tone={color} onClick={() => sessionActions.acknowledge(session)}>
           {t("sessions.acknowledge")}
         </TextButton>
-      ) : (
-        <StatusChip status={session.status} />
       )}
-      <IconButton label={t("sessions.remove")} size={28} onClick={() => sessionActions.dismiss(session.id)}>
-        <X size={14} />
-      </IconButton>
-    </li>
+    </div>
+  );
+}
+
+function Switcher({ sessions, selected }: { sessions: Session[]; selected: Session }) {
+  const { t } = useTranslation();
+  return (
+    <div className={styles.switcher} role="tablist" aria-label={t("apps.sessions.name")}>
+      {sessions.map((s) => (
+        <button
+          key={s.id}
+          type="button"
+          role="tab"
+          aria-selected={s.id === selected.id}
+          className={styles.tab}
+          onClick={(e) => {
+            e.stopPropagation();
+            sessionActions.select(s.id);
+          }}
+        >
+          <span className={styles.tabDot} style={{ background: STATUS_COLOR[s.status] }} aria-hidden />
+          <span className={styles.tabName}>{s.project || t(`sessions.agent.${s.agent}`)}</span>
+        </button>
+      ))}
+    </div>
   );
 }
 
 export function SessionsExpanded() {
-  const { sessions, acknowledged } = useSessions();
-  if (!sessions.length) return <Empty />;
+  const { t } = useTranslation();
+  const { sessions, acknowledged, selected } = useSelected();
+  if (!selected) return <Empty />;
+  const alert = needsYou(selected, acknowledged);
+  const color = STATUS_COLOR[selected.status];
+  const live = selected.status === "working" || selected.status === "waiting";
+
   return (
-    <ul className={styles.list}>
-      {sessions.map((s) => (
-        <SessionRow key={s.id} session={s} alert={needsYou(s, acknowledged)} />
-      ))}
-    </ul>
+    <div className={styles.expanded}>
+      <div className={styles.head}>
+        <span className={styles.bigTile} style={{ "--tone": color } as CSSProperties} data-status={selected.status}>
+          <AgentIcon agent={selected.agent} size={30} />
+        </span>
+        <div className={styles.meta}>
+          <span className={styles.bigProject}>{selected.project || t(`sessions.agent.${selected.agent}`)}</span>
+          {selected.prompt && <span className={styles.prompt}>“{selected.prompt}”</span>}
+          <span className={styles.where}>
+            {t(`sessions.agent.${selected.agent}`)}
+            {selected.cwd && ` · ${shortPath(selected.cwd)}`}
+          </span>
+        </div>
+        <div className={styles.headSide}>
+          <span className={styles.statusLine} style={{ color }}>
+            <StatusGlyph status={selected.status} />
+            {t(`sessions.status.${selected.status}`)}
+          </span>
+          <span className={styles.elapsed}>
+            <Elapsed since={selected.statusSince} live={live} />
+          </span>
+        </div>
+      </div>
+      <StepCard session={selected} alert={alert} />
+      <div className={styles.footer}>
+        {sessions.length > 1 ? <Switcher sessions={sessions} selected={selected} /> : <span />}
+        <IconButton label={t("sessions.remove")} size={28} onClick={() => sessionActions.dismiss(selected.id)}>
+          <X size={14} />
+        </IconButton>
+      </div>
+    </div>
   );
 }
 
@@ -209,11 +286,18 @@ export const sessionsApp: DuriApp = {
       [alertKey, busy, recentlyDone],
     );
   },
+  useBackdrop() {
+    const { selected } = useSelected();
+    if (!selected) return null;
+    const color = STATUS_COLOR[selected.status];
+    // Same glow as Music's cover gradient, tinted by status.
+    return `radial-gradient(130% 150% at 0% 0%, color-mix(in srgb, ${color} 34%, black) 0%, color-mix(in srgb, ${color} 12%, black) 40%, #000 76%)`;
+  },
   Pill: SessionsPill,
   pillWidth: 150,
   Minimal: SessionsMinimal,
   Compact: SessionsCompact,
   compactSize: { w: 392, h: 72 },
   Expanded: SessionsExpanded,
-  expandedSize: { w: 460, h: 276 },
+  expandedSize: { w: 460, h: 246 },
 };

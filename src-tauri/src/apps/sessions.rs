@@ -60,6 +60,8 @@ pub struct Session {
     pub cwd: String,
     pub status: Status,
     pub detail: Option<String>,
+    /// The last thing the person asked (Claude prompt / Codex message).
+    pub prompt: Option<String>,
     pub started_at: i64,
     pub updated_at: i64,
     /// When `status` last changed.
@@ -110,6 +112,7 @@ impl Book {
             cwd: cwd.to_string(),
             status: Status::Idle,
             detail: None,
+            prompt: None,
             started_at: at,
             updated_at: at,
             status_since: at,
@@ -145,7 +148,10 @@ impl Book {
             "UserPromptSubmit" => {
                 // Machine-injected turns (e.g. "<task-notification>…") aren't worth showing.
                 let prompt = ev.get("prompt").and_then(Value::as_str).filter(|p| !p.trim_start().starts_with('<'));
-                (Status::Working, prompt.map(|p| snippet(p, 80)).or(keep.1))
+                if let Some(p) = prompt {
+                    s.prompt = Some(snippet(p, 120));
+                }
+                (Status::Working, None)
             }
             "PreToolUse" => (
                 Status::Working,
@@ -165,7 +171,7 @@ impl Book {
                     (Status::Waiting, Some(snippet(msg, 80)).filter(|m| !m.is_empty()))
                 }
             }
-            "Stop" => (Status::Done, None),
+            "Stop" => (Status::Done, keep.1),
             _ => keep,
         };
         Self::set(s, status, detail, at);
@@ -187,10 +193,12 @@ impl Book {
                 let s = self.upsert(&id, Agent::Codex, "", at);
                 let (status, detail) = match kind {
                     "task_started" => (Status::Working, s.detail.clone()),
-                    "user_message" => (
-                        Status::Working,
-                        payload.get("message").and_then(Value::as_str).map(|m| snippet(m, 80)),
-                    ),
+                    "user_message" => {
+                        if let Some(m) = payload.get("message").and_then(Value::as_str) {
+                            s.prompt = Some(snippet(m, 120));
+                        }
+                        (Status::Working, None)
+                    }
                     "exec_command_begin" => (
                         Status::Working,
                         payload
@@ -202,7 +210,7 @@ impl Book {
                             .map(|c| format!("shell · {}", snippet(&c, 48))),
                     ),
                     k if k.ends_with("approval_request") => (Status::Waiting, None),
-                    "task_complete" | "turn_aborted" => (Status::Done, None),
+                    "task_complete" | "turn_aborted" => (Status::Done, s.detail.clone()),
                     _ => return false,
                 };
                 Self::set(s, status, detail, at);
@@ -573,9 +581,9 @@ mod tests {
         assert_eq!((s.status, s.project.as_str(), s.agent), (Status::Idle, "duri", Agent::Claude));
 
         claude(&mut b, "UserPromptSubmit", json!({ "prompt": "\n  fix the bug\nplease" }), 2);
-        assert_eq!(b.list()[0].detail.as_deref(), Some("fix the bug"));
+        assert_eq!(b.list()[0].prompt.as_deref(), Some("fix the bug"));
         claude(&mut b, "UserPromptSubmit", json!({ "prompt": "<task-notification>done</task-notification>" }), 2);
-        assert_eq!(b.list()[0].detail.as_deref(), Some("fix the bug"));
+        assert_eq!(b.list()[0].prompt.as_deref(), Some("fix the bug"));
 
         claude(&mut b, "PreToolUse", json!({ "tool_name": "Edit", "tool_input": { "file_path": "C:\\code\\duri\\src\\main.rs" } }), 3);
         assert_eq!(b.list()[0].detail.as_deref(), Some("Edit · main.rs"));
@@ -589,6 +597,8 @@ mod tests {
 
         claude(&mut b, "Stop", json!({}), 6);
         assert_eq!(b.list()[0].status, Status::Done);
+        // The last step stays as context after the turn ends.
+        assert!(b.list()[0].detail.is_some());
         // The idle reminder does not turn a finished session into "needs you".
         claude(&mut b, "Notification", json!({ "message": "Claude is waiting for your input" }), 7);
         assert_eq!(b.list()[0].status, Status::Done);
@@ -617,6 +627,7 @@ mod tests {
         }
         let s = &b.list()[0];
         assert_eq!((s.agent, s.project.as_str(), s.status), (Agent::Codex, "game", Status::Working));
+        assert_eq!(s.prompt.as_deref(), Some("add tests"));
         assert_eq!(s.detail.as_deref(), Some("shell · cargo test"));
 
         b.apply_codex("rollout-1", &json!({ "type": "event_msg", "payload": { "type": "exec_approval_request" } }), 11);

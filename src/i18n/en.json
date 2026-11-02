@@ -125,7 +125,13 @@
     "empty": "No Active Sessions",
     "emptyHint": "Start Claude Code or Codex and it shows up here.",
     "connect": "Connect Claude Code",
-    "connectHint": "Duri adds a few hooks to Claude Code’s settings so it can follow your sessions. Your own hooks stay as they are."
+    "connectHint": "Duri adds a few hooks to Claude Code’s settings so it can follow your sessions. Your own hooks stay as they are.",
+    "step": {
+      "now": "Now",
+      "last": "Last step",
+      "finished": "Turn finished",
+      "ready": "Ready for your prompt"
+    }
   },
   "clipboard": {
     "search": "Search",

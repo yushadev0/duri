@@ -125,7 +125,13 @@
     "empty": "Aktif Oturum Yok",
     "emptyHint": "Claude Code veya Codex başlat, burada görünsün.",
     "connect": "Claude Code’u Bağla",
-    "connectHint": "Duri, oturumlarını takip edebilmek için Claude Code ayarlarına birkaç hook ekler. Kendi hook’ların olduğu gibi kalır."
+    "connectHint": "Duri, oturumlarını takip edebilmek için Claude Code ayarlarına birkaç hook ekler. Kendi hook’ların olduğu gibi kalır.",
+    "step": {
+      "now": "Şu an",
+      "last": "Son adım",
+      "finished": "Tur tamamlandı",
+      "ready": "İsteğini bekliyor"
+    }
   },
   "clipboard": {
     "search": "Ara",

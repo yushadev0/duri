@@ -13,6 +13,7 @@ export interface Session {
   cwd: string;
   status: Status;
   detail: string | null;
+  prompt: string | null;
   startedAt: number;
   updatedAt: number;
   statusSince: number;
@@ -22,6 +23,8 @@ interface SessionsStore {
   sessions: Session[];
   /** Alerts the person has already seen (`id:statusSince`). */
   acknowledged: string[];
+  /** Session picked in the expanded view; null follows the most urgent one. */
+  selectedId: string | null;
 }
 
 export interface HookStatus {
@@ -29,7 +32,7 @@ export interface HookStatus {
   serverRunning: boolean;
 }
 
-const store = createStore<SessionsStore>({ sessions: [], acknowledged: [] });
+const store = createStore<SessionsStore>({ sessions: [], acknowledged: [], selectedId: null });
 const hooks = createStore<HookStatus | null>(null);
 
 export const ackKey = (s: Session) => `${s.id}:${s.statusSince}`;
@@ -71,6 +74,9 @@ export function focusSession(sessions: Session[], acknowledged: string[]): Sessi
 }
 
 export const sessionActions = {
+  select(id: string | null) {
+    store.set((v) => ({ ...v, selectedId: id }));
+  },
   acknowledge(s: Session) {
     store.set((v) => ({ ...v, acknowledged: [...v.acknowledged, ackKey(s)].slice(-100) }));
   },
