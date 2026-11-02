@@ -8,6 +8,7 @@ import { registry } from "../apps/registry";
 import type { Activity, DuriApp, Size } from "../apps/types";
 import { contentIn, contentOut, morphSpring, reducedTransition, settleSpring } from "../design/motion";
 import { useSettings } from "../lib/settings";
+import { IslandContext, setIslandFocus, type IslandControls } from "./context";
 import { ExpandedChrome } from "./ExpandedChrome";
 import {
   COMPACT_DEFAULT,
@@ -130,7 +131,28 @@ export function Island() {
     const delay = inside ? HOVER_DELAY_MS : state.mode === "expanded" ? LEAVE_DELAY_EXPANDED_MS : LEAVE_DELAY_MS;
     const id = setTimeout(() => dispatch({ type: inside ? "hover" : "leave" }), delay);
     return () => clearTimeout(id);
-  }, [state.pointerInside, state.mode]);
+  }, [state.pointerInside, state.mode, state.locked]);
+
+  // Give keyboard focus back whenever the island rests, and let Esc close it.
+  useEffect(() => {
+    if (state.mode === "idle") setIslandFocus(false);
+  }, [state.mode]);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && dispatch({ type: "collapse" });
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const controls = useMemo<IslandControls>(
+    () => ({
+      collapse: () => dispatch({ type: "collapse" }),
+      setTyping: (typing) => {
+        dispatch({ type: "lock", locked: typing });
+        setIslandFocus(typing);
+      },
+    }),
+    [],
+  );
 
   // Alerts hold the island open and bounce it once.
   const alert = ranked.find((r) => r.activity.alert);
@@ -193,6 +215,7 @@ export function Island() {
   }
 
   return (
+    <IslandContext.Provider value={controls}>
     <div className={styles.stage} style={{ "--top": `${TOP_INSET}px` } as CSSProperties}>
       {apps.map((app) => (
         <AppProbe key={app.id} app={app} report={report} reportBackdrop={reportBackdrop} />
@@ -248,5 +271,6 @@ export function Island() {
         )}
       </AnimatePresence>
     </div>
+    </IslandContext.Provider>
   );
 }

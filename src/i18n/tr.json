@@ -24,6 +24,10 @@
     "sessions": {
       "name": "Oturumlar",
       "description": "Claude Code ve Codex oturumlarını takip et."
+    },
+    "clipboard": {
+      "name": "Pano",
+      "description": "Kopyaladığın her şey: yazı, görsel ve dosya."
     }
   },
   "music": {
@@ -54,7 +58,8 @@
     "units": {
       "h": "sa",
       "min": "dk",
-      "s": "sn"
+      "s": "sn",
+      "d": "g"
     }
   },
   "stopwatch": {
@@ -117,5 +122,26 @@
     "emptyHint": "Claude Code veya Codex başlat, burada görünsün.",
     "connect": "Claude Code’u Bağla",
     "connectHint": "Duri, oturumlarını takip edebilmek için Claude Code ayarlarına birkaç hook ekler. Kendi hook’ların olduğu gibi kalır."
+  },
+  "clipboard": {
+    "search": "Ara",
+    "filter": {
+      "all": "Tümü",
+      "text": "Yazı",
+      "image": "Görseller",
+      "files": "Dosyalar"
+    },
+    "pin": "Sabitle",
+    "unpin": "Sabitlemeyi Kaldır",
+    "copy": "Yapıştırmadan Kopyala",
+    "delete": "Sil",
+    "clear": "Geçmişi temizle",
+    "confirmClear": "Sabitlenmemişler Silinsin mi?",
+    "empty": "Henüz Bir Şey Kopyalanmadı",
+    "emptyHint": "Yazı, görsel veya dosya kopyala, burada görünsün. Birine tıklayınca yazdığın yere yapıştırılır.",
+    "noResults": "Eşleşme Yok",
+    "items": "{{count}} öğe",
+    "files": "{{count}} dosya",
+    "image": "Görsel"
   }
 }

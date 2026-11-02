@@ -42,6 +42,11 @@ struct Inner {
     rects: Vec<Rect>,
     inside: bool,
     hidden: bool,
+    /// The island currently has keyboard focus (someone is typing in it).
+    focused: bool,
+    /// Last foreground window that isn't Duri's (raw HWND): where focus
+    /// returns and where pasting goes.
+    last_external: isize,
 }
 
 #[derive(Default)]
@@ -71,8 +76,23 @@ pub fn create(app: &AppHandle) -> tauri::Result<WebviewWindow> {
     position(&win)?;
     apply_non_activating_style(&win);
     win.set_ignore_cursor_events(true)?;
-    win.show()?;
+    show_without_activating(&win);
     Ok(win)
+}
+
+/// Shows the island and hands the foreground straight back to whatever was
+/// in front, so showing it never steals focus.
+pub fn show_without_activating(win: &WebviewWindow) {
+    #[cfg(windows)]
+    let before = fg::current();
+    let _ = win.show();
+    #[cfg(windows)]
+    if before != 0 && !fg::is_ours(before) {
+        if let Ok(mut s) = win.app_handle().state::<IslandState>().0.lock() {
+            s.last_external = before;
+        }
+        fg::activate(before);
+    }
 }
 
 /// Centers the window horizontally at the very top of the primary monitor.
@@ -111,6 +131,99 @@ fn apply_non_activating_style(win: &WebviewWindow) {
 #[cfg(not(windows))]
 fn apply_non_activating_style(_win: &WebviewWindow) {}
 
+/// Foreground-window helpers. Windows are passed around as raw `isize`
+/// handles so they can live in shared state.
+#[cfg(windows)]
+mod fg {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowThreadProcessId, SetForegroundWindow};
+
+    pub fn current() -> isize {
+        unsafe { GetForegroundWindow().0 as isize }
+    }
+
+    /// Whether the window belongs to Duri (island or settings).
+    pub fn is_ours(h: isize) -> bool {
+        let mut pid = 0u32;
+        unsafe { GetWindowThreadProcessId(HWND(h as _), Some(&mut pid)) };
+        pid == std::process::id()
+    }
+
+    pub fn activate(h: isize) {
+        if h != 0 {
+            unsafe {
+                let _ = SetForegroundWindow(HWND(h as _));
+            }
+        }
+    }
+}
+
+#[cfg(windows)]
+fn island_hwnd(app: &AppHandle) -> Option<isize> {
+    app.get_webview_window(LABEL).and_then(|w| w.hwnd().ok()).map(|h| h.0 as isize)
+}
+
+/// Lets the island take keyboard focus (for text fields), or gives focus back
+/// to the app the person was using.
+#[cfg(windows)]
+pub fn set_focused(app: &AppHandle, focused: bool) {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::{GetWindowLongPtrW, SetWindowLongPtrW, GWL_EXSTYLE, WS_EX_NOACTIVATE};
+    let Some(win) = app.get_webview_window(LABEL) else { return };
+    let Some(raw) = island_hwnd(app) else { return };
+    let hwnd = HWND(raw as _);
+    let state = app.state::<IslandState>();
+    let Ok(mut s) = state.0.lock() else { return };
+    if focused == s.focused {
+        return;
+    }
+    s.focused = focused;
+    unsafe {
+        let ex = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
+        if focused {
+            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, ex & !(WS_EX_NOACTIVATE.0 as isize));
+            fg::activate(raw);
+            let _ = win.set_focus();
+        } else {
+            SetWindowLongPtrW(hwnd, GWL_EXSTYLE, ex | WS_EX_NOACTIVATE.0 as isize);
+            fg::activate(s.last_external);
+        }
+    }
+}
+
+#[cfg(not(windows))]
+pub fn set_focused(_app: &AppHandle, _focused: bool) {}
+
+/// Ends typing mode and makes sure the person's app is in front (paste target).
+pub fn release_focus(app: &AppHandle) {
+    set_focused(app, false);
+    #[cfg(windows)]
+    if let Ok(s) = app.state::<IslandState>().0.lock() {
+        fg::activate(s.last_external);
+    }
+}
+
+/// Remembers the last foreground window outside Duri. Clicking the webview
+/// can activate the island even with WS_EX_NOACTIVATE; unless someone is
+/// typing in the island, focus goes straight back to that window.
+#[cfg(windows)]
+fn track_foreground(app: &AppHandle, s: &mut Inner) {
+    let current = fg::current();
+    if current == 0 {
+        return;
+    }
+    if !fg::is_ours(current) {
+        s.last_external = current;
+    } else if !s.focused && Some(current) == island_hwnd(app) && s.last_external != 0 {
+        fg::activate(s.last_external);
+    }
+}
+
+#[tauri::command]
+pub fn island_set_focus(app: AppHandle, focused: bool) {
+    set_focused(&app, focused);
+}
+
 pub fn spawn_hit_test(app: AppHandle) {
     std::thread::Builder::new()
         .name("duri-hit-test".into())
@@ -129,6 +242,8 @@ pub fn spawn_hit_test(app: AppHandle) {
 
             let state = app.state::<IslandState>();
             let Ok(mut s) = state.0.lock() else { continue };
+            #[cfg(windows)]
+            track_foreground(&app, &mut s);
             let inside = !s.hidden && s.rects.iter().any(|r| r.contains(lx, ly));
             if inside != s.inside {
                 s.inside = inside;

@@ -24,6 +24,10 @@
     "sessions": {
       "name": "Sessions",
       "description": "Follow your Claude Code and Codex sessions."
+    },
+    "clipboard": {
+      "name": "Clipboard",
+      "description": "Everything you copied: text, images and files."
     }
   },
   "music": {
@@ -54,7 +58,8 @@
     "units": {
       "h": "h",
       "min": "min",
-      "s": "s"
+      "s": "s",
+      "d": "d"
     }
   },
   "stopwatch": {
@@ -117,5 +122,26 @@
     "emptyHint": "Start Claude Code or Codex and it shows up here.",
     "connect": "Connect Claude Code",
     "connectHint": "Duri adds a few hooks to Claude Code’s settings so it can follow your sessions. Your own hooks stay as they are."
+  },
+  "clipboard": {
+    "search": "Search",
+    "filter": {
+      "all": "All",
+      "text": "Text",
+      "image": "Images",
+      "files": "Files"
+    },
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "copy": "Copy Without Pasting",
+    "delete": "Delete",
+    "clear": "Clear history",
+    "confirmClear": "Clear Unpinned?",
+    "empty": "Nothing Copied Yet",
+    "emptyHint": "Copy text, an image or files and they show up here. Click one to paste it where you were typing.",
+    "noResults": "No Matches",
+    "items": "{{count}} items",
+    "files": "{{count}} files",
+    "image": "Image"
   }
 }

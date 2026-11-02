@@ -28,6 +28,12 @@ The island is one transparent, borderless, always-on-top Tauri window (640×320 
 
 Because the window is much bigger than the visible pill, it ignores cursor events by default. The frontend reports the visible rectangles with `island_set_hit_rects`. A Rust thread checks the cursor every 20 ms and turns cursor events on only while the cursor is over one of those rectangles. The same thread emits `island://pointer` (true/false). The webview can't get `mouseleave` once events are ignored, so hover is driven entirely by this event.
 
+## Focus
+
+Clicking the island must not take focus from the app the person is typing in. `WS_EX_NOACTIVATE` alone isn't enough, because a click on WebView2 can still activate the window. So the hit-test thread also remembers the last foreground window that isn't Duri's (`last_external`). Whenever the island ends up in front without being in typing mode, focus goes straight back to that window.
+
+Text fields (Clipboard search, later Notes) call `useIsland().setTyping(true)`. That removes `WS_EX_NOACTIVATE`, brings the island to the front, and locks it open so the pointer leaving doesn't collapse it. `setTyping(false)`, Esc, or collapsing gives focus back to `last_external`. Pasting (`clip_paste`) does the same and then sends Ctrl+V, so the paste lands where the person was.
+
 ## State machine
 
 `src/island/state.ts` is a pure reducer with unit tests:
@@ -52,6 +58,10 @@ Timers and the stopwatch store absolute Unix-ms timestamps (`endsAt`, `runningSi
 ## Music
 
 `apps/music.rs` has one worker thread that owns the WinRT `GlobalSystemMediaTransportControlsSessionManager`. Commands reach it over a channel. Between commands it polls every 500 ms, emits `music://state` when anything changes and `music://artwork` (a data URL) when the track changes. The UI extrapolates the playback position from `positionMs` + `positionUpdatedAt`, and derives an accent color from the cover art.
+
+## Clipboard
+
+`apps/clipboard.rs` listens with a clipboard-format listener (clipboard-win `Monitor`). It reads files (CF_HDROP), then text, then bitmaps, and skips content flagged `ExcludeClipboardContentFromMonitorProcessing` or `CanIncludeInClipboardHistory = 0`. Items live in the `clips` table, deduplicated by content hash: copying something again moves it to the top. Images are saved as PNG under `%APPDATA%\Duri\clips` with a 160 px thumbnail in the row. Up to 300 unpinned items are kept.
 
 ## Storage
 

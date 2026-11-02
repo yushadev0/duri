@@ -3,7 +3,7 @@
 ## Planned (in order)
 
 - [x] **Sessions app:** Claude Code (hooks → local endpoint) and Codex (`~/.codex/sessions` watcher) session tracking
-- [ ] **Clipboard app:** text, image, and file history; search, pin, paste back
+- [x] **Clipboard app:** text, image, and file history; search, pin, paste back
 - [ ] **Notes app:** quick notes from the island (needs keyboard focus in the island)
 - [ ] **Releases:** GitHub Actions builds installers on tag, plus the tauri updater
 

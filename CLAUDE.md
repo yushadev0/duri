@@ -25,9 +25,12 @@ Read `docs/ARCHITECTURE.md` and `docs/ADDING_AN_APP.md`. In short:
 - `src/apps/<id>/` exports a `DuriApp` (Minimal/Pill/Compact/Expanded + `useActivity`), listed in `src/apps/registry.ts`.
 - `src-tauri/src/apps/<id>.rs` is the backend half: commands + `<id>://<event>` events.
 - windows-rs 0.62: wait on WinRT async with `.join()`, not `.get()`.
+- Focus model (see ARCHITECTURE › Focus): the island hands focus back to `last_external` unless an app calls `useIsland().setTyping(true)`. Never show the island with plain activation.
+- Debug: `curl http://127.0.0.1:47321/duri/sessions` lists the sessions Duri sees.
 
 ## Roadmap
 
 Done: shell, settings, tray, Music (+ cover gradient), Timer, Stopwatch, Sessions (Claude hooks verified with simulated payloads; Codex parser written from the rollout format but untested on a real install).
 Ideas queue lives in TODO.md (do after the planned items).
-Next: Clipboard (text/image/file history), Notes, GitHub Releases + tauri updater.
+Done too: Clipboard (search, pin, paste back; verified end to end).
+Next: Notes, GitHub Releases + tauri updater.

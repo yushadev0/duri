@@ -30,9 +30,11 @@ base64 = "0.23.1"
 log = "0.4.35"
 rusqlite = { version = "0.41.1", features = ["bundled"] }
 uuid = { version = "1.29.0", features = ["v4"] }
-windows = { version = "0.62.2", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Media_Control", "Foundation", "Foundation_Collections", "Storage_Streams"] }
+windows = { version = "0.62.2", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Media_Control", "Foundation", "Foundation_Collections", "Storage_Streams", "Win32_UI_Input_KeyboardAndMouse"] }
 tauri-plugin-opener = "2.7.2"
 tiny_http = "0.12.0"
+clipboard-win = { version = "5.4.3", features = ["monitor"] }
+image = { version = "0.25.10", default-features = false, features = ["png", "bmp"] }
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration

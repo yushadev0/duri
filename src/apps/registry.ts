@@ -1,3 +1,4 @@
+import { clipboardApp } from "./clipboard";
 import { musicApp } from "./music";
 import { sessionsApp } from "./sessions";
 import { stopwatchApp } from "./timers/stopwatch";
@@ -8,4 +9,4 @@ import type { DuriApp } from "./types";
  * Every app Duri ships with, in launcher order. To add an app, build it under
  * src/apps/<id>/ and list it here (see docs/ADDING_AN_APP.md).
  */
-export const registry: DuriApp[] = [musicApp, sessionsApp, timerApp, stopwatchApp];
+export const registry: DuriApp[] = [musicApp, sessionsApp, clipboardApp, timerApp, stopwatchApp];

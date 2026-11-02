@@ -45,4 +45,11 @@ describe("islandReducer", () => {
     const s = run([{ type: "attention", appId: "timer" }, { type: "pointer", inside: true }, { type: "attentionEnd" }]);
     expect(s.mode).toBe("compact");
   });
+
+  it("a locked island ignores leave until unlocked or collapsed", () => {
+    const s = run([{ type: "open", appId: "clipboard" }, { type: "lock", locked: true }, { type: "leave" }]);
+    expect(s.mode).toBe("expanded");
+    expect(run([{ type: "lock", locked: false }, { type: "leave" }], s).mode).toBe("idle");
+    expect(run([{ type: "collapse" }], s)).toMatchObject({ mode: "idle", locked: false });
+  });
 });

@@ -10,6 +10,8 @@ export interface IslandState {
   pointerInside: boolean;
   /** Whether the last mode change made the island bigger (picks the spring). */
   growing: boolean;
+  /** Held open while someone types in it; pointer leaving doesn't collapse. */
+  locked: boolean;
 }
 
 export type IslandAction =
@@ -21,7 +23,8 @@ export type IslandAction =
   | { type: "open"; appId: string }
   | { type: "collapse" }
   | { type: "attention"; appId: string }
-  | { type: "attentionEnd" };
+  | { type: "attentionEnd" }
+  | { type: "lock"; locked: boolean };
 
 export const initialIslandState: IslandState = {
   mode: "idle",
@@ -29,6 +32,7 @@ export const initialIslandState: IslandState = {
   attention: null,
   pointerInside: false,
   growing: true,
+  locked: false,
 };
 
 const rank: Record<Mode, number> = { idle: 0, compact: 1, expanded: 2 };
@@ -49,12 +53,14 @@ export function islandReducer(s: IslandState, a: IslandAction): IslandState {
     case "hover":
       return s.mode === "idle" && s.pointerInside ? withMode(s, "compact") : s;
     case "leave":
-      if (s.pointerInside) return s;
+      if (s.pointerInside || s.locked) return s;
       return s.mode === restingMode(s) ? s : withMode(s, restingMode(s));
     case "open":
       return withMode(s, "expanded", { appId: a.appId });
     case "collapse":
-      return withMode(s, restingMode(s));
+      return withMode(s, restingMode(s), { locked: false });
+    case "lock":
+      return s.locked === a.locked ? s : { ...s, locked: a.locked };
     case "attention":
       if (s.attention === a.appId) return s;
       return s.mode === "expanded"

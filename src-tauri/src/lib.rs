@@ -27,7 +27,7 @@ pub fn run() {
             app.manage(db.clone());
             app.manage(island_window::IslandState::default());
 
-            apps::init(app.handle(), db);
+            apps::init(app.handle(), db, &dir);
             island_window::create(app.handle())?;
             island_window::spawn_hit_test(app.handle().clone());
             tray::create(app.handle())?;
@@ -35,6 +35,13 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             island_window::island_set_hit_rects,
+            island_window::island_set_focus,
+            apps::clipboard::clips_list,
+            apps::clipboard::clip_copy,
+            apps::clipboard::clip_paste,
+            apps::clipboard::clip_set_pinned,
+            apps::clipboard::clip_delete,
+            apps::clipboard::clips_clear,
             settings::settings_get,
             settings::settings_set,
             tray::open_settings_window,

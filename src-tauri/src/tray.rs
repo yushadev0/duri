@@ -98,7 +98,11 @@ fn toggle_island(app: &AppHandle) {
     inner.hidden = !inner.hidden;
     app.state::<IslandState>().set_hidden(inner.hidden);
     if let Some(win) = app.get_webview_window(island_window::LABEL) {
-        let _ = if inner.hidden { win.hide() } else { win.show() };
+        if inner.hidden {
+            let _ = win.hide();
+        } else {
+            island_window::show_without_activating(&win);
+        }
     }
     tray.refresh(&inner);
 }

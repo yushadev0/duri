@@ -2,6 +2,7 @@ import { Asterisk, Bot, Check, SquareTerminal, X } from "lucide-react";
 import { useMemo, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton, TextButton } from "../../components/Button";
+import { useAgo } from "../../lib/useAgo";
 import { useNow } from "../../lib/useNow";
 import type { Activity, DuriApp } from "../types";
 import {
@@ -61,17 +62,6 @@ function StatusChip({ status }: { status: Status }) {
       {t(`sessions.status.${status}`)}
     </span>
   );
-}
-
-function useAgo() {
-  const { t } = useTranslation();
-  const now = useNow(true, 15_000);
-  return (at: number) => {
-    const min = Math.floor((now - at) / 60_000);
-    if (min < 1) return t("sessions.now");
-    if (min < 60) return `${min} ${t("timer.units.min")}`;
-    return `${Math.floor(min / 60)} ${t("timer.units.h")}`;
-  };
 }
 
 function useFocus() {

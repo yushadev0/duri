@@ -17,6 +17,22 @@ const MIGRATIONS: &[&str] = &[
         value TEXT NOT NULL,
         PRIMARY KEY (ns, key)
     );",
+    // 2: clipboard history
+    "CREATE TABLE clips (
+        id         TEXT PRIMARY KEY,
+        kind       TEXT NOT NULL,
+        text       TEXT,
+        files      TEXT,
+        image_path TEXT,
+        thumb      TEXT,
+        width      INTEGER,
+        height     INTEGER,
+        hash       TEXT NOT NULL UNIQUE,
+        pinned     INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        used_at    INTEGER NOT NULL
+    );
+    CREATE INDEX clips_order ON clips (pinned DESC, used_at DESC);",
 ];
 
 pub struct Db(Mutex<Connection>);
@@ -36,6 +52,12 @@ impl Db {
     fn init(conn: Connection) -> rusqlite::Result<Self> {
         migrate(&conn)?;
         Ok(Self(Mutex::new(conn)))
+    }
+
+    /// Runs `f` with the connection, for apps that own real tables.
+    pub fn with_conn<R>(&self, f: impl FnOnce(&Connection) -> rusqlite::Result<R>) -> Result<R, String> {
+        let conn = self.0.lock().map_err(|e| e.to_string())?;
+        f(&conn).map_err(|e| e.to_string())
     }
 
     pub fn get_json<T: DeserializeOwned>(&self, ns: &str, key: &str) -> Option<T> {

@@ -23,6 +23,7 @@ use tauri::{AppHandle, Emitter, Manager, State};
 pub const PORT: u16 = 47321;
 /// Unique path segment; also how Duri recognises its own hook entries.
 const HOOK_PATH: &str = "/duri/claude-hook";
+const LIST_PATH: &str = "/duri/sessions";
 const MAX_BODY: usize = 1 << 20;
 /// Sessions with no news for this long are dropped.
 const STALE_MS: i64 = 3 * 60 * 60 * 1000;
@@ -141,7 +142,11 @@ impl Book {
         let keep = (s.status, s.detail.clone());
         let (status, detail) = match event {
             "SessionStart" => (Status::Idle, None),
-            "UserPromptSubmit" => (Status::Working, ev.get("prompt").and_then(Value::as_str).map(|p| snippet(p, 80))),
+            "UserPromptSubmit" => {
+                // Machine-injected turns (e.g. "<task-notification>…") aren't worth showing.
+                let prompt = ev.get("prompt").and_then(Value::as_str).filter(|p| !p.trim_start().starts_with('<'));
+                (Status::Working, prompt.map(|p| snippet(p, 80)).or(keep.1))
+            }
             "PreToolUse" => (
                 Status::Working,
                 ev.get("tool_name")
@@ -376,6 +381,14 @@ fn spawn_server(app: AppHandle) {
                 *r = true;
             }
             for mut req in server.incoming_requests() {
+                // Read-only view of the current list, for debugging integrations.
+                if req.method() == &tiny_http::Method::Get && req.url() == LIST_PATH {
+                    let list = app.state::<Sessions>().book.lock().map(|b| b.list()).unwrap_or_default();
+                    let body = serde_json::to_string(&list).unwrap_or_else(|_| "[]".into());
+                    let header = tiny_http::Header::from_bytes("Content-Type", "application/json").unwrap();
+                    let _ = req.respond(tiny_http::Response::from_string(body).with_header(header));
+                    continue;
+                }
                 let ok = req.method() == &tiny_http::Method::Post && req.url() == HOOK_PATH;
                 if ok {
                     let mut body = Vec::new();
@@ -560,6 +573,8 @@ mod tests {
         assert_eq!((s.status, s.project.as_str(), s.agent), (Status::Idle, "duri", Agent::Claude));
 
         claude(&mut b, "UserPromptSubmit", json!({ "prompt": "\n  fix the bug\nplease" }), 2);
+        assert_eq!(b.list()[0].detail.as_deref(), Some("fix the bug"));
+        claude(&mut b, "UserPromptSubmit", json!({ "prompt": "<task-notification>done</task-notification>" }), 2);
         assert_eq!(b.list()[0].detail.as_deref(), Some("fix the bug"));
 
         claude(&mut b, "PreToolUse", json!({ "tool_name": "Edit", "tool_input": { "file_path": "C:\\code\\duri\\src\\main.rs" } }), 3);
