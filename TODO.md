@@ -24,4 +24,5 @@
 - [x] Tuck away (drag up / hover to peek / drag down or right-click), answer Claude Code permission prompts from the island (opt-in)
 - [x] Notifications app (Windows toasts + Copied confirmation), two players from the same app (Chrome 2)
 - [x] Global shortcuts (open island, new note, search clipboard), recorded in Settings
+- [x] One expanded size for every app, auto-hide like a taskbar (v0.2.1)
 - [x] GitHub page: README with demo GIF and screenshots (demo content only), repo description and topics
