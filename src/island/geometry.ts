@@ -33,6 +33,11 @@ export const COMPACT_DEFAULT: Size = { w: 372, h: 72 };
 export const HOME_SIZE: Size = { w: 500, h: 72 };
 /** Height of the shared app dock at the bottom of the expanded island. */
 export const EXPANDED_DOCK = 44;
+/**
+ * Every app in the dock opens at this size, so switching apps doesn't
+ * resize the island and the dock stays put under the pointer.
+ */
+export const EXPANDED_SIZE: Size = { w: 460, h: 300 };
 /** Inner padding of compact/expanded content; inner corner radius = outer − this. */
 export const CONTENT_PADDING = 14;
 
@@ -109,6 +114,15 @@ export function handleHitRect(top: number): Rect {
     w: HANDLE.w + HANDLE_PAD * 2,
     h: top + HANDLE.h + HANDLE_PAD / 2,
   };
+}
+
+/**
+ * Auto-hide: the strip at the very top of the screen that brings the island
+ * back, like the edge an auto-hiding taskbar watches. A few px tall and as
+ * wide as a pill, so it doesn't catch the pointer on its way to browser tabs.
+ */
+export function revealStripRect(width = 240): Rect {
+  return { x: (WINDOW_WIDTH - width) / 2, y: 0, w: width, h: 3 };
 }
 
 /**

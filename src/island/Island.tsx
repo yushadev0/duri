@@ -19,6 +19,7 @@ import { ExpandedChrome } from "./ExpandedChrome";
 import {
   COMPACT_DEFAULT,
   EMPTY_PILL,
+  EXPANDED_SIZE,
   HOME_SIZE,
   PILL_SIDE,
   HOVER_DELAY_MS,
@@ -34,6 +35,7 @@ import {
   corners,
   dragOffset,
   handleHitRect,
+  revealStripRect,
   idlePill,
   tuckGesture,
   ISLAND_ALPHA,
@@ -65,7 +67,7 @@ function sizeOf(view: View): Size {
     case "compact":
       return view.app.compactSize ?? COMPACT_DEFAULT;
     case "expanded":
-      return view.app.expandedSize;
+      return view.app.hidden ? (view.app.expandedSize ?? EXPANDED_SIZE) : EXPANDED_SIZE;
   }
 }
 
@@ -303,7 +305,10 @@ export function Island() {
   const dragStart = useRef<number | null>(null);
   const suppressClick = useRef(false);
   const tucked = settings.tucked;
-  const handle = tucked && state.mode === "idle" && !state.pointerInside && !alertKey && dragY === null;
+  const resting = state.mode === "idle" && !state.pointerInside && !alertKey && dragY === null;
+  // Auto-hide goes one step further than tucking: nothing shows at rest.
+  const away = settings.autoHide && resting;
+  const handle = (tucked || settings.autoHide) && resting;
 
   // Activity pills show the idle info (clock, CPU…) in the middle, between
   // the app's content at both ends, so the pill has no empty gap.
@@ -337,12 +342,14 @@ export function Island() {
   useEffect(() => {
     const rects = dragging
       ? [{ x: 0, y: 0, w: WINDOW_WIDTH, h: WINDOW_HEIGHT }]
-      : handle
-        ? [handleHitRect(top)]
+      : away
+        ? [revealStripRect()]
+        : handle
+          ? [handleHitRect(top)]
         : [inflate(islandRect(size, top), 2)];
     if (showMinimal && !dragging) rects.push(minimalRect(size, top, bubble));
     invoke("island_set_hit_rects", { rects }).catch(() => {});
-  }, [size.w, size.h, showMinimal, top, bubble, handle, dragging]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [size.w, size.h, showMinimal, top, bubble, handle, away, dragging]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const transition = reduceMotion ? reducedTransition : state.growing ? morphSpring : settleSpring;
 
@@ -434,6 +441,7 @@ export function Island() {
           className={styles.island}
           data-mode={mode}
           data-handle={handle}
+          data-away={away}
           role="region"
           aria-label={handle ? t("island.handle") : t("island.label")}
           initial={false}

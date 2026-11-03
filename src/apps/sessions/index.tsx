@@ -343,5 +343,4 @@ export const sessionsApp: DuriApp = {
   Compact: SessionsCompact,
   compactSize: { w: 392, h: 72 },
   Expanded: SessionsExpanded,
-  expandedSize: { w: 460, h: 246 },
 };

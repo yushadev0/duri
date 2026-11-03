@@ -159,5 +159,4 @@ export const stopwatchApp: DuriApp = {
   Compact: StopwatchCompact,
   compactSize: { w: 372, h: 72 },
   Expanded: StopwatchExpanded,
-  expandedSize: { w: 440, h: 276 },
 };

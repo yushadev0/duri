@@ -199,5 +199,4 @@ export const notesApp: DuriApp = {
   Compact: NotesCompact,
   compactSize: { w: 372, h: 72 },
   Expanded: NotesExpanded,
-  expandedSize: { w: 460, h: 300 },
 };

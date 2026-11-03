@@ -148,7 +148,9 @@
     "shortcutClipboard": "Search Clipboard",
     "shortcutRecord": "Press keys…",
     "shortcutOff": "Off",
-    "shortcutTaken": "Another app uses this shortcut. Pick a different one."
+    "shortcutTaken": "Another app uses this shortcut. Pick a different one.",
+    "autoHide": "Automatically Hide the Island",
+    "autoHideHint": "Like an auto-hiding taskbar: it stays out of sight until you move the pointer to the top of the screen. Alerts still show."
   },
   "tray": {
     "settings": "Settings…",

@@ -214,5 +214,4 @@ export const clipboardApp: DuriApp = {
   Compact: ClipboardCompact,
   compactSize: { w: 372, h: 72 },
   Expanded: ClipboardExpanded,
-  expandedSize: { w: 460, h: 300 },
 };

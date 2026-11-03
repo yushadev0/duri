@@ -277,6 +277,13 @@ function General() {
             ]}
           />
         </Row>
+        <Row title={t("settings.autoHide")} hint={t("settings.autoHideHint")}>
+          <Switch
+            checked={settings.autoHide}
+            onChange={(autoHide) => updateSettings({ autoHide })}
+            label={t("settings.autoHide")}
+          />
+        </Row>
         <Row title={t("settings.hideInFullscreen")} hint={t("settings.hideInFullscreenHint")}>
           <Switch
             checked={settings.hideInFullscreen}

@@ -64,8 +64,10 @@ export interface DuriApp {
   compactSize?: Size;
   Expanded: ComponentType;
   /**
-   * Full island size when expanded. The bottom `EXPANDED_DOCK` px hold the
-   * shared app dock; the body gets the rest minus `CONTENT_PADDING`.
+   * Apps in the dock all open at `EXPANDED_SIZE` (460×300; the bottom
+   * `EXPANDED_DOCK` px hold the dock, the body gets the rest minus
+   * `CONTENT_PADDING`). Only `hidden` apps, which open on their own, can
+   * pick a size here.
    */
-  expandedSize: Size;
+  expandedSize?: Size;
 }

@@ -76,6 +76,8 @@ Duri's features are called **apps**. Each one can be switched off in Settings �
 - It hides while a fullscreen app, game or video is in front.
 - Keyboard: Ctrl+Alt+Space opens the island and Esc closes it. Shortcuts for a new note and for searching the clipboard can be set in Settings › General.
 - Drag it up to tuck it away into a small handle at the top edge. Hover the handle to peek; drag it down (or right-click) to bring it back.
+- Or let it hide itself, like an auto-hiding taskbar: it stays out of sight until the pointer reaches the top of the screen (Settings › General).
+- Every app opens at the same size, so the dock stays in place while you switch between them.
 
 ## Performance
 
@@ -93,7 +95,7 @@ CPU is the time used by Duri and its WebView2 processes; memory is the private w
 
 <img src="docs/media/settings.png" width="560" alt="Duri settings" />
 
-Style (floating, or attached to the top edge like a notch), pill size, transparency, what the idle pill shows, 12/24-hour clock, hide in fullscreen, replace the Windows volume popup, open at login, automatic update checks, and English or Turkish.
+Style (floating, or attached to the top edge like a notch), pill size, transparency, auto-hide, what the idle pill shows, 12/24-hour clock, hide in fullscreen, replace the Windows volume popup, open at login, automatic update checks, and English or Turkish.
 
 ## Build from source
 

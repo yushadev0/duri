@@ -31,6 +31,9 @@ pub struct Settings {
     pub auto_update_check: bool,
     /// The island is tucked into a small handle at the top edge.
     pub tucked: bool,
+    /// Like an auto-hiding taskbar: invisible at rest, back when the pointer
+    /// reaches the top edge of the screen.
+    pub auto_hide: bool,
     /// Global shortcuts as accelerators ("Ctrl+Alt+Space"); empty = off.
     pub shortcut_island: String,
     pub shortcut_note: String,
@@ -51,6 +54,7 @@ impl Default for Settings {
             hide_in_fullscreen: true,
             auto_update_check: true,
             tucked: false,
+            auto_hide: false,
             // Only the island has a default. Other apps own all sorts of
             // global shortcuts (Ctrl+Alt+Shift+N opens Laravel Herd's site
             // wizard), and Ctrl+Alt+letter is AltGr+letter on many layouts,

@@ -22,6 +22,7 @@ export interface Settings {
   hideInFullscreen: boolean;
   autoUpdateCheck: boolean;
   tucked: boolean;
+  autoHide: boolean;
   shortcutIsland: string;
   shortcutNote: string;
   shortcutClipboard: string;
@@ -39,6 +40,7 @@ export const settingsStore = createStore<Settings>({
   hideInFullscreen: true,
   autoUpdateCheck: true,
   tucked: false,
+  autoHide: false,
   shortcutIsland: "Ctrl+Alt+Space",
   shortcutNote: "",
   shortcutClipboard: "",

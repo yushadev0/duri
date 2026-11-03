@@ -34,5 +34,4 @@ export const musicApp: DuriApp = {
   Compact: MusicCompact,
   compactSize: { w: 372, h: 72 },
   Expanded: MusicExpanded,
-  expandedSize: { w: 440, h: 256 },
 };

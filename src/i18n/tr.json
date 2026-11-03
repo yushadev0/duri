@@ -148,7 +148,9 @@
     "shortcutClipboard": "Panoda Ara",
     "shortcutRecord": "Tuşlara bas…",
     "shortcutOff": "Kapalı",
-    "shortcutTaken": "Bu kısayolu başka bir uygulama kullanıyor. Başka bir tane seç."
+    "shortcutTaken": "Bu kısayolu başka bir uygulama kullanıyor. Başka bir tane seç.",
+    "autoHide": "Adayı Otomatik Gizle",
+    "autoHideHint": "Otomatik gizlenen görev çubuğu gibi: işaretçiyi ekranın üstüne götürene kadar görünmez. Uyarılar yine görünür."
   },
   "tray": {
     "settings": "Ayarlar…",

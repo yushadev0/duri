@@ -102,6 +102,12 @@
 
 /* Tucked away: a short bar at the top edge. The brighter keyline keeps it
    findable on dark window title bars. */
+/* Auto-hide: the island shrinks to the handle, then fades out completely. */
+.island[data-away="true"] {
+  opacity: 0;
+  transition: opacity 200ms ease 120ms;
+}
+
 .island[data-handle="true"],
 .stage[data-style="attached"] .island[data-handle="true"] {
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3);

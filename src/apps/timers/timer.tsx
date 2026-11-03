@@ -233,5 +233,4 @@ export const timerApp: DuriApp = {
   Compact: TimerCompact,
   compactSize: { w: 372, h: 72 },
   Expanded: TimerExpanded,
-  expandedSize: { w: 440, h: 276 },
 };

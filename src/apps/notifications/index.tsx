@@ -182,5 +182,4 @@ export const notificationsApp: DuriApp = {
   Compact,
   compactSize: { w: 400, h: 76 },
   Expanded,
-  expandedSize: { w: 460, h: 300 },
 };
