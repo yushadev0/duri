@@ -6,7 +6,8 @@
     "label": "Duri island",
     "openSettings": "Settings",
     "switchTo": "Open {{name}}",
-    "home": "Apps"
+    "home": "Apps",
+    "handle": "Duri, tucked away. Hover to peek."
   },
   "apps": {
     "music": {
@@ -92,7 +93,7 @@
     "launchAtLogin": "Open at Login",
     "launchAtLoginHint": "Start Duri when you sign in to Windows.",
     "usage": "Using the Island",
-    "usageHint": "Hover the island to peek, click to open an app. Right-click the tray icon to hide it.",
+    "usageHint": "Hover the island to peek, click to open an app. Drag it up to tuck it away into a small handle; drag it down or right-click it to bring it back.",
     "appsHint": "Turn off apps you don't need. They disappear from the island.",
     "tagline": "A dynamic island for Windows.",
     "version": "Version {{version}}",
@@ -139,7 +140,9 @@
     "settings": "Settings…",
     "hide": "Hide Island",
     "show": "Show Island",
-    "quit": "Quit Duri"
+    "quit": "Quit Duri",
+    "tuck": "Tuck Away",
+    "untuck": "Bring Back"
   },
   "sessions": {
     "status": {

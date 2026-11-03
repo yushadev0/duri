@@ -6,7 +6,8 @@
     "label": "Duri adası",
     "openSettings": "Ayarlar",
     "switchTo": "{{name}} uygulamasını aç",
-    "home": "Uygulamalar"
+    "home": "Uygulamalar",
+    "handle": "Duri kenarda. Görmek için üzerine gel."
   },
   "apps": {
     "music": {
@@ -92,7 +93,7 @@
     "launchAtLogin": "Oturum Açılınca Başlat",
     "launchAtLoginHint": "Windows'a giriş yaptığında Duri'yi başlat.",
     "usage": "Adayı Kullanmak",
-    "usageHint": "Göz atmak için adanın üzerine gel, bir uygulamayı açmak için tıkla. Gizlemek için tepsi simgesine sağ tıkla.",
+    "usageHint": "Görmek için adanın üzerine gel, bir uygulamayı açmak için tıkla. Küçük bir tutamağa çekmek için yukarı sürükle; geri getirmek için aşağı sürükle ya da sağ tıkla.",
     "appsHint": "İhtiyacın olmayan uygulamaları kapat. Adadan kaybolurlar.",
     "tagline": "Windows için dinamik ada.",
     "version": "Sürüm {{version}}",
@@ -139,7 +140,9 @@
     "settings": "Ayarlar…",
     "hide": "Adayı Gizle",
     "show": "Adayı Göster",
-    "quit": "Duri'den Çık"
+    "quit": "Duri'den Çık",
+    "tuck": "Kenara Çek",
+    "untuck": "Geri Getir"
   },
   "sessions": {
     "status": {

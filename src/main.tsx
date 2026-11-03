@@ -21,6 +21,8 @@ if (label === "island") {
         hide: i18n.t("tray.hide"),
         show: i18n.t("tray.show"),
         quit: i18n.t("tray.quit"),
+        tuck: i18n.t("tray.tuck"),
+        untuck: i18n.t("tray.untuck"),
       },
     }).catch(() => {});
   syncTray();

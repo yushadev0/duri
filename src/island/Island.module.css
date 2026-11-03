@@ -99,3 +99,11 @@
   cursor: pointer;
   overflow: hidden;
 }
+
+/* Tucked away: a short bar at the top edge. The brighter keyline keeps it
+   findable on dark window title bars. */
+.island[data-handle="true"],
+.stage[data-style="attached"] .island[data-handle="true"] {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+}

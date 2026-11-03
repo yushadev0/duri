@@ -8,7 +8,7 @@ import { registry } from "../apps/registry";
 import type { Activity, DuriApp, Size } from "../apps/types";
 import { contentIn, contentOut, morphSpring, reducedTransition, settleSpring } from "../design/motion";
 import { useHour12 } from "../lib/clock";
-import { useSettings } from "../lib/settings";
+import { updateSettings, useSettings } from "../lib/settings";
 import { startSystemStats } from "../lib/systemStats";
 import { startUpdateChecks } from "../lib/updates";
 import { IslandContext, setIslandFocus, type IslandControls } from "./context";
@@ -25,8 +25,14 @@ import {
   MINIMAL_SIZE,
   PILL_HEIGHT,
   PILL_SCALE,
+  HANDLE,
+  WINDOW_HEIGHT,
+  WINDOW_WIDTH,
   corners,
+  dragOffset,
+  handleHitRect,
   idlePill,
+  tuckGesture,
   ISLAND_ALPHA,
   inflate,
   islandRect,
@@ -239,6 +245,16 @@ export function Island() {
   const resolved = resolveView(state.mode, state.appId, state.attention, state.peek, primary?.app, apps);
   const view = useSteadyView(resolved);
 
+  // Tuck away: dragging the island up shrinks it to a handle at the top
+  // edge; hovering the handle shows the island again until the pointer
+  // leaves, and dragging it down (or the right-click menu) brings it back.
+  // Alerts still show while tucked.
+  const [dragY, setDragY] = useState<number | null>(null);
+  const dragStart = useRef<number | null>(null);
+  const suppressClick = useRef(false);
+  const tucked = settings.tucked;
+  const handle = tucked && state.mode === "idle" && !state.pointerInside && !alertKey && dragY === null;
+
   // Activity pills show the idle info (clock, CPU…) in the middle, between
   // the app's content at both ends, so the pill has no empty gap.
   const centerInfo =
@@ -253,35 +269,70 @@ export function Island() {
         ? { w: idlePill(centerInfo, hour12).w + 2 * (view.app.pillSide ?? PILL_SIDE), h: PILL_HEIGHT }
         : sizeOf(view);
   const zoom = view.kind === "pill" || view.kind === "empty" ? PILL_SCALE[settings.pillSize] ?? 1 : 1;
-  const size = { w: Math.round(base.w * zoom), h: Math.round(base.h * zoom) };
+  const size = handle ? HANDLE : { w: Math.round(base.w * zoom), h: Math.round(base.h * zoom) };
   const bubbleZoom = PILL_SCALE[settings.pillSize] ?? 1;
   const bubble = Math.round(MINIMAL_SIZE * bubbleZoom);
   const attached = settings.islandStyle === "attached";
   const top = topInset(settings.islandStyle);
   const mode = state.mode;
-  const showMinimal = mode === "idle" && !!secondary;
-  const viewKey = `${view.kind}:${"app" in view ? view.app.id : ""}`;
+  const showMinimal = mode === "idle" && !!secondary && !handle;
+  const viewKey = handle ? "handle" : `${view.kind}:${"app" in view ? view.app.id : ""}`;
   const alpha = ISLAND_ALPHA[settings.transparency] ?? 1;
   const backdrop = view.kind === "compact" || view.kind === "expanded" ? (backdrops[view.app.id] ?? null) : null;
 
   // Tell the backend which parts of the window are clickable.
+  // While dragging, the whole window takes the pointer so the release isn't
+  // lost when the cursor leaves the island.
+  const dragging = dragY !== null;
   useEffect(() => {
-    const rects = [inflate(islandRect(size, top), 2)];
-    if (showMinimal) rects.push(minimalRect(size, top, bubble));
+    const rects = dragging
+      ? [{ x: 0, y: 0, w: WINDOW_WIDTH, h: WINDOW_HEIGHT }]
+      : handle
+        ? [handleHitRect(top)]
+        : [inflate(islandRect(size, top), 2)];
+    if (showMinimal && !dragging) rects.push(minimalRect(size, top, bubble));
     invoke("island_set_hit_rects", { rects }).catch(() => {});
-  }, [size.w, size.h, showMinimal, top, bubble]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [size.w, size.h, showMinimal, top, bubble, handle, dragging]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const transition = reduceMotion ? reducedTransition : state.growing ? morphSpring : settleSpring;
 
   const open = (appId: string) => dispatch({ type: "open", appId });
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (mode === "expanded" || e.button !== 0) return;
+    dragStart.current = e.clientY;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (dragStart.current === null) return;
+    const dy = e.clientY - dragStart.current;
+    if (dragY !== null || Math.abs(dy) > 4) setDragY(dy);
+  };
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (dragStart.current === null) return;
+    dragStart.current = null;
+    if (dragY === null) return;
+    suppressClick.current = true;
+    // The window starts at the top of the screen, so clientY ≈ 0 is the edge.
+    const action = tuckGesture(dragY, tucked, e.clientY <= 1);
+    setDragY(null);
+    if (action) {
+      updateSettings({ tucked: action === "tuck" }).catch(() => {});
+      dispatch({ type: "collapse" });
+    }
+  };
+
   const onIslandClick = () => {
+    if (suppressClick.current) {
+      suppressClick.current = false;
+      return;
+    }
     if (mode === "expanded") return;
     const target = "app" in view ? view.app.id : apps[0]?.id;
     if (target) open(target);
   };
 
   let content: React.ReactNode = null;
-  switch (view.kind) {
+  if (!handle) switch (view.kind) {
     case "empty":
       content = <IdleInfo mode={settings.idleInfo} />;
       break;
@@ -320,7 +371,7 @@ export function Island() {
       ))}
 
       <div ref={scope} className={styles.anchor}>
-        {attached && (
+        {attached && !handle && (
           <>
             <span className={`${styles.fillet} ${styles.filletLeft}`} aria-hidden />
             <span className={`${styles.fillet} ${styles.filletRight}`} aria-hidden />
@@ -329,12 +380,18 @@ export function Island() {
         <motion.div
           className={styles.island}
           data-mode={mode}
+          data-handle={handle}
           role="region"
-          aria-label={t("island.label")}
+          aria-label={handle ? t("island.handle") : t("island.label")}
           initial={false}
           animate={{ width: size.w, height: size.h, ...corners(mode, size, settings.islandStyle) }}
+          style={{ y: dragging ? dragOffset(dragY, tucked) : 0 }}
           transition={transition}
           onClick={onIslandClick}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
         >
           <div
             className={styles.backdrop}
@@ -342,6 +399,7 @@ export function Island() {
             aria-hidden
           />
           <AnimatePresence initial={false}>
+            {!handle && (
             <motion.div
               key={viewKey}
               className={styles.layer}
@@ -352,6 +410,7 @@ export function Island() {
             >
               {content}
             </motion.div>
+            )}
           </AnimatePresence>
         </motion.div>
       </div>

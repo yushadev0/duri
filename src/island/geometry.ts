@@ -93,3 +93,38 @@ export function inflate(r: Rect, by: number): Rect {
  * white text near 6.7:1 on a white desktop (black at 64% over #fff ≈ #5c5c5c).
  */
 export const ISLAND_ALPHA: Record<Transparency, number> = { off: 1, low: 0.82, high: 0.64 };
+
+/** The tucked-away island: a short bar at the top edge. */
+export const HANDLE: Size = { w: 48, h: 6 };
+/** Padding around the handle's hit region (HIG: ~24 pt around elements without a bezel). */
+const HANDLE_PAD = 24;
+/** How far the island must be dragged (px) to tuck it away or bring it back. */
+export const TUCK_DISTANCE = 24;
+
+/** Generous hover region for the handle, reaching up to the screen edge. */
+export function handleHitRect(top: number): Rect {
+  return {
+    x: (WINDOW_WIDTH - HANDLE.w) / 2 - HANDLE_PAD,
+    y: 0,
+    w: HANDLE.w + HANDLE_PAD * 2,
+    h: top + HANDLE.h + HANDLE_PAD / 2,
+  };
+}
+
+/**
+ * What letting go of a vertical drag of `dy` px does: up tucks, down brings
+ * back. The island sits at the top of the screen, so the pointer often hits
+ * the edge before travelling far: reaching the edge counts as "up" too.
+ */
+export function tuckGesture(dy: number, tucked: boolean, atTopEdge = false): "tuck" | "untuck" | null {
+  if (!tucked && (dy <= -TUCK_DISTANCE || (atTopEdge && dy <= -6))) return "tuck";
+  if (tucked && dy >= TUCK_DISTANCE) return "untuck";
+  return null;
+}
+
+/** Visual offset while dragging: follows the pointer with resistance, then stops. */
+export function dragOffset(dy: number, tucked: boolean): number {
+  const toward = tucked ? Math.max(0, dy) : Math.min(0, dy);
+  const away = tucked ? Math.min(0, dy) : Math.max(0, dy);
+  return Math.max(-TUCK_DISTANCE, Math.min(TUCK_DISTANCE, toward * 0.6)) + away * 0.15;
+}

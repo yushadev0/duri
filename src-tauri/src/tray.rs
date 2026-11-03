@@ -15,6 +15,8 @@ pub struct TrayLabels {
     pub hide: String,
     pub show: String,
     pub quit: String,
+    pub tuck: String,
+    pub untuck: String,
 }
 
 impl Default for TrayLabels {
@@ -24,6 +26,8 @@ impl Default for TrayLabels {
             hide: "Hide Island".into(),
             show: "Show Island".into(),
             quit: "Quit Duri".into(),
+            tuck: "Tuck Away".into(),
+            untuck: "Bring Back".into(),
         }
     }
 }
@@ -96,11 +100,13 @@ pub fn create(app: &AppHandle) -> tauri::Result<()> {
 #[tauri::command]
 pub async fn island_context_menu(app: AppHandle, window: tauri::WebviewWindow) -> Result<(), String> {
     let labels = app.state::<Tray>().inner.lock().map_err(|e| e.to_string())?.labels.clone();
+    let tucked = crate::settings::load(&app.state::<std::sync::Arc<crate::db::Db>>()).tucked;
     let item = |id: &str, text: &str| MenuItem::with_id(&app, id, text, true, None::<&str>);
     let menu = Menu::with_items(
         &app,
         &[
             &item("ctx-settings", &labels.settings).map_err(|e| e.to_string())?,
+            &item("ctx-tuck", if tucked { &labels.untuck } else { &labels.tuck }).map_err(|e| e.to_string())?,
             &item("ctx-hide", &labels.hide).map_err(|e| e.to_string())?,
             &PredefinedMenuItem::separator(&app).map_err(|e| e.to_string())?,
             &item("ctx-quit", &labels.quit).map_err(|e| e.to_string())?,
@@ -115,6 +121,7 @@ pub fn handle_menu_event(app: &AppHandle, id: &str) {
     match id {
         "ctx-settings" => open_settings(app),
         "ctx-hide" => toggle_island(app),
+        "ctx-tuck" => crate::settings::toggle_tucked(app),
         "ctx-quit" => app.exit(0),
         _ => {}
     }

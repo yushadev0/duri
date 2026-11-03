@@ -21,6 +21,7 @@ export interface Settings {
   transparency: Transparency;
   hideInFullscreen: boolean;
   autoUpdateCheck: boolean;
+  tucked: boolean;
 }
 
 export const settingsStore = createStore<Settings>({
@@ -34,6 +35,7 @@ export const settingsStore = createStore<Settings>({
   transparency: "off",
   hideInFullscreen: true,
   autoUpdateCheck: true,
+  tucked: false,
 });
 
 let started = false;

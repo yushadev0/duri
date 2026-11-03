@@ -1,7 +1,7 @@
 use crate::db::Db;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 const NS: &str = "settings";
 const KEY: &str = "app";
@@ -29,6 +29,8 @@ pub struct Settings {
     pub hide_in_fullscreen: bool,
     /// Look for new versions on GitHub Releases at launch and twice a day.
     pub auto_update_check: bool,
+    /// The island is tucked into a small handle at the top edge.
+    pub tucked: bool,
 }
 
 impl Default for Settings {
@@ -44,6 +46,7 @@ impl Default for Settings {
             transparency: "off".into(),
             hide_in_fullscreen: true,
             auto_update_check: true,
+            tucked: false,
         }
     }
 }
@@ -57,10 +60,25 @@ pub fn settings_get(db: State<'_, Arc<Db>>) -> Settings {
     load(&db)
 }
 
-#[tauri::command]
-pub fn settings_set(app: AppHandle, db: State<'_, Arc<Db>>, settings: Settings) -> Result<(), String> {
-    db.set_json(NS, KEY, &settings)?;
+/// Saves the settings, applies the backend-side ones and tells every window.
+pub fn save(app: &AppHandle, db: &Db, settings: &Settings) -> Result<(), String> {
+    db.set_json(NS, KEY, settings)?;
     crate::apps::volume::set_replace_flyout(settings.replace_volume_flyout);
     crate::island_window::set_hide_in_fullscreen(settings.hide_in_fullscreen);
-    app.emit("settings://changed", &settings).map_err(|e| e.to_string())
+    app.emit("settings://changed", settings).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn settings_set(app: AppHandle, db: State<'_, Arc<Db>>, settings: Settings) -> Result<(), String> {
+    save(&app, &db, &settings)
+}
+
+/// Tucks the island away or brings it back (island right-click menu).
+pub fn toggle_tucked(app: &AppHandle) {
+    let db = app.state::<Arc<Db>>();
+    let mut settings = load(&db);
+    settings.tucked = !settings.tucked;
+    if let Err(e) = save(app, &db, &settings) {
+        log::warn!("could not save settings: {e}");
+    }
 }
