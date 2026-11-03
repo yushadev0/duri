@@ -1,8 +1,13 @@
 //! Notifications app: mirrors Windows toast notifications into the island.
 //!
-//! One worker thread owns the WinRT `UserNotificationListener`. Windows only
-//! raises `NotificationChanged` for packaged apps, so the worker compares the
-//! current toasts with the last ones every second instead. Notifications are
+//! One worker thread owns the WinRT `UserNotificationListener`. Reading the
+//! toast list costs real CPU (every toast in Action Center comes back), so it
+//! is read only when something changed. `NotificationChanged` is documented
+//! for packaged apps only and fails here, and folder change notifications
+//! don't fire for the database file Windows keeps open. So once a second the
+//! worker looks at the size and write time of Windows' notification database
+//! log (`wpndatabase.db-wal`), one cheap file query, and reads the toasts only
+//! when those moved, plus a safety read every 30 s. Notifications are
 //! kept in memory only (the last `KEEP`), never written to disk. Duri's own
 //! toasts (a finished timer) are skipped: the island already shows them.
 
@@ -14,7 +19,14 @@ use std::sync::Mutex;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager, State};
 
-const POLL: Duration = Duration::from_millis(1000);
+/// How often the notification database's write stamp is looked at.
+const TICK: Duration = Duration::from_millis(1000);
+/// The toast list is read at least this often, changed stamp or not.
+const SAFETY_CHECK: Duration = Duration::from_secs(30);
+/// Without a database to watch, the toast list is read this often.
+const FALLBACK_POLL: Duration = Duration::from_millis(2500);
+/// The privacy setting is re-checked this often.
+const ACCESS_CHECK: Duration = Duration::from_secs(10);
 /// How many recent notifications the island keeps.
 const KEEP: usize = 30;
 const ICON_PX: f32 = 64.0;
@@ -85,6 +97,8 @@ fn ticks_to_unix_ms(ticks: i64) -> i64 {
 enum Cmd {
     Dismiss(u32),
     Clear,
+    /// Windows says the toast list changed.
+    Refresh,
 }
 
 pub struct Notifications {
@@ -94,11 +108,11 @@ pub struct Notifications {
 
 pub fn init(app: &AppHandle) {
     let (tx, rx) = mpsc::channel();
-    app.manage(Notifications { tx: Mutex::new(tx), latest: Mutex::new(Snapshot::default()) });
+    app.manage(Notifications { tx: Mutex::new(tx.clone()), latest: Mutex::new(Snapshot::default()) });
     let app = app.clone();
     std::thread::Builder::new()
         .name("duri-notifications".into())
-        .spawn(move || worker(app, rx))
+        .spawn(move || worker(app, rx, tx))
         .expect("failed to spawn notifications thread");
 }
 
@@ -121,6 +135,28 @@ mod toast {
 
     pub fn listener() -> windows::core::Result<UserNotificationListener> {
         UserNotificationListener::Current()
+    }
+
+    /// Size and last write of Windows' notification database log, or None
+    /// when it can't be found. Changes whenever a toast arrives or goes.
+    pub fn database_stamp() -> Option<(u64, std::time::SystemTime)> {
+        let local = std::env::var_os("LOCALAPPDATA")?;
+        let wal = std::path::Path::new(&local).join(r"Microsoft\Windows\Notifications\wpndatabase.db-wal");
+        // `metadata` opens the file, so it sees the live size and time even
+        // while Windows keeps it open (the folder entry lags behind).
+        let m = std::fs::metadata(wal).ok()?;
+        Some((m.len(), m.modified().ok()?))
+    }
+
+    /// Asks Windows to call `on_change` when toasts arrive or go. Documented
+    /// for packaged apps only; unpackaged builds get an error.
+    pub fn subscribe(l: &UserNotificationListener, on_change: impl Fn() + Send + Sync + 'static) -> bool {
+        use windows::Foundation::TypedEventHandler;
+        l.NotificationChanged(&TypedEventHandler::new(move |_, _| {
+            on_change();
+            Ok(())
+        }))
+        .is_ok()
     }
 
     pub fn allowed(l: &UserNotificationListener) -> Option<bool> {
@@ -194,17 +230,29 @@ mod toast {
 }
 
 #[cfg(windows)]
-fn worker(app: AppHandle, rx: Receiver<Cmd>) {
+fn worker(app: AppHandle, rx: Receiver<Cmd>, tx: Sender<Cmd>) {
     let Ok(listener) = toast::listener() else {
         publish(&app, &Snapshot { access: Access::Unavailable, items: Vec::new() });
         return;
     };
+    // Packaged builds get the real event; it just adds a Refresh.
+    let subscribed = toast::subscribe(&listener, move || {
+        let _ = tx.send(Cmd::Refresh);
+    });
+    let mut stamp = toast::database_stamp();
+    let watching = subscribed || stamp.is_some();
+    let mut last_read = std::time::Instant::now();
     let mut snapshot = Snapshot::default();
     let mut seen: HashSet<u32> = HashSet::new();
     let mut icons: HashMap<String, Option<String>> = HashMap::new();
     let mut first = true;
+    let mut access = Access::Unknown;
+    let mut access_checked: Option<std::time::Instant> = None;
     loop {
-        let cmd = match rx.recv_timeout(POLL) {
+        // The first pass runs at once; later ones wait for a change (or the
+        // safety check) and take every queued change in one go.
+        let cmd = if first { Ok(Cmd::Refresh) } else { rx.recv_timeout(if watching { TICK } else { FALLBACK_POLL }) };
+        let cmd = match cmd {
             Ok(c) => Some(c),
             Err(RecvTimeoutError::Timeout) => None,
             Err(RecvTimeoutError::Disconnected) => return,
@@ -222,23 +270,45 @@ fn worker(app: AppHandle, rx: Receiver<Cmd>) {
                 snapshot.items.clear();
                 publish(&app, &snapshot);
             }
+            Some(Cmd::Refresh) => {}
+            None if watching && !subscribed => {
+                // Nothing to do unless the database moved (or it's been a while).
+                let now = toast::database_stamp();
+                let moved = now != stamp;
+                stamp = now;
+                if !moved && last_read.elapsed() < SAFETY_CHECK {
+                    continue;
+                }
+            }
+            None if subscribed && last_read.elapsed() < SAFETY_CHECK => continue,
             None => {}
         }
+        // Several changes often arrive together (a toast, then its update).
+        while let Ok(more) = rx.try_recv() {
+            if let Cmd::Dismiss(id) = more {
+                let _ = listener.RemoveNotification(id);
+                snapshot.items.retain(|n| n.id != id);
+            }
+        }
 
-        let access = match toast::allowed(&listener) {
-            Some(true) => Access::Allowed,
-            Some(false) => Access::Denied,
-            None => Access::Unavailable,
-        };
+        if access_checked.is_none_or(|at| at.elapsed() >= ACCESS_CHECK) {
+            access = match toast::allowed(&listener) {
+                Some(true) => Access::Allowed,
+                Some(false) => Access::Denied,
+                None => Access::Unavailable,
+            };
+            access_checked = Some(std::time::Instant::now());
+        }
         if access != Access::Allowed {
             if snapshot.access != access {
                 snapshot = Snapshot { access, items: Vec::new() };
                 publish(&app, &snapshot);
             }
-            std::thread::sleep(Duration::from_secs(4));
+            first = false;
             continue;
         }
 
+        last_read = std::time::Instant::now();
         let Ok(current) = toast::current(&listener) else { continue };
         let ids: Vec<u32> = current.iter().map(toast::id).collect();
         let change = diff(&seen, &ids);
@@ -273,7 +343,7 @@ fn worker(app: AppHandle, rx: Receiver<Cmd>) {
 }
 
 #[cfg(not(windows))]
-fn worker(app: AppHandle, _rx: Receiver<Cmd>) {
+fn worker(app: AppHandle, _rx: Receiver<Cmd>, _tx: Sender<Cmd>) {
     publish(&app, &Snapshot { access: Access::Unavailable, items: Vec::new() });
 }
 

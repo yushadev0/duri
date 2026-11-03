@@ -89,7 +89,7 @@ Optional (Settings › Apps › Integrations). Duri adds a `PermissionRequest` h
 
 ## Notifications
 
-`apps/notifications.rs` owns the WinRT `UserNotificationListener` on one thread. Windows raises `NotificationChanged` only for packaged apps, so the worker diffs the toast ids once a second, reads new toasts (app name, logo, text) and emits `notifications://new`; the list (last 30, memory only) goes out as `notifications://changed`. Duri's own toasts are skipped. Access follows Windows Settings › Privacy & security › Notifications. The "Copied" confirmation comes from `clipboard://copied`, which the clipboard monitor sends for new copies but not for Duri's own paste-back.
+`apps/notifications.rs` owns the WinRT `UserNotificationListener` on one thread. Reading the toast list is expensive (it returns everything in Action Center), so it happens only when Windows' notification database log (`wpndatabase.db-wal`) changed size or write time, checked once a second with one file query, plus a safety read every 30 s. `NotificationChanged` is documented for packaged apps and fails for Duri; folder change notifications don't fire for that file because Windows keeps it open. The worker diffs the toast ids, reads new toasts (app name, logo, text) and emits `notifications://new`; the list (last 30, memory only) goes out as `notifications://changed`. Duri's own toasts are skipped. Access follows Windows Settings › Privacy & security › Notifications. The "Copied" confirmation comes from `clipboard://copied`, which the clipboard monitor sends for new copies but not for Duri's own paste-back.
 
 ## Keyboard shortcuts
 

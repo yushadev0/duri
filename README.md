@@ -83,9 +83,9 @@ Duri is meant to sit there all day, so it stays out of the way. Measured on an I
 
 | While… | CPU (one core) | CPU (whole PC) | Memory |
 | --- | --- | --- | --- |
-| nothing is playing | 0.6% | 0.05% | 119 MB |
-| music is playing | 2.3% | 0.19% | 129 MB |
-| a Claude Code session is working | 1.4% | 0.12% | 126 MB |
+| nothing is playing | 0.4% | 0.03% | 134 MB |
+| music is playing | 1.9% | 0.16% | 135 MB |
+| a Claude Code session is working | 1.5% | 0.13% | 141 MB |
 
 CPU is the time used by Duri and its WebView2 processes; memory is the private working set, as Task Manager shows it. Most of the memory is WebView2 itself. Up to 0.1.1 the animated pill kept the island repainting at the display's refresh rate and used up to 20% of a core while music played; it now changes a few times a second. Measure it yourself with `powershell -ExecutionPolicy Bypass -File scriptsench.ps1`.
 
