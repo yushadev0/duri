@@ -328,9 +328,24 @@ pub fn spawn_hit_test(app: AppHandle) {
         .expect("failed to spawn hit-test thread");
 }
 
+/// Window bounds as `(left, top, right, bottom)` in physical pixels.
+type Bounds = (i32, i32, i32, i32);
+
+/// WS_CAPTION: a title bar. Maximized windows keep it; fullscreen ones drop it.
+const WS_CAPTION: u32 = 0x00C0_0000;
+
+/// Whether a window is fullscreen on its monitor: it covers the whole monitor
+/// (taskbar included) and has no title bar. Browsers report a fullscreen
+/// video or F11 as still maximized, so the maximized flag can't decide it;
+/// an ordinary maximized window keeps its caption, and with a visible
+/// taskbar doesn't reach the bottom edge anyway.
+pub fn is_fullscreen(window: Bounds, monitor: Bounds, style: u32) -> bool {
+    let covers = window.0 <= monitor.0 && window.1 <= monitor.1 && window.2 >= monitor.2 && window.3 >= monitor.3;
+    covers && style & WS_CAPTION != WS_CAPTION
+}
+
 /// Whether a fullscreen app, game or video is in front on the primary
-/// monitor (where the island lives). A maximized window doesn't count: it
-/// leaves the taskbar visible.
+/// monitor (where the island lives).
 #[cfg(windows)]
 fn fullscreen_in_front() -> bool {
     use windows::Win32::Foundation::{HWND, RECT};
@@ -338,7 +353,7 @@ fn fullscreen_in_front() -> bool {
     use windows::Win32::UI::Shell::{
         SHQueryUserNotificationState, QUNS_PRESENTATION_MODE, QUNS_RUNNING_D3D_FULL_SCREEN,
     };
-    use windows::Win32::UI::WindowsAndMessaging::{GetClassNameW, GetWindowRect, IsZoomed};
+    use windows::Win32::UI::WindowsAndMessaging::{GetClassNameW, GetWindowLongPtrW, GetWindowRect, GWL_STYLE};
 
     // Exclusive-fullscreen games and presentation mode, as Windows sees them.
     if let Ok(state) = unsafe { SHQueryUserNotificationState() }
@@ -357,7 +372,7 @@ fn fullscreen_in_front() -> bool {
         let mut class = [0u16; 64];
         let len = GetClassNameW(hwnd, &mut class) as usize;
         let class = String::from_utf16_lossy(&class[..len]);
-        if matches!(class.as_str(), "Progman" | "WorkerW" | "Shell_TrayWnd") || IsZoomed(hwnd).as_bool() {
+        if matches!(class.as_str(), "Progman" | "WorkerW" | "Shell_TrayWnd") {
             return false;
         }
         let monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONULL);
@@ -369,14 +384,12 @@ fn fullscreen_in_front() -> bool {
         if !GetMonitorInfoW(monitor, &mut info).as_bool() || GetWindowRect(hwnd, &mut rect).is_err() {
             return false;
         }
-        // MONITORINFOF_PRIMARY
-        info.dwFlags & 1 != 0 && covers(rect, info.rcMonitor)
+        let m = info.rcMonitor;
+        let style = GetWindowLongPtrW(hwnd, GWL_STYLE) as u32;
+        // MONITORINFOF_PRIMARY: the island only lives on the primary monitor.
+        info.dwFlags & 1 != 0
+            && is_fullscreen((rect.left, rect.top, rect.right, rect.bottom), (m.left, m.top, m.right, m.bottom), style)
     }
-}
-
-#[cfg(windows)]
-fn covers(w: windows::Win32::Foundation::RECT, m: windows::Win32::Foundation::RECT) -> bool {
-    w.left <= m.left && w.top <= m.top && w.right >= m.right && w.bottom >= m.bottom
 }
 
 /// Hides the island while a fullscreen app is in front, and brings it back
@@ -420,7 +433,30 @@ pub fn island_set_hit_rects(state: State<'_, IslandState>, rects: Vec<Rect>) {
 
 #[cfg(test)]
 mod tests {
-    use super::Rect;
+    use super::{is_fullscreen, Rect};
+
+    // Measured on a 1920×1080 monitor with Edge.
+    const MONITOR: (i32, i32, i32, i32) = (0, 0, 1920, 1080);
+
+    #[test]
+    fn browser_fullscreen_counts_even_while_maximized() {
+        // F11 / fullscreen video from a maximized window: style 0x170B0000.
+        assert!(is_fullscreen((0, 0, 1920, 1080), MONITOR, 0x170B_0000));
+    }
+
+    #[test]
+    fn maximized_window_is_not_fullscreen() {
+        // Maximized Edge (style 0x17CF0000) stops at the taskbar.
+        assert!(!is_fullscreen((-9, -9, 1929, 1029), MONITOR, 0x17CF_0000));
+        // With an auto-hiding taskbar it covers the screen but keeps its caption.
+        assert!(!is_fullscreen((-9, -9, 1929, 1089), MONITOR, 0x17CF_0000));
+    }
+
+    #[test]
+    fn borderless_window_covering_the_screen_counts() {
+        assert!(is_fullscreen((0, 0, 1920, 1080), MONITOR, 0x9600_0000));
+        assert!(!is_fullscreen((0, 0, 1920, 1040), MONITOR, 0x9600_0000));
+    }
 
     #[test]
     fn rect_contains_edges() {

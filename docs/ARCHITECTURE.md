@@ -28,7 +28,7 @@ The island is one transparent, borderless, always-on-top Tauri window (640×320 
 
 Because the window is much bigger than the visible pill, it ignores cursor events by default. The frontend reports the visible rectangles with `island_set_hit_rects`. A Rust thread checks the cursor every 20 ms and turns cursor events on only while the cursor is over one of those rectangles. The same thread emits `island://pointer` (true/false). The webview can't get `mouseleave` once events are ignored, so hover is driven entirely by this event.
 
-**Visibility.** The window is shown unless the tray menu hid it or a fullscreen app is in front (`apply_visibility` in `island_window.rs`). A watcher thread checks every 500 ms: Windows' own notification state catches exclusive-fullscreen games and presentation mode, and a foreground window that covers the whole primary monitor without being maximized catches borderless games, F11 browsers and video players. The desktop (`Progman`/`WorkerW`) never counts.
+**Visibility.** The window is shown unless the tray menu hid it or a fullscreen app is in front (`apply_visibility` in `island_window.rs`). A watcher thread checks every 500 ms: Windows' own notification state catches exclusive-fullscreen games and presentation mode, and a foreground window that covers the whole primary monitor catches borderless games, F11 browsers and video players. Browsers report fullscreen as still maximized, so the check is "covers the monitor and has no title bar" rather than "not maximized". The desktop (`Progman`/`WorkerW`) never counts.
 
 ## Focus
 
