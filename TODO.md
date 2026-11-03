@@ -2,8 +2,6 @@
 
 ## Next
 
-- [ ] **GitHub page:** a README with screenshots/GIFs of each app, badges, a clear install section, a polished repo description and topics
-- [ ] **Demo video** of the island and its apps (for the README and releases)
 - [ ] **Tuck away:** drag the island up past the top edge to shrink it to a tiny handle; drag it back down (or hover the handle) to bring it back
 
 ## Suggestions (from Claude, to discuss)
@@ -15,6 +13,7 @@
 - [ ] **Code-sign the installer** so SmartScreen doesn't warn on first run
 - [ ] **Idle CPU audit** of the polling threads (hit test 20 ms, volume 100 ms, music 500 ms) and back off when nothing changes
 - [ ] **Keyboard navigation** inside the expanded island (Tab between controls, arrows in lists)
+- [ ] **Two players from the same app** (e.g. two Chrome windows) share one source id, so the source picker can only reach the first; key sources by session, not app id
 - [ ] Optional "Copied" confirmation in the pill when something is copied
 
 ## Done
@@ -27,3 +26,4 @@
 - [x] Right-click menu, focus that stays on the island after a click
 - [x] 12/24-hour clock (follows Windows by default), island transparency, hide in fullscreen
 - [x] Releases: tag-triggered GitHub Actions build, in-app updater (v0.1.0 published)
+- [x] GitHub page: README with demo GIF and screenshots (demo content only), repo description and topics
