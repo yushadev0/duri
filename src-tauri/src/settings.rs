@@ -21,6 +21,12 @@ pub struct Settings {
     pub replace_volume_flyout: bool,
     /// What the empty idle pill shows: "none", "clock", "stats" or "both".
     pub idle_info: String,
+    /// "system" (follow Windows' time format), "12h" or "24h".
+    pub clock_format: String,
+    /// "off", "low" or "high": how much the desktop shows through the island.
+    pub transparency: String,
+    /// Hide the island while a fullscreen app, game or video is in front.
+    pub hide_in_fullscreen: bool,
 }
 
 impl Default for Settings {
@@ -32,6 +38,9 @@ impl Default for Settings {
             pill_size: "default".into(),
             replace_volume_flyout: false,
             idle_info: "clock".into(),
+            clock_format: "system".into(),
+            transparency: "off".into(),
+            hide_in_fullscreen: true,
         }
     }
 }
@@ -49,5 +58,6 @@ pub fn settings_get(db: State<'_, Arc<Db>>) -> Settings {
 pub fn settings_set(app: AppHandle, db: State<'_, Arc<Db>>, settings: Settings) -> Result<(), String> {
     db.set_json(NS, KEY, &settings)?;
     crate::apps::volume::set_replace_flyout(settings.replace_volume_flyout);
+    crate::island_window::set_hide_in_fullscreen(settings.hide_in_fullscreen);
     app.emit("settings://changed", &settings).map_err(|e| e.to_string())
 }

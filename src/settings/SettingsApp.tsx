@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { registry } from "../apps/registry";
 import { refreshHooks, sessionActions, useHookStatus } from "../apps/sessions/store";
 import { DuriMark } from "../components/DuriMark";
-import { updateSettings, useSettings, type IdleInfo, type IslandStyle, type LanguagePref, type PillSize } from "../lib/settings";
+import { updateSettings, useSettings, type ClockFormat, type IdleInfo, type IslandStyle, type LanguagePref, type PillSize, type Transparency } from "../lib/settings";
 import styles from "./Settings.module.css";
 
 type Pane = "general" | "apps" | "about";
@@ -149,6 +149,18 @@ function General() {
             ]}
           />
         </Row>
+        <Row title={t("settings.transparency")} hint={t("settings.transparencyHint")}>
+          <Segmented<Transparency>
+            label={t("settings.transparency")}
+            value={settings.transparency}
+            onChange={(transparency) => updateSettings({ transparency })}
+            options={[
+              { value: "off", label: t("settings.transparencyOff") },
+              { value: "low", label: t("settings.transparencyLow") },
+              { value: "high", label: t("settings.transparencyHigh") },
+            ]}
+          />
+        </Row>
         <Row title={t("settings.idleInfo")} hint={t("settings.idleInfoHint")}>
           <Segmented<IdleInfo>
             label={t("settings.idleInfo")}
@@ -160,6 +172,25 @@ function General() {
               { value: "stats", label: t("settings.idleStats") },
               { value: "both", label: t("settings.idleBoth") },
             ]}
+          />
+        </Row>
+        <Row title={t("settings.clockFormat")} hint={t("settings.clockFormatHint")}>
+          <Segmented<ClockFormat>
+            label={t("settings.clockFormat")}
+            value={settings.clockFormat}
+            onChange={(clockFormat) => updateSettings({ clockFormat })}
+            options={[
+              { value: "system", label: t("settings.clockSystem") },
+              { value: "12h", label: t("settings.clock12") },
+              { value: "24h", label: t("settings.clock24") },
+            ]}
+          />
+        </Row>
+        <Row title={t("settings.hideInFullscreen")} hint={t("settings.hideInFullscreenHint")}>
+          <Switch
+            checked={settings.hideInFullscreen}
+            onChange={(hideInFullscreen) => updateSettings({ hideInFullscreen })}
+            label={t("settings.hideInFullscreen")}
           />
         </Row>
         <Row title={t("settings.replaceFlyout")} hint={t("settings.replaceFlyoutHint")}>

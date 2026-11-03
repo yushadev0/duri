@@ -1,4 +1,4 @@
-use crate::island_window::{self, IslandState};
+use crate::island_window;
 use serde::Deserialize;
 use std::sync::Mutex;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -124,14 +124,7 @@ fn toggle_island(app: &AppHandle) {
     let tray = app.state::<Tray>();
     let Ok(mut inner) = tray.inner.lock() else { return };
     inner.hidden = !inner.hidden;
-    app.state::<IslandState>().set_hidden(inner.hidden);
-    if let Some(win) = app.get_webview_window(island_window::LABEL) {
-        if inner.hidden {
-            let _ = win.hide();
-        } else {
-            island_window::show_without_activating(&win);
-        }
-    }
+    island_window::set_hidden(app, inner.hidden);
     tray.refresh(&inner);
 }
 

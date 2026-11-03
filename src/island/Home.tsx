@@ -2,6 +2,7 @@ import { Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { DuriApp } from "../apps/types";
 import { IconButton } from "../components/Button";
+import { formatClock, useHour12 } from "../lib/clock";
 import { useNow } from "../lib/useNow";
 import styles from "./Home.module.css";
 
@@ -14,8 +15,9 @@ interface HomeProps {
 /** Compact view when no app has an activity: the time and an app launcher. */
 export function Home({ apps, onOpen, onSettings }: HomeProps) {
   const { t, i18n } = useTranslation();
+  const hour12 = useHour12();
   const now = new Date(useNow(true, 1000));
-  const time = now.toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" });
+  const time = formatClock(now, i18n.language, hour12);
   const date = now.toLocaleDateString(i18n.language, { weekday: "long", day: "numeric", month: "long" });
 
   return (

@@ -5,10 +5,7 @@
 - [ ] **GitHub page:** a README with screenshots/GIFs of each app, badges, a clear install section, a polished repo description and topics
 - [ ] **Demo video** of the island and its apps (for the README and releases)
 - [ ] **Releases:** GitHub Actions builds signed installers on a tag, plus the tauri updater. Keep using the durian mark from Settings › About as the app icon (`src-tauri/icons/app-icon.svg`, generated with `pnpm tauri icon`)
-- [ ] **12/24-hour clock** setting (idle info, Home)
-- [ ] **Transparency** setting for the island
 - [ ] **Tuck away:** drag the island up past the top edge to shrink it to a tiny handle; drag it back down (or hover the handle) to bring it back
-- [ ] **Hide in fullscreen:** hide the island completely while a fullscreen app, game or video is in front
 
 ## Suggestions (from Claude, to discuss)
 
@@ -29,3 +26,4 @@
 - [x] Music background gradient from the cover color
 - [x] Idle info (clock / CPU & RAM), also shown in the middle of activity pills
 - [x] Right-click menu, focus that stays on the island after a click
+- [x] 12/24-hour clock (follows Windows by default), island transparency, hide in fullscreen

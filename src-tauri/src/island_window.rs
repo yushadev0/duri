@@ -9,6 +9,7 @@
 //! because the webview never sees `mouseleave` once events are ignored.
 
 use serde::Deserialize;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 use std::time::Duration;
 use tauri::{
@@ -41,7 +42,12 @@ impl Rect {
 struct Inner {
     rects: Vec<Rect>,
     inside: bool,
+    /// Hidden from the tray menu.
     hidden: bool,
+    /// Hidden because a fullscreen app is in front (Settings › Hide in Fullscreen).
+    fullscreen: bool,
+    /// Whether the window is currently shown.
+    shown: bool,
     /// The island currently has keyboard focus (someone is typing in it).
     focused: bool,
     /// Last foreground window that isn't Duri's (raw HWND): where focus
@@ -52,11 +58,44 @@ struct Inner {
 #[derive(Default)]
 pub struct IslandState(Mutex<Inner>);
 
-impl IslandState {
-    pub fn set_hidden(&self, hidden: bool) {
-        if let Ok(mut s) = self.0.lock() {
-            s.hidden = hidden;
+/// Settings › Hide in Fullscreen.
+static HIDE_IN_FULLSCREEN: AtomicBool = AtomicBool::new(true);
+
+pub fn set_hide_in_fullscreen(on: bool) {
+    HIDE_IN_FULLSCREEN.store(on, Ordering::SeqCst);
+}
+
+impl Inner {
+    fn visible(&self) -> bool {
+        !self.hidden && !self.fullscreen
+    }
+}
+
+/// Hides the island from the tray menu, or shows it again.
+pub fn set_hidden(app: &AppHandle, hidden: bool) {
+    if let Ok(mut s) = app.state::<IslandState>().0.lock() {
+        s.hidden = hidden;
+    }
+    apply_visibility(app);
+}
+
+/// Shows or hides the window to match the tray and fullscreen state.
+fn apply_visibility(app: &AppHandle) {
+    let Some(win) = app.get_webview_window(LABEL) else { return };
+    let show = {
+        let state = app.state::<IslandState>();
+        let Ok(mut s) = state.0.lock() else { return };
+        let show = s.visible();
+        if show == s.shown {
+            return;
         }
+        s.shown = show;
+        show
+    };
+    if show {
+        show_without_activating(&win);
+    } else {
+        let _ = win.hide();
     }
 }
 
@@ -76,7 +115,7 @@ pub fn create(app: &AppHandle) -> tauri::Result<WebviewWindow> {
     position(&win)?;
     apply_non_activating_style(&win);
     win.set_ignore_cursor_events(true)?;
-    show_without_activating(&win);
+    apply_visibility(app);
     Ok(win)
 }
 
@@ -278,7 +317,7 @@ pub fn spawn_hit_test(app: AppHandle) {
             let Ok(mut s) = state.0.lock() else { continue };
             #[cfg(windows)]
             track_foreground(&mut s);
-            let inside = !s.hidden && s.rects.iter().any(|r| r.contains(lx, ly));
+            let inside = s.visible() && s.rects.iter().any(|r| r.contains(lx, ly));
             if inside != s.inside {
                 s.inside = inside;
                 drop(s);
@@ -287,6 +326,81 @@ pub fn spawn_hit_test(app: AppHandle) {
             }
         })
         .expect("failed to spawn hit-test thread");
+}
+
+/// Whether a fullscreen app, game or video is in front on the primary
+/// monitor (where the island lives). A maximized window doesn't count: it
+/// leaves the taskbar visible.
+#[cfg(windows)]
+fn fullscreen_in_front() -> bool {
+    use windows::Win32::Foundation::{HWND, RECT};
+    use windows::Win32::Graphics::Gdi::{GetMonitorInfoW, MonitorFromWindow, MONITORINFO, MONITOR_DEFAULTTONULL};
+    use windows::Win32::UI::Shell::{
+        SHQueryUserNotificationState, QUNS_PRESENTATION_MODE, QUNS_RUNNING_D3D_FULL_SCREEN,
+    };
+    use windows::Win32::UI::WindowsAndMessaging::{GetClassNameW, GetWindowRect, IsZoomed};
+
+    // Exclusive-fullscreen games and presentation mode, as Windows sees them.
+    if let Ok(state) = unsafe { SHQueryUserNotificationState() }
+        && (state == QUNS_RUNNING_D3D_FULL_SCREEN || state == QUNS_PRESENTATION_MODE)
+    {
+        return true;
+    }
+
+    let raw = fg::current();
+    if raw == 0 || fg::is_ours(raw) {
+        return false;
+    }
+    let hwnd = HWND(raw as _);
+    unsafe {
+        // The desktop itself covers the whole screen.
+        let mut class = [0u16; 64];
+        let len = GetClassNameW(hwnd, &mut class) as usize;
+        let class = String::from_utf16_lossy(&class[..len]);
+        if matches!(class.as_str(), "Progman" | "WorkerW" | "Shell_TrayWnd") || IsZoomed(hwnd).as_bool() {
+            return false;
+        }
+        let monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONULL);
+        if monitor.is_invalid() {
+            return false;
+        }
+        let mut info = MONITORINFO { cbSize: std::mem::size_of::<MONITORINFO>() as u32, ..Default::default() };
+        let mut rect = RECT::default();
+        if !GetMonitorInfoW(monitor, &mut info).as_bool() || GetWindowRect(hwnd, &mut rect).is_err() {
+            return false;
+        }
+        // MONITORINFOF_PRIMARY
+        info.dwFlags & 1 != 0 && covers(rect, info.rcMonitor)
+    }
+}
+
+#[cfg(windows)]
+fn covers(w: windows::Win32::Foundation::RECT, m: windows::Win32::Foundation::RECT) -> bool {
+    w.left <= m.left && w.top <= m.top && w.right >= m.right && w.bottom >= m.bottom
+}
+
+/// Hides the island while a fullscreen app is in front, and brings it back
+/// once it's gone.
+pub fn spawn_fullscreen_watch(app: AppHandle) {
+    #[cfg(windows)]
+    std::thread::Builder::new()
+        .name("duri-fullscreen".into())
+        .spawn(move || loop {
+            std::thread::sleep(Duration::from_millis(500));
+            let fullscreen = HIDE_IN_FULLSCREEN.load(Ordering::SeqCst) && fullscreen_in_front();
+            let changed = app
+                .state::<IslandState>()
+                .0
+                .lock()
+                .map(|mut s| std::mem::replace(&mut s.fullscreen, fullscreen) != fullscreen)
+                .unwrap_or(false);
+            if changed {
+                apply_visibility(&app);
+            }
+        })
+        .expect("failed to spawn fullscreen watcher");
+    #[cfg(not(windows))]
+    let _ = app;
 }
 
 /// Whether the pointer is over the island right now (the UI asks on load,

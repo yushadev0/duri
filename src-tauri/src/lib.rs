@@ -29,10 +29,12 @@ pub fn run() {
             app.manage(db.clone());
             app.manage(island_window::IslandState::default());
 
+            island_window::set_hide_in_fullscreen(settings::load(&db).hide_in_fullscreen);
             apps::init(app.handle(), db, &dir);
             system::init(app.handle());
             island_window::create(app.handle())?;
             island_window::spawn_hit_test(app.handle().clone());
+            island_window::spawn_fullscreen_watch(app.handle().clone());
             tray::create(app.handle())?;
             Ok(())
         })
@@ -53,6 +55,7 @@ pub fn run() {
             apps::notes::note_set_pinned,
             settings::settings_get,
             system::system_stats,
+            system::system_clock_24h,
             settings::settings_set,
             tray::open_settings_window,
             tray::tray_set_labels,

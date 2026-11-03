@@ -121,7 +121,19 @@
     "idleNone": "Hiçbiri",
     "idleClock": "Saat",
     "idleStats": "CPU ve RAM",
-    "idleBoth": "İkisi"
+    "idleBoth": "İkisi",
+    "clockFormat": "Saat",
+    "clockFormatHint": "Otomatik, Windows’ta ayarlı saat biçimini kullanır.",
+    "clockSystem": "Otomatik",
+    "clock12": "12 Saat",
+    "clock24": "24 Saat",
+    "transparency": "Şeffaflık",
+    "transparencyHint": "Masaüstünün adanın arkasından görünmesini sağlar.",
+    "transparencyOff": "Kapalı",
+    "transparencyLow": "Az",
+    "transparencyHigh": "Çok",
+    "hideInFullscreen": "Tam Ekranda Gizle",
+    "hideInFullscreenHint": "Önde tam ekran bir uygulama, oyun ya da video varken adayı gizler."
   },
   "tray": {
     "settings": "Ayarlar…",

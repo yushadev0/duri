@@ -7,6 +7,8 @@ export type LanguagePref = "system" | "en" | "tr";
 export type IslandStyle = "floating" | "attached";
 export type PillSize = "compact" | "default" | "large";
 export type IdleInfo = "none" | "clock" | "stats" | "both";
+export type ClockFormat = "system" | "12h" | "24h";
+export type Transparency = "off" | "low" | "high";
 
 export interface Settings {
   language: LanguagePref;
@@ -15,6 +17,9 @@ export interface Settings {
   pillSize: PillSize;
   replaceVolumeFlyout: boolean;
   idleInfo: IdleInfo;
+  clockFormat: ClockFormat;
+  transparency: Transparency;
+  hideInFullscreen: boolean;
 }
 
 export const settingsStore = createStore<Settings>({
@@ -24,6 +29,9 @@ export const settingsStore = createStore<Settings>({
   pillSize: "default",
   replaceVolumeFlyout: false,
   idleInfo: "clock",
+  clockFormat: "system",
+  transparency: "off",
+  hideInFullscreen: true,
 });
 
 let started = false;

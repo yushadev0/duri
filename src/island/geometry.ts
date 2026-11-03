@@ -1,5 +1,5 @@
 import type { Size } from "../apps/types";
-import type { IdleInfo, IslandStyle, PillSize } from "../lib/settings";
+import type { IdleInfo, IslandStyle, PillSize, Transparency } from "../lib/settings";
 
 /** Keep in sync with WIDTH/HEIGHT in src-tauri/src/island_window.rs. */
 export const WINDOW_WIDTH = 640;
@@ -16,6 +16,14 @@ export const IDLE_PILL: Record<IdleInfo, Size> = {
   stats: { w: 166, h: PILL_HEIGHT },
   both: { w: 222, h: PILL_HEIGHT },
 };
+/** A 12-hour time ("3:04 PM") is wider than "15:04". */
+export const CLOCK_12H_EXTRA = 24;
+
+/** Idle pill size for the idle info shown, with room for a 12-hour clock. */
+export function idlePill(info: IdleInfo, hour12: boolean): Size {
+  const base = IDLE_PILL[info] ?? EMPTY_PILL;
+  return hour12 && (info === "clock" || info === "both") ? { w: base.w + CLOCK_12H_EXTRA, h: base.h } : base;
+}
 export const MINIMAL_SIZE = 34;
 /** Default width of each end of an activity pill when idle info sits between them. */
 export const PILL_SIDE = 48;
@@ -79,3 +87,9 @@ export function minimalRect(main: Size, top: number, side: number): Rect {
 export function inflate(r: Rect, by: number): Rect {
   return { x: r.x - by, y: r.y - by, w: r.w + by * 2, h: r.h + by * 2 };
 }
+
+/**
+ * Island background opacity per Transparency setting. The lowest still keeps
+ * white text near 6.7:1 on a white desktop (black at 64% over #fff ≈ #5c5c5c).
+ */
+export const ISLAND_ALPHA: Record<Transparency, number> = { off: 1, low: 0.82, high: 0.64 };

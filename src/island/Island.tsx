@@ -7,6 +7,7 @@ import { rankActivities, sameActivity } from "../apps/activity";
 import { registry } from "../apps/registry";
 import type { Activity, DuriApp, Size } from "../apps/types";
 import { contentIn, contentOut, morphSpring, reducedTransition, settleSpring } from "../design/motion";
+import { useHour12 } from "../lib/clock";
 import { useSettings } from "../lib/settings";
 import { startSystemStats } from "../lib/systemStats";
 import { IslandContext, setIslandFocus, type IslandControls } from "./context";
@@ -15,7 +16,6 @@ import {
   COMPACT_DEFAULT,
   EMPTY_PILL,
   HOME_SIZE,
-  IDLE_PILL,
   PILL_SIDE,
   HOVER_DELAY_MS,
   LEAVE_DELAY_EXPANDED_MS,
@@ -25,6 +25,8 @@ import {
   PILL_HEIGHT,
   PILL_SCALE,
   corners,
+  idlePill,
+  ISLAND_ALPHA,
   inflate,
   islandRect,
   minimalRect,
@@ -128,6 +130,7 @@ export function Island() {
   const { t } = useTranslation();
   const reduceMotion = useReducedMotion();
   const settings = useSettings();
+  const hour12 = useHour12();
   const apps = useMemo(
     () => registry.filter((a) => !settings.disabledApps.includes(a.id)),
     [settings.disabledApps],
@@ -243,9 +246,9 @@ export function Island() {
   // content is drawn at base size and zoomed so it stays crisp.
   const base =
     view.kind === "empty"
-      ? (IDLE_PILL[settings.idleInfo] ?? EMPTY_PILL)
+      ? idlePill(settings.idleInfo, hour12)
       : centerInfo && view.kind === "pill"
-        ? { w: IDLE_PILL[centerInfo].w + 2 * (view.app.pillSide ?? PILL_SIDE), h: PILL_HEIGHT }
+        ? { w: idlePill(centerInfo, hour12).w + 2 * (view.app.pillSide ?? PILL_SIDE), h: PILL_HEIGHT }
         : sizeOf(view);
   const zoom = view.kind === "pill" || view.kind === "empty" ? PILL_SCALE[settings.pillSize] ?? 1 : 1;
   const size = { w: Math.round(base.w * zoom), h: Math.round(base.h * zoom) };
@@ -256,6 +259,7 @@ export function Island() {
   const mode = state.mode;
   const showMinimal = mode === "idle" && !!secondary;
   const viewKey = `${view.kind}:${"app" in view ? view.app.id : ""}`;
+  const alpha = ISLAND_ALPHA[settings.transparency] ?? 1;
   const backdrop = view.kind === "compact" || view.kind === "expanded" ? (backdrops[view.app.id] ?? null) : null;
 
   // Tell the backend which parts of the window are clickable.
@@ -308,7 +312,7 @@ export function Island() {
 
   return (
     <IslandContext.Provider value={controls}>
-    <div className={styles.stage} data-style={settings.islandStyle} style={{ "--top": `${top}px` } as CSSProperties}>
+    <div className={styles.stage} data-style={settings.islandStyle} style={{ "--top": `${top}px`, "--island-bg": `rgba(0, 0, 0, ${alpha})` } as CSSProperties}>
       {apps.map((app) => (
         <AppProbe key={app.id} app={app} report={report} reportBackdrop={reportBackdrop} />
       ))}
@@ -332,7 +336,7 @@ export function Island() {
         >
           <div
             className={styles.backdrop}
-            style={{ backgroundImage: backdrop ?? undefined, opacity: backdrop ? 1 : 0 }}
+            style={{ backgroundImage: backdrop ?? undefined, opacity: backdrop ? alpha : 0 }}
             aria-hidden
           />
           <AnimatePresence initial={false}>

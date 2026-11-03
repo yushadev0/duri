@@ -121,7 +121,19 @@
     "idleNone": "Nothing",
     "idleClock": "Clock",
     "idleStats": "CPU & RAM",
-    "idleBoth": "Both"
+    "idleBoth": "Both",
+    "clockFormat": "Clock",
+    "clockFormatHint": "Automatic follows the time format set in Windows.",
+    "clockSystem": "Automatic",
+    "clock12": "12-Hour",
+    "clock24": "24-Hour",
+    "transparency": "Transparency",
+    "transparencyHint": "Lets the desktop show through the island.",
+    "transparencyOff": "Off",
+    "transparencyLow": "Low",
+    "transparencyHigh": "High",
+    "hideInFullscreen": "Hide in Fullscreen",
+    "hideInFullscreenHint": "Hides the island while a fullscreen app, game or video is in front."
   },
   "tray": {
     "settings": "Settings…",
