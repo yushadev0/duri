@@ -10,8 +10,6 @@
 - [ ] **Verify Codex tracking** against a real Codex install (parser is written from the rollout format, untested)
 - [ ] **Code-sign the installer** so SmartScreen doesn't warn on first run
 - [ ] **Keyboard navigation** inside the expanded island (Tab between controls, arrows in lists)
-- [ ] **Two players from the same app** (e.g. two Chrome windows) share one source id, so the source picker can only reach the first; key sources by session, not app id
-- [ ] Optional "Copied" confirmation in the pill when something is copied
 
 ## Done
 
@@ -25,4 +23,5 @@
 - [x] Releases: tag-triggered GitHub Actions build, in-app updater (v0.1.0 published)
 - [x] Idle CPU: stepped pill animations, aligned clocks, cheaper hit test (20% of a core with music down to 2%), benchmark in README
 - [x] Tuck away (drag up / hover to peek / drag down or right-click), answer Claude Code permission prompts from the island (opt-in)
+- [x] Notifications app (Windows toasts + Copied confirmation), two players from the same app (Chrome 2)
 - [x] GitHub page: README with demo GIF and screenshots (demo content only), repo description and topics

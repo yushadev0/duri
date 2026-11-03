@@ -16,10 +16,19 @@ const KNOWN: [RegExp, string][] = [
   [/musicbee/i, "MusicBee"],
 ];
 
-export function sourceName(id: string): string {
-  if (!id) return "";
+function appName(id: string): string {
   for (const [re, name] of KNOWN) if (re.test(id)) return name;
   const last = id.split("!").pop() ?? id;
   const base = last.replace(/\.exe$/i, "").split(/[\\/]/).pop() ?? last;
   return base.split(".").pop() || base;
+}
+
+/**
+ * Name for a source key. A second player from the same app has a key like
+ * "Chrome#2" (see `source_keys` in music.rs) and reads "Chrome 2".
+ */
+export function sourceName(key: string): string {
+  if (!key) return "";
+  const m = /^(.*)#(\d+)$/.exec(key);
+  return m ? `${appName(m[1])} ${m[2]}` : appName(key);
 }

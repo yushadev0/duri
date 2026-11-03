@@ -23,6 +23,11 @@ describe("sourceName", () => {
     expect(sourceName("C:\\Apps\\Strawberry.exe")).toBe("Strawberry");
     expect(sourceName("")).toBe("");
   });
+
+  it("numbers a second player from the same app", () => {
+    expect(sourceName("Chrome#2")).toBe("Chrome 2");
+    expect(sourceName("Spotify.exe#3")).toBe("Spotify 3");
+  });
 });
 
 describe("currentPosition", () => {

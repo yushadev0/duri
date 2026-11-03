@@ -120,7 +120,7 @@ fn worker(app: AppHandle, rx: Receiver<Cmd>) {
         match cmd {
             Some(Cmd::Select(id)) => selected = id,
             Some(cmd) => {
-                if let Some(s) = pick_session(mgr, &selected) {
+                if let Some((_, s)) = pick_session(mgr, &selected) {
                     if let Err(e) = run_command(&s, cmd) {
                         log::warn!("music command failed: {e}");
                     }
@@ -178,32 +178,75 @@ fn worker(app: AppHandle, rx: Receiver<Cmd>) {
     }
 }
 
+/// Title and artist, to tell apart sessions of the same app.
+fn track_of(s: &Session) -> (String, String) {
+    s.TryGetMediaPropertiesAsync()
+        .and_then(|op| op.join())
+        .map(|p| {
+            (p.Title().map(|h| h.to_string()).unwrap_or_default(), p.Artist().map(|h| h.to_string()).unwrap_or_default())
+        })
+        .unwrap_or_default()
+}
+
 fn session_id(s: &Session) -> String {
     s.SourceAppUserModelId().map(|h| h.to_string()).unwrap_or_default()
 }
 
-fn pick_session(mgr: &SessionManager, selected: &Option<String>) -> Option<Session> {
-    if let Some(id) = selected
-        && let Ok(list) = mgr.GetSessions()
-        && let Some(s) = list.into_iter().find(|s| &session_id(s) == id)
+/// Source keys for a list of app ids. Windows gives every session of an app
+/// the same id (two Chrome windows are both "Chrome"), so later ones get a
+/// number: `["Chrome", "Spotify", "Chrome#2"]`.
+pub fn source_keys(ids: &[String]) -> Vec<String> {
+    let mut seen: std::collections::HashMap<&str, usize> = std::collections::HashMap::new();
+    ids.iter()
+        .map(|id| {
+            let n = seen.entry(id.as_str()).or_insert(0);
+            *n += 1;
+            if *n == 1 { id.clone() } else { format!("{id}#{n}") }
+        })
+        .collect()
+}
+
+/// Every session with its source key, in Windows' order.
+fn keyed_sessions(mgr: &SessionManager) -> Vec<(String, Session)> {
+    let list: Vec<Session> = mgr.GetSessions().map(|l| l.into_iter().collect()).unwrap_or_default();
+    let ids: Vec<String> = list.iter().map(session_id).collect();
+    source_keys(&ids).into_iter().zip(list).collect()
+}
+
+/// The picked session (or Windows' current one) and its source key.
+fn pick_session(mgr: &SessionManager, selected: &Option<String>) -> Option<(String, Session)> {
+    let keyed = keyed_sessions(mgr);
+    if let Some(key) = selected
+        && let Some(found) = keyed.iter().find(|(k, _)| k == key)
     {
-        return Some(s);
+        return Some(found.clone());
     }
-    mgr.GetCurrentSession().ok()
+    let current = mgr.GetCurrentSession().ok()?;
+    // Windows' current session comes back as a different COM wrapper than
+    // the same session in the list, so it can't be compared directly. Among
+    // sessions of the same app, the one playing the same track is it.
+    let app = session_id(&current);
+    let same_app: Vec<&(String, Session)> = keyed.iter().filter(|(_, s)| session_id(s) == app).collect();
+    let found = match same_app.as_slice() {
+        [] => None,
+        [only] => Some(*only),
+        many => {
+            let track = track_of(&current);
+            many.iter().find(|(_, s)| track_of(s) == track).or(many.first()).copied()
+        }
+    };
+    Some(found.cloned().unwrap_or((app, current)))
 }
 
 fn read_state(mgr: &SessionManager, selected: &Option<String>) -> (MusicState, Option<Session>) {
-    let sources: Vec<String> = mgr
-        .GetSessions()
-        .map(|l| l.into_iter().map(|s| session_id(&s)).collect())
-        .unwrap_or_default();
-    let Some(s) = pick_session(mgr, selected) else {
+    let sources: Vec<String> = keyed_sessions(mgr).into_iter().map(|(k, _)| k).collect();
+    let Some((key, s)) = pick_session(mgr, selected) else {
         return (MusicState { sources, ..Default::default() }, None);
     };
 
     let mut st = MusicState {
         available: true,
-        source_app_id: session_id(&s),
+        source_app_id: key,
         sources,
         ..Default::default()
     };
@@ -310,4 +353,16 @@ pub fn music_seek(music: State<'_, Music>, position_ms: i64) -> Result<(), Strin
 #[tauri::command]
 pub fn music_select_source(music: State<'_, Music>, source_app_id: Option<String>) -> Result<(), String> {
     send(&music, Cmd::Select(source_app_id))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::source_keys;
+
+    #[test]
+    fn players_from_the_same_app_get_numbers() {
+        let ids: Vec<String> = ["Chrome", "Spotify", "Chrome", "Chrome"].iter().map(|s| s.to_string()).collect();
+        assert_eq!(source_keys(&ids), ["Chrome", "Spotify", "Chrome#2", "Chrome#3"]);
+        assert!(source_keys(&[]).is_empty());
+    }
 }
