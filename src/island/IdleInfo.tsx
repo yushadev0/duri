@@ -2,7 +2,7 @@ import { Cpu, MemoryStick } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { IdleInfo as IdleInfoMode } from "../lib/settings";
 import { useSystemStats } from "../lib/systemStats";
-import { formatClock, useHour12 } from "../lib/clock";
+import { formatClock, formatShortDate, useHour12 } from "../lib/clock";
 import { useNow } from "../lib/useNow";
 import styles from "./IdleInfo.module.css";
 
@@ -11,7 +11,7 @@ function Clock({ withDate }: { withDate: boolean }) {
   const hour12 = useHour12();
   const now = new Date(useNow(true, 1000));
   const time = formatClock(now, i18n.language, hour12);
-  const date = now.toLocaleDateString(i18n.language, { weekday: "short", day: "numeric" });
+  const date = formatShortDate(now, i18n.language);
   return (
     <>
       <span className={`${styles.time} tabular`}>{time}</span>

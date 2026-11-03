@@ -35,3 +35,12 @@ export function formatClock(date: Date, language: string, hour12: boolean): stri
     hour12 ? { hour: "numeric", minute: "2-digit", hourCycle: "h12" } : { hour: "2-digit", minute: "2-digit", hourCycle: "h23" },
   );
 }
+
+/**
+ * Weekday and day for the idle pill: "Tue 3" in English, "3 Sal" in Turkish.
+ * English is formatted as en-GB, because en-US puts the day first ("3 Tue").
+ */
+export function formatShortDate(date: Date, language: string): string {
+  const locale = language.startsWith("en") ? "en-GB" : language;
+  return date.toLocaleDateString(locale, { weekday: "short", day: "numeric" });
+}

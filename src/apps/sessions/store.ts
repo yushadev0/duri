@@ -46,7 +46,13 @@ export function startSessions() {
   if (started) return;
   started = true;
   invoke<Session[]>("sessions_get").then((sessions) => store.set((v) => ({ ...v, sessions })));
-  listen<Session[]>("sessions://changed", (e) => store.set((v) => ({ ...v, sessions: e.payload })));
+  listen<Session[]>("sessions://changed", (e) =>
+    store.set((v) => ({
+      ...v,
+      sessions: e.payload,
+      selectedId: keepSelection(v.sessions, e.payload, v.acknowledged) ? v.selectedId : null,
+    })),
+  );
   refreshHooks();
 }
 
@@ -66,6 +72,16 @@ export function refreshHooks() {
 
 export function needsYou(s: Session, acknowledged: string[]) {
   return s.status === "waiting" && !acknowledged.includes(ackKey(s));
+}
+
+/**
+ * Whether a session picked by hand stays picked after an update. A session
+ * that starts needing you clears the pick, so opening the island from that
+ * alert shows the session that asked, not the one picked earlier.
+ */
+export function keepSelection(prev: Session[], next: Session[], acknowledged: string[]): boolean {
+  const alerting = new Set(prev.filter((s) => needsYou(s, acknowledged)).map(ackKey));
+  return !next.some((s) => needsYou(s, acknowledged) && !alerting.has(ackKey(s)));
 }
 
 let lastFocus: string | null = null;
