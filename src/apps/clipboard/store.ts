@@ -39,6 +39,17 @@ async function refresh() {
   if (items && mine === seq) store.set((v) => ({ ...v, items }));
 }
 
+/** Set by the clipboard shortcut: the next expanded view focuses search. */
+let focusSearchNext = false;
+export function requestSearchFocus() {
+  focusSearchNext = true;
+}
+export function takeSearchFocus() {
+  const want = focusSearchNext;
+  focusSearchNext = false;
+  return want;
+}
+
 let started = false;
 
 export function startClipboard() {

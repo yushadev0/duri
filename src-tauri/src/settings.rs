@@ -31,6 +31,10 @@ pub struct Settings {
     pub auto_update_check: bool,
     /// The island is tucked into a small handle at the top edge.
     pub tucked: bool,
+    /// Global shortcuts as accelerators ("Ctrl+Alt+Space"); empty = off.
+    pub shortcut_island: String,
+    pub shortcut_note: String,
+    pub shortcut_clipboard: String,
 }
 
 impl Default for Settings {
@@ -47,6 +51,13 @@ impl Default for Settings {
             hide_in_fullscreen: true,
             auto_update_check: true,
             tucked: false,
+            // Only the island has a default. Other apps own all sorts of
+            // global shortcuts (Ctrl+Alt+Shift+N opens Laravel Herd's site
+            // wizard), and Ctrl+Alt+letter is AltGr+letter on many layouts,
+            // so people pick the rest themselves in Settings.
+            shortcut_island: "Ctrl+Alt+Space".into(),
+            shortcut_note: String::new(),
+            shortcut_clipboard: String::new(),
         }
     }
 }
@@ -62,9 +73,14 @@ pub fn settings_get(db: State<'_, Arc<Db>>) -> Settings {
 
 /// Saves the settings, applies the backend-side ones and tells every window.
 pub fn save(app: &AppHandle, db: &Db, settings: &Settings) -> Result<(), String> {
+    let previous = load(db);
     db.set_json(NS, KEY, settings)?;
     crate::apps::volume::set_replace_flyout(settings.replace_volume_flyout);
     crate::island_window::set_hide_in_fullscreen(settings.hide_in_fullscreen);
+    // Re-registering every time would briefly drop the shortcuts.
+    if crate::shortcuts::wanted(&previous) != crate::shortcuts::wanted(settings) {
+        crate::shortcuts::apply(app, settings);
+    }
     app.emit("settings://changed", settings).map_err(|e| e.to_string())
 }
 

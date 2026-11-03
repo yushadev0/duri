@@ -1,4 +1,6 @@
 import { getVersion } from "@tauri-apps/api/app";
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { openUrl } from "@tauri-apps/plugin-opener";
@@ -10,6 +12,7 @@ import { refreshHooks, sessionActions, useHookStatus } from "../apps/sessions/st
 import { DuriMark } from "../components/DuriMark";
 import { updateSettings, useSettings, type ClockFormat, type IdleInfo, type IslandStyle, type LanguagePref, type PillSize, type Transparency } from "../lib/settings";
 import { checkForUpdates, installUpdate, useUpdateStatus } from "../lib/updates";
+import { acceleratorFromEvent, acceleratorKeys } from "../lib/shortcuts";
 import styles from "./Settings.module.css";
 
 type Pane = "general" | "apps" | "about";
@@ -72,6 +75,86 @@ function Segmented<T extends string>({
         </button>
       ))}
     </div>
+  );
+}
+
+/**
+ * Click, then press the shortcut. Esc cancels, Backspace turns it off.
+ */
+function ShortcutField({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
+  const { t } = useTranslation();
+  const [recording, setRecording] = useState(false);
+  const keys = acceleratorKeys(value);
+  return (
+    <button
+      type="button"
+      className={styles.shortcut}
+      data-recording={recording}
+      aria-label={`${label}: ${keys.length ? keys.join(" ") : t("settings.shortcutOff")}`}
+      onClick={() => setRecording(true)}
+      onBlur={() => setRecording(false)}
+      onKeyDown={(e) => {
+        if (!recording) return;
+        e.preventDefault();
+        if (e.key === "Escape") return setRecording(false);
+        if ((e.key === "Backspace" || e.key === "Delete") && !e.ctrlKey && !e.altKey && !e.metaKey) {
+          onChange("");
+          return setRecording(false);
+        }
+        const accel = acceleratorFromEvent(e);
+        if (accel) {
+          onChange(accel);
+          setRecording(false);
+        }
+      }}
+    >
+      {recording ? (
+        <span className={styles.shortcutHint}>{t("settings.shortcutRecord")}</span>
+      ) : keys.length ? (
+        keys.map((k, i) => (
+          <kbd key={i} className={styles.key}>
+            {k}
+          </kbd>
+        ))
+      ) : (
+        <span className={styles.shortcutHint}>{t("settings.shortcutOff")}</span>
+      )}
+    </button>
+  );
+}
+
+function Shortcuts() {
+  const { t } = useTranslation();
+  const settings = useSettings();
+  const [failed, setFailed] = useState<string[]>([]);
+  useEffect(() => {
+    invoke<string[]>("shortcuts_failed").then(setFailed).catch(() => {});
+    const un = listen<string[]>("shortcuts://failed", (e) => setFailed(e.payload));
+    return () => {
+      un.then((f) => f());
+    };
+  }, []);
+  const rows = [
+    { action: "island", key: "shortcutIsland", title: t("settings.shortcutIsland") },
+    { action: "note", key: "shortcutNote", title: t("settings.shortcutNote") },
+    { action: "clipboard", key: "shortcutClipboard", title: t("settings.shortcutClipboard") },
+  ] as const;
+  return (
+    <>
+      <h2 className={styles.groupTitle}>{t("settings.shortcuts")}</h2>
+      <section className={styles.group}>
+        {rows.map((r) => (
+          <Row key={r.action} title={r.title} hint={failed.includes(r.action) ? t("settings.shortcutTaken") : undefined}>
+            <ShortcutField
+              value={settings[r.key]}
+              label={r.title}
+              onChange={(v) => updateSettings({ [r.key]: v })}
+            />
+          </Row>
+        ))}
+      </section>
+      <p className={styles.paneHint}>{t("settings.shortcutsHint")}</p>
+    </>
   );
 }
 
@@ -210,6 +293,7 @@ function General() {
         </Row>
         <Row title={t("settings.usage")} hint={t("settings.usageHint")} />
       </section>
+      <Shortcuts />
     </>
   );
 }

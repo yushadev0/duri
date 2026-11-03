@@ -74,6 +74,7 @@ Duri's features are called **apps**. Each one can be switched off in Settings â€
 - **Click:** the full app, with a dock to switch apps.
 - Clicks on the empty space around the island go to the windows underneath, and it never takes focus from what you're typing in.
 - It hides while a fullscreen app, game or video is in front.
+- Keyboard: Ctrl+Alt+Space opens the island and Esc closes it. Shortcuts for a new note and for searching the clipboard can be set in Settings â€º General.
 - Drag it up to tuck it away into a small handle at the top edge. Hover the handle to peek; drag it down (or right-click) to bring it back.
 
 ## Performance

@@ -1,12 +1,12 @@
 import { ClipboardList, Copy, File, Image, LayoutList, Pin, PinOff, Search, Trash2, Type, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton } from "../../components/Button";
 import { useIsland } from "../../island/context";
 import { useAgo } from "../../lib/useAgo";
 import type { DuriApp } from "../types";
 import styles from "./clipboard.module.css";
-import { clipboardActions, fileName, preview, startClipboard, useClipboard, type Clip, type Filter } from "./store";
+import { clipboardActions, fileName, preview, startClipboard, useClipboard, type Clip, type Filter, takeSearchFocus } from "./store";
 
 const ACCENT = "var(--accent-clipboard)";
 const FILTERS: { id: Filter; Icon: typeof Type }[] = [
@@ -113,6 +113,12 @@ export function ClipboardExpanded() {
   const { t } = useTranslation();
   const island = useIsland();
   const { items, query, filter } = useClipboard();
+  const search = useRef<HTMLInputElement>(null);
+
+  // Opened with the clipboard shortcut: type to search right away.
+  useEffect(() => {
+    if (takeSearchFocus()) search.current?.focus();
+  }, []);
 
   const paste = (clip: Clip) => {
     island.collapse();
@@ -125,6 +131,7 @@ export function ClipboardExpanded() {
         <label className={styles.search}>
           <Search size={14} aria-hidden />
           <input
+            ref={search}
             type="search"
             value={query}
             placeholder={t("clipboard.search")}

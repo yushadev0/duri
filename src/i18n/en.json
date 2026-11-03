@@ -140,7 +140,15 @@
     "hideInFullscreen": "Hide in Fullscreen",
     "hideInFullscreenHint": "Hides the island while a fullscreen app, game or video is in front.",
     "claudePermissions": "Answer Permission Prompts in Duri",
-    "claudePermissionsHint": "Allow or deny Claude Code's requests from the island. Unanswered ones go back to the terminal after 2 minutes."
+    "claudePermissionsHint": "Allow or deny Claude Code's requests from the island. Unanswered ones go back to the terminal after 2 minutes.",
+    "shortcuts": "Keyboard Shortcuts",
+    "shortcutsHint": "Click a shortcut and press new keys. Backspace turns it off.",
+    "shortcutIsland": "Open the Island",
+    "shortcutNote": "New Note",
+    "shortcutClipboard": "Search Clipboard",
+    "shortcutRecord": "Press keys…",
+    "shortcutOff": "Off",
+    "shortcutTaken": "Another app uses this shortcut. Pick a different one."
   },
   "tray": {
     "settings": "Settings…",

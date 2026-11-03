@@ -8,7 +8,10 @@ import { registry } from "../apps/registry";
 import type { Activity, DuriApp, Size } from "../apps/types";
 import { contentIn, contentOut, morphSpring, reducedTransition, settleSpring } from "../design/motion";
 import { useHour12 } from "../lib/clock";
+import { requestSearchFocus } from "../apps/clipboard/store";
+import { notesActions } from "../apps/notes/store";
 import { updateSettings, useSettings } from "../lib/settings";
+import type { ShortcutAction } from "../lib/shortcuts";
 import { startSystemStats } from "../lib/systemStats";
 import { startUpdateChecks } from "../lib/updates";
 import { IslandContext, setIslandFocus, type IslandControls } from "./context";
@@ -225,6 +228,53 @@ export function Island() {
     }),
     [],
   );
+
+  // Global shortcuts open the island from the keyboard. It stays open (no
+  // pointer to keep it there) until Esc, or until another app takes focus.
+  const keyboardOpen = useRef(false);
+  const latest = useRef({ mode: state.mode, primary: primaryRef, apps });
+  useEffect(() => {
+    latest.current = { mode: state.mode, primary: primaryRef, apps };
+  });
+  useEffect(() => {
+    const has = (id: string) => latest.current.apps.some((a) => a.id === id);
+    const openFromKeyboard = (appId: string) => {
+      keyboardOpen.current = true;
+      dispatch({ type: "open", appId });
+      dispatch({ type: "lock", locked: true });
+      setIslandFocus(true);
+    };
+    const un = listen<ShortcutAction>("island://shortcut", (e) => {
+      const { mode, primary, apps } = latest.current;
+      if (e.payload === "island") {
+        if (mode === "expanded") {
+          dispatch({ type: "collapse" });
+          return;
+        }
+        const target = primary.current ?? apps.find((a) => !a.hidden)?.id;
+        if (target) openFromKeyboard(target);
+      } else if (e.payload === "note" && has("notes")) {
+        notesActions.create();
+        openFromKeyboard("notes");
+      } else if (e.payload === "clipboard" && has("clipboard")) {
+        requestSearchFocus();
+        openFromKeyboard("clipboard");
+      }
+    });
+    const onBlur = () => {
+      if (!keyboardOpen.current) return;
+      keyboardOpen.current = false;
+      dispatch({ type: "collapse" });
+    };
+    window.addEventListener("blur", onBlur);
+    return () => {
+      un.then((f) => f());
+      window.removeEventListener("blur", onBlur);
+    };
+  }, []);
+  useEffect(() => {
+    if (state.mode === "idle") keyboardOpen.current = false;
+  }, [state.mode]);
 
   // Alerts hold the island open and bounce it once.
   const alert = ranked.find((r) => r.activity.alert);

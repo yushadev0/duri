@@ -6,7 +6,6 @@
 ## Suggestions (from Claude, to discuss)
 
 - [ ] **Multi-monitor:** choose a monitor or follow the one with the cursor
-- [ ] **Global shortcut** to open the island, a quick note, or the clipboard (keyboard-only use)
 - [ ] **Verify Codex tracking** against a real Codex install (parser is written from the rollout format, untested)
 - [ ] **Code-sign the installer** so SmartScreen doesn't warn on first run
 - [ ] **Keyboard navigation** inside the expanded island (Tab between controls, arrows in lists)
@@ -24,4 +23,5 @@
 - [x] Idle CPU: stepped pill animations, aligned clocks, cheaper hit test (20% of a core with music down to 2%), benchmark in README
 - [x] Tuck away (drag up / hover to peek / drag down or right-click), answer Claude Code permission prompts from the island (opt-in)
 - [x] Notifications app (Windows toasts + Copied confirmation), two players from the same app (Chrome 2)
+- [x] Global shortcuts (open island, new note, search clipboard), recorded in Settings
 - [x] GitHub page: README with demo GIF and screenshots (demo content only), repo description and topics

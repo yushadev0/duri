@@ -2,6 +2,7 @@ mod apps;
 mod db;
 mod island_window;
 mod settings;
+mod shortcuts;
 mod system;
 mod time;
 mod tray;
@@ -23,6 +24,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
+        .plugin(shortcuts::plugin())
         .on_menu_event(|app, event| tray::handle_menu_event(app, event.id().as_ref()))
         .setup(|app| {
             let dir = app.path().data_dir()?.join("Duri");
@@ -30,6 +32,7 @@ pub fn run() {
             let db = Arc::new(db::Db::open(&dir.join("duri.db"))?);
             app.manage(db.clone());
             app.manage(island_window::IslandState::default());
+            app.manage(shortcuts::Shortcuts::default());
 
             island_window::set_hide_in_fullscreen(settings::load(&db).hide_in_fullscreen);
             apps::init(app.handle(), db, &dir);
@@ -38,6 +41,7 @@ pub fn run() {
             island_window::spawn_hit_test(app.handle().clone());
             island_window::spawn_fullscreen_watch(app.handle().clone());
             tray::create(app.handle())?;
+            shortcuts::apply(app.handle(), &settings::load(&app.state::<Arc<db::Db>>()));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -59,6 +63,7 @@ pub fn run() {
             system::system_stats,
             system::system_clock_24h,
             settings::settings_set,
+            shortcuts::shortcuts_failed,
             tray::open_settings_window,
             tray::tray_set_labels,
             tray::island_context_menu,

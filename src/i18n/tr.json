@@ -140,7 +140,15 @@
     "hideInFullscreen": "Tam Ekranda Gizle",
     "hideInFullscreenHint": "Önde tam ekran bir uygulama, oyun ya da video varken adayı gizler.",
     "claudePermissions": "İzin İsteklerini Duri'de Yanıtla",
-    "claudePermissionsHint": "Claude Code'un isteklerine adadan izin ver ya da reddet. Yanıtlanmayanlar 2 dakika sonra terminale döner."
+    "claudePermissionsHint": "Claude Code'un isteklerine adadan izin ver ya da reddet. Yanıtlanmayanlar 2 dakika sonra terminale döner.",
+    "shortcuts": "Klavye Kısayolları",
+    "shortcutsHint": "Bir kısayola tıkla ve yeni tuşlara bas. Backspace kısayolu kapatır.",
+    "shortcutIsland": "Adayı Aç",
+    "shortcutNote": "Yeni Not",
+    "shortcutClipboard": "Panoda Ara",
+    "shortcutRecord": "Tuşlara bas…",
+    "shortcutOff": "Kapalı",
+    "shortcutTaken": "Bu kısayolu başka bir uygulama kullanıyor. Başka bir tane seç."
   },
   "tray": {
     "settings": "Ayarlar…",
