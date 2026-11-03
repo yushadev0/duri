@@ -37,6 +37,10 @@
     "volume": {
       "name": "Ses",
       "description": "Ses seviyesi değişince adada gösterir."
+    },
+    "notifications": {
+      "name": "Bildirimler",
+      "description": "Windows bildirimleri adada, kopyaladığında da kısa bir onay."
     }
   },
   "music": {
@@ -237,5 +241,19 @@
     "restartHint": "Güncellemeden sonra Duri yeniden başlar. Notların, panodakiler ve zamanlayıcıların kalır.",
     "notifyTitle": "Duri {{version}} hazır",
     "notifyBody": "Kurmak için Ayarlar › Hakkında’yı aç."
+  },
+  "notifications": {
+    "copied": "Kopyalandı",
+    "copiedImage": "Görsel",
+    "copiedFiles": "{{count}} dosya",
+    "empty": "Yeni Bildirim Yok",
+    "emptyHint": "Uygulamalarından gelen bildirimler geldikçe burada görünür.",
+    "denied": "Duri İçin Bildirimler Kapalı",
+    "deniedHint": "Windows Ayarları › Gizlilik ve güvenlik › Bildirimler'den uygulamaların bildirimlere erişmesine izin ver.",
+    "openSettings": "Windows Ayarlarını Aç",
+    "unavailable": "Bu Windows sürümü uygulamaların bildirimleri okumasına izin vermiyor.",
+    "dismiss": "Kapat",
+    "clear": "Tümünü Temizle",
+    "count": "{{count}} bildirim"
   }
 }

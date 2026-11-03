@@ -5,6 +5,7 @@
 pub mod clipboard;
 pub mod music;
 pub mod notes;
+pub mod notifications;
 pub mod sessions;
 pub mod timers;
 pub mod volume;
@@ -20,6 +21,7 @@ pub fn init(app: &AppHandle, db: Arc<Db>, data_dir: &Path) {
     notes::init(app, db.clone());
     timers::init(app, db);
     music::init(app);
+    notifications::init(app);
     sessions::init(app);
     volume::init(app, settings.replace_volume_flyout);
 }

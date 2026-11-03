@@ -37,6 +37,10 @@
     "volume": {
       "name": "Volume",
       "description": "Shows the volume level in the island when it changes."
+    },
+    "notifications": {
+      "name": "Notifications",
+      "description": "Windows notifications in the island, and a quick confirmation when you copy."
     }
   },
   "music": {
@@ -237,5 +241,19 @@
     "restartHint": "Duri restarts after the update. Your notes, clips and timers stay.",
     "notifyTitle": "Duri {{version}} is available",
     "notifyBody": "Open Settings › About to install it."
+  },
+  "notifications": {
+    "copied": "Copied",
+    "copiedImage": "Image",
+    "copiedFiles": "{{count}} files",
+    "empty": "No New Notifications",
+    "emptyHint": "Notifications from your apps show up here as they arrive.",
+    "denied": "Notifications Are Off for Duri",
+    "deniedHint": "Allow apps to access your notifications in Windows Settings › Privacy & security › Notifications.",
+    "openSettings": "Open Windows Settings",
+    "unavailable": "This version of Windows doesn't let apps read notifications.",
+    "dismiss": "Dismiss",
+    "clear": "Clear All",
+    "count": "{{count}} notifications"
   }
 }

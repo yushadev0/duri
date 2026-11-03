@@ -86,3 +86,7 @@ The island window is transparent, so anything that changes in it makes WebView2 
 ## Permission prompts
 
 Optional (Settings › Apps › Integrations). Duri adds a `PermissionRequest` hook to `~/.claude/settings.json` whose curl call POSTs to `/duri/claude-permission` and waits. The server keeps the request open (`Sessions.pending`) and the session shows `permission` in the island with Allow / Deny / Answer in Terminal. `session_permission` answers it with the JSON Claude Code expects (`hookSpecificOutput.decision.behavior`), or with an empty response, which makes Claude Code ask in the terminal as usual. That empty answer is also what happens when nobody answers within 2 minutes or when the island is hidden. Any later hook event for the session clears a prompt that is still shown, since Claude has moved on.
+
+## Notifications
+
+`apps/notifications.rs` owns the WinRT `UserNotificationListener` on one thread. Windows raises `NotificationChanged` only for packaged apps, so the worker diffs the toast ids once a second, reads new toasts (app name, logo, text) and emits `notifications://new`; the list (last 30, memory only) goes out as `notifications://changed`. Duri's own toasts are skipped. Access follows Windows Settings › Privacy & security › Notifications. The "Copied" confirmation comes from `clipboard://copied`, which the clipboard monitor sends for new copies but not for Duri's own paste-back.

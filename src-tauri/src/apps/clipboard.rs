@@ -17,6 +17,7 @@ use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::io::Cursor;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -50,6 +51,39 @@ pub enum Content {
     /// Already-saved image: path to the PNG plus thumbnail data URL.
     Image { path: String, thumb: String, width: u32, height: u32 },
 }
+
+/// What the "Copied" confirmation in the island shows.
+#[derive(Serialize, Clone, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct Copied {
+    /// "text", "image" or "files"
+    pub kind: &'static str,
+    /// First line of the text, or the file name; empty for images.
+    pub preview: String,
+    pub count: usize,
+}
+
+impl Copied {
+    pub fn of(content: &Content) -> Self {
+        match content {
+            Content::Text(t) => {
+                let line = t.lines().find(|l| !l.trim().is_empty()).unwrap_or("").trim();
+                let preview: String = line.chars().take(80).collect();
+                Copied { kind: "text", preview, count: 1 }
+            }
+            Content::Files(f) => {
+                let name = f.first().and_then(|p| p.rsplit(['\\', '/']).next()).unwrap_or("").to_string();
+                Copied { kind: "files", preview: name, count: f.len() }
+            }
+            Content::Image { .. } => Copied { kind: "image", preview: String::new(), count: 1 },
+        }
+    }
+}
+
+/// When Duri last put something on the clipboard itself (pasting a clip
+/// back): that copy shouldn't show "Copied".
+static OWN_COPY_AT: AtomicI64 = AtomicI64::new(0);
+const OWN_COPY_GRACE_MS: i64 = 1500;
 
 fn hash_of(kind: &str, bytes: &[u8]) -> String {
     let mut h = DefaultHasher::new();
@@ -304,6 +338,9 @@ pub fn init(app: &AppHandle, db: Arc<Db>, data_dir: &Path) {
                     Ok((_, obsolete)) => {
                         remove_files(&obsolete);
                         changed(&app);
+                        if now_ms() - OWN_COPY_AT.load(Ordering::SeqCst) > OWN_COPY_GRACE_MS {
+                            let _ = app.emit("clipboard://copied", Copied::of(&content));
+                        }
                     }
                     Err(e) => log::error!("saving clip failed: {e}"),
                 }
@@ -315,6 +352,7 @@ pub fn init(app: &AppHandle, db: Arc<Db>, data_dir: &Path) {
 /// Puts a stored item back on the system clipboard.
 fn copy_back(state: &ClipboardApp, id: &str) -> Result<(), String> {
     let (clip, path) = state.db.with_conn(|c| get_with_path(c, id))?.ok_or("item not found")?;
+    OWN_COPY_AT.store(now_ms(), Ordering::SeqCst);
     let raw = match clip.kind.as_str() {
         "text" => system::Raw::Text(clip.text.unwrap_or_default()),
         "files" => system::Raw::Files(clip.files),
@@ -404,6 +442,16 @@ pub fn clips_clear(app: AppHandle, state: State<'_, ClipboardApp>) -> Result<(),
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn copied_preview() {
+        let t = Copied::of(&Content::Text("\n  hello world  \nsecond".into()));
+        assert_eq!((t.kind, t.preview.as_str()), ("text", "hello world"));
+        let f = Copied::of(&Content::Files(vec![r"C:\a\report.pdf".into(), r"C:\a\b.txt".into()]));
+        assert_eq!((f.kind, f.preview.as_str(), f.count), ("files", "report.pdf", 2));
+        let i = Copied::of(&Content::Image { path: String::new(), thumb: String::new(), width: 1, height: 1 });
+        assert_eq!(i.kind, "image");
+    }
 
     fn db() -> Db {
         Db::open_in_memory().unwrap()
