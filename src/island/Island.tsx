@@ -10,6 +10,7 @@ import { contentIn, contentOut, morphSpring, reducedTransition, settleSpring } f
 import { useHour12 } from "../lib/clock";
 import { useSettings } from "../lib/settings";
 import { startSystemStats } from "../lib/systemStats";
+import { startUpdateChecks } from "../lib/updates";
 import { IslandContext, setIslandFocus, type IslandControls } from "./context";
 import { ExpandedChrome } from "./ExpandedChrome";
 import {
@@ -139,6 +140,7 @@ export function Island() {
   useEffect(() => {
     registry.forEach((a) => a.start?.());
     startSystemStats();
+    startUpdateChecks();
   }, []);
 
   const [activities, setActivities] = useState<Record<string, Activity | null>>({});

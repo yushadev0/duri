@@ -27,6 +27,8 @@ pub struct Settings {
     pub transparency: String,
     /// Hide the island while a fullscreen app, game or video is in front.
     pub hide_in_fullscreen: bool,
+    /// Look for new versions on GitHub Releases at launch and twice a day.
+    pub auto_update_check: bool,
 }
 
 impl Default for Settings {
@@ -41,6 +43,7 @@ impl Default for Settings {
             clock_format: "system".into(),
             transparency: "off".into(),
             hide_in_fullscreen: true,
+            auto_update_check: true,
         }
     }
 }

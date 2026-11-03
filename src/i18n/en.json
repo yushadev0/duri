@@ -211,5 +211,19 @@
   "idle": {
     "cpu": "CPU usage",
     "memory": "Memory usage"
+  },
+  "updates": {
+    "auto": "Check for Updates Automatically",
+    "autoHint": "Duri looks for new versions on GitHub and tells you. Nothing installs without you.",
+    "check": "Check for Updates",
+    "checking": "Checking…",
+    "upToDate": "Duri is up to date.",
+    "failed": "Couldn’t check for updates. Try again later.",
+    "install": "Install {{version}} and Restart",
+    "downloading": "Downloading…",
+    "downloadingProgress": "Downloading… {{percent}}%",
+    "restartHint": "Duri restarts after the update. Your notes, clips and timers stay.",
+    "notifyTitle": "Duri {{version}} is available",
+    "notifyBody": "Open Settings › About to install it."
   }
 }

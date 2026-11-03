@@ -9,6 +9,7 @@ import { registry } from "../apps/registry";
 import { refreshHooks, sessionActions, useHookStatus } from "../apps/sessions/store";
 import { DuriMark } from "../components/DuriMark";
 import { updateSettings, useSettings, type ClockFormat, type IdleInfo, type IslandStyle, type LanguagePref, type PillSize, type Transparency } from "../lib/settings";
+import { checkForUpdates, installUpdate, useUpdateStatus } from "../lib/updates";
 import styles from "./Settings.module.css";
 
 type Pane = "general" | "apps" | "about";
@@ -122,6 +123,13 @@ function General() {
         </Row>
         <Row title={t("settings.launchAtLogin")} hint={t("settings.launchAtLoginHint")}>
           <Switch checked={!!autostart} onChange={toggleAutostart} label={t("settings.launchAtLogin")} />
+        </Row>
+        <Row title={t("updates.auto")} hint={t("updates.autoHint")}>
+          <Switch
+            checked={settings.autoUpdateCheck}
+            onChange={(autoUpdateCheck) => updateSettings({ autoUpdateCheck })}
+            label={t("updates.auto")}
+          />
         </Row>
       </section>
       <h2 className={styles.groupTitle}>{t("settings.island")}</h2>
@@ -294,6 +302,56 @@ function Integrations() {
   );
 }
 
+function Updates() {
+  const { t } = useTranslation();
+  const status = useUpdateStatus();
+
+  useEffect(() => {
+    if (status.kind === "idle" && !import.meta.env.DEV) checkForUpdates();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (status.kind === "available" || status.kind === "downloading") {
+    const downloading = status.kind === "downloading";
+    const label = downloading
+      ? status.progress === null
+        ? t("updates.downloading")
+        : t("updates.downloadingProgress", { percent: Math.round(status.progress * 100) })
+      : t("updates.install", { version: status.version });
+    return (
+      <>
+        <button type="button" className={styles.linkButton} disabled={downloading} onClick={installUpdate}>
+          {label}
+        </button>
+        <p className={styles.aboutMeta}>{t("updates.restartHint")}</p>
+      </>
+    );
+  }
+
+  const note =
+    status.kind === "checking"
+      ? t("updates.checking")
+      : status.kind === "upToDate"
+        ? t("updates.upToDate")
+        : status.kind === "error"
+          ? t("updates.failed")
+          : null;
+  return (
+    <>
+      <button
+        type="button"
+        className={styles.button}
+        disabled={status.kind === "checking"}
+        onClick={() => checkForUpdates()}
+      >
+        {t("updates.check")}
+      </button>
+      <p className={styles.aboutMeta} role="status" title={status.kind === "error" ? status.message : undefined}>
+        {note ?? " "}
+      </p>
+    </>
+  );
+}
+
 function About() {
   const { t } = useTranslation();
   const [version, setVersion] = useState("");
@@ -306,6 +364,9 @@ function About() {
       <h1 className={styles.aboutName}>Duri</h1>
       <p className={styles.aboutTagline}>{t("settings.tagline")}</p>
       {version && <p className={styles.aboutMeta}>{t("settings.version", { version })}</p>}
+      <div className={styles.updates}>
+        <Updates />
+      </div>
       <button type="button" className={styles.linkButton} onClick={() => openUrl(REPO_URL)}>
         {t("settings.github")}
       </button>

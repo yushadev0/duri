@@ -20,6 +20,7 @@ export interface Settings {
   clockFormat: ClockFormat;
   transparency: Transparency;
   hideInFullscreen: boolean;
+  autoUpdateCheck: boolean;
 }
 
 export const settingsStore = createStore<Settings>({
@@ -32,6 +33,7 @@ export const settingsStore = createStore<Settings>({
   clockFormat: "system",
   transparency: "off",
   hideInFullscreen: true,
+  autoUpdateCheck: true,
 });
 
 let started = false;

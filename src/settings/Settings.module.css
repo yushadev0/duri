@@ -256,3 +256,19 @@
 .linkButton:hover {
   background: var(--brand-strong);
 }
+
+.updates {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 12px 0 8px;
+}
+
+.updates .aboutMeta {
+  min-height: 1lh;
+}
+
+.linkButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

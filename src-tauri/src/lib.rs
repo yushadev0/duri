@@ -21,6 +21,8 @@ pub fn run() {
         ))
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .on_menu_event(|app, event| tray::handle_menu_event(app, event.id().as_ref()))
         .setup(|app| {
             let dir = app.path().data_dir()?.join("Duri");

@@ -211,5 +211,19 @@
   "idle": {
     "cpu": "İşlemci kullanımı",
     "memory": "Bellek kullanımı"
+  },
+  "updates": {
+    "auto": "Güncellemeleri Otomatik Denetle",
+    "autoHint": "Duri GitHub’da yeni sürüm arar ve sana haber verir. Sen onaylamadan hiçbir şey kurulmaz.",
+    "check": "Güncellemeleri Denetle",
+    "checking": "Denetleniyor…",
+    "upToDate": "Duri güncel.",
+    "failed": "Güncellemeler denetlenemedi. Daha sonra yeniden dene.",
+    "install": "{{version}} Sürümünü Kur ve Yeniden Başlat",
+    "downloading": "İndiriliyor…",
+    "downloadingProgress": "İndiriliyor… %{{percent}}",
+    "restartHint": "Güncellemeden sonra Duri yeniden başlar. Notların, panodakiler ve zamanlayıcıların kalır.",
+    "notifyTitle": "Duri {{version}} hazır",
+    "notifyBody": "Kurmak için Ayarlar › Hakkında’yı aç."
   }
 }
