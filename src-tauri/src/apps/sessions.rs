@@ -6,6 +6,12 @@
 //! - **Codex** writes rollout files to `~/.codex/sessions/YYYY/MM/DD/*.jsonl`;
 //!   a watcher tails the recent ones.
 //!
+//! - **Permission prompts** (optional): a `PermissionRequest` hook POSTs to
+//!   `/duri/claude-permission` and waits. The island shows Allow / Deny; the
+//!   answer goes back as the hook's JSON output. With no answer, a hidden
+//!   island, or "Answer in Terminal", the hook prints nothing and Claude Code
+//!   asks in the terminal as usual.
+//!
 //! The state logic lives in [`Book`] as plain functions so it can be tested
 //! without either tool installed.
 
@@ -21,8 +27,14 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Emitter, Manager, State};
 
 pub const PORT: u16 = 47321;
-/// Unique path segment; also how Duri recognises its own hook entries.
+/// Unique path segments. Every Duri hook command contains `HOOK_PREFIX`,
+/// which is how Duri recognises its own entries.
+const HOOK_PREFIX: &str = "/duri/claude-";
 const HOOK_PATH: &str = "/duri/claude-hook";
+const PERMISSION_PATH: &str = "/duri/claude-permission";
+/// How long a permission prompt waits for an answer in the island before
+/// Claude Code falls back to asking in the terminal.
+const PERMISSION_WAIT_MS: i64 = 120_000;
 const LIST_PATH: &str = "/duri/sessions";
 const MAX_BODY: usize = 1 << 20;
 /// Sessions with no news for this long are dropped.
@@ -66,6 +78,36 @@ pub struct Session {
     pub updated_at: i64,
     /// When `status` last changed.
     pub status_since: i64,
+    /// A permission prompt waiting for an answer in the island.
+    pub permission: Option<Permission>,
+}
+
+#[derive(Serialize, Clone, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct Permission {
+    pub id: String,
+    /// "Bash · npm test"
+    pub detail: String,
+    pub asked_at: i64,
+}
+
+/// How the person answered a permission prompt from the island.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Answer {
+    Allow,
+    Deny,
+    /// Leave it to Claude Code's own prompt in the terminal.
+    Terminal,
+}
+
+/// The hook's output for an answer; `None` prints nothing (terminal prompt).
+pub fn permission_output(answer: Answer) -> Option<String> {
+    let decision = match answer {
+        Answer::Allow => json!({ "behavior": "allow" }),
+        Answer::Deny => json!({ "behavior": "deny", "message": "Denied from Duri." }),
+        Answer::Terminal => return None,
+    };
+    Some(json!({ "hookSpecificOutput": { "hookEventName": "PermissionRequest", "decision": decision } }).to_string())
 }
 
 #[derive(Default)]
@@ -116,6 +158,7 @@ impl Book {
             started_at: at,
             updated_at: at,
             status_since: at,
+            permission: None,
         });
         if !cwd.is_empty() && s.cwd != cwd {
             s.cwd = cwd.to_string();
@@ -142,6 +185,11 @@ impl Book {
         }
         let cwd = ev.get("cwd").and_then(Value::as_str).unwrap_or("");
         let s = self.upsert(id, Agent::Claude, cwd, at);
+        // Claude moved on, so a prompt still shown in the island is stale
+        // (answered in the terminal, or the hook timed out).
+        if event != "Notification" && s.permission.is_some() {
+            s.permission = None;
+        }
         let keep = (s.status, s.detail.clone());
         let (status, detail) = match event {
             "SessionStart" => (Status::Idle, None),
@@ -226,6 +274,33 @@ impl Book {
         }
     }
 
+    /// A `PermissionRequest` hook is waiting for an answer under `perm_id`.
+    pub fn request_permission(&mut self, ev: &Value, perm_id: &str, at: i64) -> bool {
+        let Some(id) = ev.get("session_id").and_then(Value::as_str) else { return false };
+        let cwd = ev.get("cwd").and_then(Value::as_str).unwrap_or("");
+        let tool = ev.get("tool_name").and_then(Value::as_str).unwrap_or("Tool");
+        let detail = describe_tool(tool, ev.get("tool_input").unwrap_or(&Value::Null));
+        let s = self.upsert(id, Agent::Claude, cwd, at);
+        Self::set(s, Status::Waiting, Some(detail.clone()), at);
+        s.permission = Some(Permission { id: perm_id.to_string(), detail, asked_at: at });
+        true
+    }
+
+    /// Clears the prompt `perm_id` after it was answered. Returns whether it was found.
+    pub fn resolve_permission(&mut self, perm_id: &str, answer: Answer, at: i64) -> bool {
+        let Some(s) = self.sessions.values_mut().find(|s| s.permission.as_ref().is_some_and(|p| p.id == perm_id))
+        else {
+            return false;
+        };
+        s.permission = None;
+        if answer != Answer::Terminal {
+            // Claude carries on (with the tool, or with the refusal).
+            let detail = s.detail.clone();
+            Self::set(s, Status::Working, detail, at);
+        }
+        true
+    }
+
     pub fn dismiss(&mut self, id: &str) -> bool {
         self.sessions.remove(id).is_some()
     }
@@ -281,8 +356,58 @@ pub fn hook_command() -> String {
     )
 }
 
+/// The optional hook that lets the island answer permission prompts. Curl
+/// waits a little longer than Duri does, and Claude a little longer than curl.
+pub fn permission_hook_command() -> String {
+    let wait = PERMISSION_WAIT_MS / 1000 + 5;
+    format!(
+        "curl -s -m {wait} -X POST -H \"Content-Type: application/json\" --data-binary @- http://127.0.0.1:{PORT}{PERMISSION_PATH} || true"
+    )
+}
+
 fn is_ours(hook: &Value) -> bool {
-    hook.get("command").and_then(Value::as_str).is_some_and(|c| c.contains(HOOK_PATH))
+    hook.get("command").and_then(Value::as_str).is_some_and(|c| c.contains(HOOK_PREFIX))
+}
+
+fn is_permission_hook(hook: &Value) -> bool {
+    hook.get("command").and_then(Value::as_str).is_some_and(|c| c.contains(PERMISSION_PATH))
+}
+
+/// Whether the permission hook is installed in Claude Code's settings.
+pub fn permission_hook_installed(settings: &Value) -> bool {
+    settings.pointer("/hooks/PermissionRequest").and_then(Value::as_array).is_some_and(|groups| {
+        groups
+            .iter()
+            .any(|g| g.get("hooks").and_then(Value::as_array).is_some_and(|h| h.iter().any(is_permission_hook)))
+    })
+}
+
+/// Adds or removes the permission hook, leaving every other hook alone.
+pub fn set_permission_hook(settings: &mut Value, on: bool) -> Result<(), String> {
+    let root = settings.as_object_mut().ok_or("~/.claude/settings.json is not a JSON object")?;
+    let hooks = root.entry("hooks").or_insert_with(|| json!({}));
+    let hooks = hooks.as_object_mut().ok_or("\"hooks\" is not an object")?;
+    if let Some(groups) = hooks.get_mut("PermissionRequest").and_then(Value::as_array_mut) {
+        groups.retain_mut(|g| {
+            let Some(list) = g.get_mut("hooks").and_then(Value::as_array_mut) else { return true };
+            let n = list.len();
+            list.retain(|h| !is_permission_hook(h));
+            !(list.is_empty() && n > 0)
+        });
+        if groups.is_empty() {
+            hooks.remove("PermissionRequest");
+        }
+    }
+    if on {
+        let timeout = PERMISSION_WAIT_MS / 1000 + 10;
+        let group = json!({
+            "matcher": "*",
+            "hooks": [{ "type": "command", "command": permission_hook_command(), "timeout": timeout }]
+        });
+        let list = hooks.entry("PermissionRequest").or_insert_with(|| json!([]));
+        list.as_array_mut().ok_or("hooks.PermissionRequest is not an array")?.push(group);
+    }
+    Ok(())
 }
 
 pub fn hooks_installed(settings: &Value) -> bool {
@@ -329,7 +454,11 @@ pub fn install_hooks(settings: &mut Value) -> Result<(), String> {
     if !settings.is_object() {
         return Err("~/.claude/settings.json is not a JSON object".into());
     }
+    let permissions = permission_hook_installed(settings);
     uninstall_hooks(settings);
+    if permissions {
+        set_permission_hook(settings, true)?;
+    }
     let root = settings.as_object_mut().unwrap();
     let hooks = root.entry("hooks").or_insert_with(|| json!({}));
     let hooks = hooks.as_object_mut().ok_or("\"hooks\" is not an object")?;
@@ -347,8 +476,13 @@ pub fn install_hooks(settings: &mut Value) -> Result<(), String> {
 // ---------------------------------------------------------------------------
 // Runtime
 
+/// Permission prompts waiting for an answer: the open HTTP request of each
+/// hook, answered once the person decides (or the wait runs out).
+type Pending = HashMap<String, (tiny_http::Request, i64)>;
+
 pub struct Sessions {
     book: Mutex<Book>,
+    pending: Mutex<Pending>,
     server_running: Mutex<bool>,
     home: Option<PathBuf>,
 }
@@ -367,8 +501,14 @@ fn with_book(app: &AppHandle, f: impl FnOnce(&mut Book) -> bool) {
 
 pub fn init(app: &AppHandle) {
     let home = app.path().home_dir().ok();
-    app.manage(Sessions { book: Mutex::new(Book::default()), server_running: Mutex::new(false), home: home.clone() });
+    app.manage(Sessions {
+        book: Mutex::new(Book::default()),
+        pending: Mutex::new(HashMap::new()),
+        server_running: Mutex::new(false),
+        home: home.clone(),
+    });
     spawn_server(app.clone());
+    spawn_permission_timeouts(app.clone());
     if let Some(home) = home {
         spawn_codex_watcher(app.clone(), home.join(".codex").join("sessions"));
     }
@@ -397,6 +537,23 @@ fn spawn_server(app: AppHandle) {
                     let _ = req.respond(tiny_http::Response::from_string(body).with_header(header));
                     continue;
                 }
+                if req.method() == &tiny_http::Method::Post && req.url() == PERMISSION_PATH {
+                    let mut body = Vec::new();
+                    let _ = req.as_reader().take(MAX_BODY as u64).read_to_end(&mut body);
+                    let ev = serde_json::from_slice::<Value>(&body).ok();
+                    // Nobody can see the island: let Claude ask in the terminal.
+                    let visible = app.state::<crate::island_window::IslandState>().is_visible();
+                    let Some(ev) = ev.filter(|_| visible) else {
+                        let _ = req.respond(tiny_http::Response::empty(204));
+                        continue;
+                    };
+                    let id = uuid::Uuid::new_v4().to_string();
+                    if let Ok(mut p) = app.state::<Sessions>().pending.lock() {
+                        p.insert(id.clone(), (req, now_ms()));
+                    }
+                    with_book(&app, |b| b.request_permission(&ev, &id, now_ms()));
+                    continue;
+                }
                 let ok = req.method() == &tiny_http::Method::Post && req.url() == HOOK_PATH;
                 if ok {
                     let mut body = Vec::new();
@@ -409,6 +566,41 @@ fn spawn_server(app: AppHandle) {
             }
         })
         .expect("failed to spawn sessions server");
+}
+
+/// Sends the answer to a waiting hook and updates the session.
+pub fn answer_permission(app: &AppHandle, perm_id: &str, answer: Answer) {
+    let request = app.state::<Sessions>().pending.lock().ok().and_then(|mut p| p.remove(perm_id));
+    if let Some((req, _)) = request {
+        let _ = match permission_output(answer) {
+            Some(body) => {
+                let header = tiny_http::Header::from_bytes("Content-Type", "application/json").unwrap();
+                req.respond(tiny_http::Response::from_string(body).with_header(header))
+            }
+            None => req.respond(tiny_http::Response::empty(204)),
+        };
+    }
+    with_book(app, |b| b.resolve_permission(perm_id, answer, now_ms()));
+}
+
+/// Hands prompts nobody answered back to the terminal.
+fn spawn_permission_timeouts(app: AppHandle) {
+    std::thread::Builder::new()
+        .name("duri-permission-timeouts".into())
+        .spawn(move || loop {
+            std::thread::sleep(Duration::from_secs(1));
+            let now = now_ms();
+            let expired: Vec<String> = app
+                .state::<Sessions>()
+                .pending
+                .lock()
+                .map(|p| p.iter().filter(|(_, (_, at))| now - at > PERMISSION_WAIT_MS).map(|(id, _)| id.clone()).collect())
+                .unwrap_or_default();
+            for id in expired {
+                answer_permission(&app, &id, Answer::Terminal);
+            }
+        })
+        .expect("failed to spawn permission timeout thread");
 }
 
 fn mtime_ms(p: &Path) -> i64 {
@@ -522,6 +714,30 @@ fn write_settings(path: &Path, value: &Value) -> Result<(), String> {
 pub struct HookStatus {
     installed: bool,
     server_running: bool,
+    /// Permission prompts are answered from the island.
+    permissions: bool,
+}
+
+/// Answers a permission prompt shown in the island: "allow", "deny" or "terminal".
+#[tauri::command]
+pub fn session_permission(app: AppHandle, id: String, answer: String) -> Result<(), String> {
+    let answer = match answer.as_str() {
+        "allow" => Answer::Allow,
+        "deny" => Answer::Deny,
+        "terminal" => Answer::Terminal,
+        other => return Err(format!("unknown answer: {other}")),
+    };
+    answer_permission(&app, &id, answer);
+    Ok(())
+}
+
+/// Turns answering permission prompts from the island on or off.
+#[tauri::command]
+pub fn claude_permissions_set(state: State<'_, Sessions>, on: bool) -> Result<(), String> {
+    let path = claude_settings_path(&state)?;
+    let mut settings = read_settings(&path)?;
+    set_permission_hook(&mut settings, on)?;
+    write_settings(&path, &settings)
 }
 
 #[tauri::command]
@@ -540,6 +756,7 @@ pub fn claude_hooks_status(state: State<'_, Sessions>) -> Result<HookStatus, Str
     Ok(HookStatus {
         installed: hooks_installed(&settings),
         server_running: state.server_running.lock().map(|r| *r).unwrap_or(false),
+        permissions: permission_hook_installed(&settings),
     })
 }
 
@@ -672,6 +889,76 @@ mod tests {
         assert!(uninstall_hooks(&mut s));
         assert_eq!(s, original);
         assert!(!uninstall_hooks(&mut s));
+    }
+
+    #[test]
+    fn permission_prompt_lifecycle() {
+        let mut b = Book::default();
+        let ev = json!({ "session_id": "s1", "cwd": "C:/code/app", "tool_name": "Bash", "tool_input": { "command": "npm test" } });
+        assert!(b.request_permission(&ev, "p1", 10));
+        let s = &b.list()[0];
+        assert_eq!(s.status, Status::Waiting);
+        assert_eq!(s.permission.as_ref().map(|p| p.detail.as_str()), Some("Bash · npm test"));
+
+        // Answering clears it and Claude carries on.
+        assert!(b.resolve_permission("p1", Answer::Allow, 20));
+        assert_eq!(b.list()[0].permission, None);
+        assert_eq!(b.list()[0].status, Status::Working);
+        assert!(!b.resolve_permission("p1", Answer::Allow, 21));
+
+        // "Answer in Terminal" leaves the session waiting for the terminal prompt.
+        b.request_permission(&ev, "p2", 30);
+        b.resolve_permission("p2", Answer::Terminal, 31);
+        assert_eq!(b.list()[0].status, Status::Waiting);
+    }
+
+    #[test]
+    fn stale_permission_prompt_clears_when_claude_moves_on() {
+        let mut b = Book::default();
+        let ev = json!({ "session_id": "s1", "tool_name": "Edit" });
+        b.request_permission(&ev, "p1", 10);
+        claude(&mut b, "Notification", json!({ "message": "Claude needs your permission to use Edit" }), 11);
+        assert!(b.list()[0].permission.is_some());
+        claude(&mut b, "PostToolUse", json!({ "tool_name": "Edit" }), 12);
+        assert_eq!(b.list()[0].permission, None);
+    }
+
+    #[test]
+    fn permission_output_matches_claude_code() {
+        let allow: Value = serde_json::from_str(&permission_output(Answer::Allow).unwrap()).unwrap();
+        assert_eq!(allow["hookSpecificOutput"]["hookEventName"], "PermissionRequest");
+        assert_eq!(allow["hookSpecificOutput"]["decision"]["behavior"], "allow");
+        let deny: Value = serde_json::from_str(&permission_output(Answer::Deny).unwrap()).unwrap();
+        assert_eq!(deny["hookSpecificOutput"]["decision"]["behavior"], "deny");
+        assert!(deny["hookSpecificOutput"]["decision"]["message"].is_string());
+        assert_eq!(permission_output(Answer::Terminal), None);
+    }
+
+    #[test]
+    fn permission_hook_is_optional_and_reversible() {
+        let original = json!({
+            "hooks": {
+                "PermissionRequest": [{ "matcher": "Bash", "hooks": [{ "type": "command", "command": "mine.cmd" }] }]
+            }
+        });
+        let mut s = original.clone();
+        install_hooks(&mut s).unwrap();
+        assert!(!permission_hook_installed(&s));
+
+        set_permission_hook(&mut s, true).unwrap();
+        assert!(permission_hook_installed(&s));
+        assert_eq!(s["hooks"]["PermissionRequest"].as_array().unwrap().len(), 2);
+        // Reconnecting keeps it, and doesn't duplicate it.
+        install_hooks(&mut s).unwrap();
+        set_permission_hook(&mut s, true).unwrap();
+        assert_eq!(s["hooks"]["PermissionRequest"].as_array().unwrap().len(), 2);
+
+        set_permission_hook(&mut s, false).unwrap();
+        assert!(!permission_hook_installed(&s));
+        // Disconnecting removes every Duri hook, the permission one included.
+        set_permission_hook(&mut s, true).unwrap();
+        uninstall_hooks(&mut s);
+        assert_eq!(s, original);
     }
 
     #[test]

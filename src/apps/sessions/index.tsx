@@ -102,6 +102,28 @@ export function SessionsMinimal() {
   );
 }
 
+/** Deny / Allow for a permission prompt, plus "Answer in Terminal" where there is room. */
+function PermissionActions({ session, withTerminal = false }: { session: Session; withTerminal?: boolean }) {
+  const { t } = useTranslation();
+  const p = session.permission;
+  if (!p) return null;
+  return (
+    <div className={styles.permission}>
+      {withTerminal && (
+        <IconButton label={t("sessions.permission.terminal")} size={32} variant="plain" onClick={() => sessionActions.answer(p.id, "terminal")}>
+          <SquareTerminal size={16} />
+        </IconButton>
+      )}
+      <TextButton variant="tinted" tone="var(--island-fg)" onClick={() => sessionActions.answer(p.id, "deny")}>
+        {t("sessions.permission.deny")}
+      </TextButton>
+      <TextButton variant="filled" tone={STATUS_COLOR.waiting} onClick={() => sessionActions.answer(p.id, "allow")}>
+        {t("sessions.permission.allow")}
+      </TextButton>
+    </div>
+  );
+}
+
 export function SessionsCompact() {
   const { t } = useTranslation();
   const { session, acknowledged } = useFocus();
@@ -114,9 +136,15 @@ export function SessionsCompact() {
       </span>
       <div className={styles.meta}>
         <span className={styles.project}>{session.project || t(`sessions.agent.${session.agent}`)}</span>
-        <span className={styles.detail}>{session.detail ?? session.prompt ?? t(`sessions.agent.${session.agent}`)}</span>
+        <span className={styles.detail}>
+          {session.permission
+            ? t("sessions.permission.ask", { detail: session.permission.detail })
+            : (session.detail ?? session.prompt ?? t(`sessions.agent.${session.agent}`))}
+        </span>
       </div>
-      {alert ? (
+      {session.permission ? (
+        <PermissionActions session={session} />
+      ) : alert ? (
         <TextButton variant="filled" tone={STATUS_COLOR.waiting} onClick={() => sessionActions.acknowledge(session)}>
           {t("sessions.acknowledge")}
         </TextButton>
@@ -180,7 +208,9 @@ function StepCard({ session, alert }: { session: Session; alert: boolean }) {
   const { t } = useTranslation();
   const color = STATUS_COLOR[session.status];
   const label =
-    session.status === "waiting"
+    session.permission
+      ? t("sessions.permission.label")
+      : session.status === "waiting"
       ? t("sessions.status.waiting")
       : session.status === "working"
         ? t("sessions.step.now")
@@ -194,10 +224,14 @@ function StepCard({ session, alert }: { session: Session; alert: boolean }) {
         <span className={styles.cardLabel}>{label}</span>
         <span className={styles.cardDetail}>{text}</span>
       </div>
-      {alert && (
-        <TextButton variant="filled" tone={color} onClick={() => sessionActions.acknowledge(session)}>
-          {t("sessions.acknowledge")}
-        </TextButton>
+      {session.permission ? (
+        <PermissionActions session={session} withTerminal />
+      ) : (
+        alert && (
+          <TextButton variant="filled" tone={color} onClick={() => sessionActions.acknowledge(session)}>
+            {t("sessions.acknowledge")}
+          </TextButton>
+        )
       )}
     </div>
   );

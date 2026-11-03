@@ -37,7 +37,7 @@ Duri's features are called **apps**. Each one can be switched off in Settings �
   </tr>
   <tr>
     <td><b>🎵 Music.</b> What's playing in Spotify, your browser or any media app, tinted with the cover's color. Play, pause, skip, seek, set the volume and switch players.</td>
-    <td><b>🤖 Sessions.</b> Follows your Claude Code and Codex sessions: working, needs you, done. When Claude asks for permission, the island opens and tells you which project.</td>
+    <td><b>🤖 Sessions.</b> Follows your Claude Code and Codex sessions: working, needs you, done. When Claude asks for permission, the island opens and tells you which project, and can answer it for you: Allow or Deny right from the island (opt-in, Settings › Apps).</td>
   </tr>
   <tr>
     <td><img src="docs/media/clipboard.png" alt="Clipboard app" /></td>
@@ -72,6 +72,7 @@ Duri's features are called **apps**. Each one can be switched off in Settings �
 - **Click:** the full app, with a dock to switch apps.
 - Clicks on the empty space around the island go to the windows underneath, and it never takes focus from what you're typing in.
 - It hides while a fullscreen app, game or video is in front.
+- Drag it up to tuck it away into a small handle at the top edge. Hover the handle to peek; drag it down (or right-click) to bring it back.
 
 ## Performance
 

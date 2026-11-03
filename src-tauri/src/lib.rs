@@ -68,6 +68,8 @@ pub fn run() {
             apps::music::music_select_source,
             apps::sessions::sessions_get,
             apps::sessions::session_dismiss,
+            apps::sessions::session_permission,
+            apps::sessions::claude_permissions_set,
             apps::sessions::claude_hooks_status,
             apps::sessions::claude_hooks_install,
             apps::sessions::claude_hooks_uninstall,

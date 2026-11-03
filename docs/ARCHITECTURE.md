@@ -82,3 +82,7 @@ The island window is transparent, so anything that changes in it makes WebView2 
 - No infinite CSS animations in the pill or bubble. Use `useStep` (`src/lib/ticks.ts`) to step a few times a second (the music equalizer, the working dots). Smooth animations are fine in compact and expanded views, which the person is looking at and which close again.
 - Re-render on the boundary that changes what's shown: `useAlignedNow(enabled, 60_000)` for a clock without seconds, `useAlignedNow(enabled, 1000, endsAt)` for a countdown. `useNow` without an interval (every frame) is for precise digits in open views only.
 - Measure with `scripts/bench.ps1` (duri.exe plus its WebView2 processes) before and after a change that touches the pill.
+
+## Permission prompts
+
+Optional (Settings › Apps › Integrations). Duri adds a `PermissionRequest` hook to `~/.claude/settings.json` whose curl call POSTs to `/duri/claude-permission` and waits. The server keeps the request open (`Sessions.pending`) and the session shows `permission` in the island with Allow / Deny / Answer in Terminal. `session_permission` answers it with the JSON Claude Code expects (`hookSpecificOutput.decision.behavior`), or with an empty response, which makes Claude Code ask in the terminal as usual. That empty answer is also what happens when nobody answers within 2 minutes or when the island is hidden. Any later hook event for the session clears a prompt that is still shown, since Claude has moved on.

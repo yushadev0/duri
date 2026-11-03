@@ -389,3 +389,11 @@
     animation: none;
   }
 }
+
+/* Deny / Allow for a permission prompt. */
+.permission {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

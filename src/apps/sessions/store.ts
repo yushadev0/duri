@@ -17,7 +17,11 @@ export interface Session {
   startedAt: number;
   updatedAt: number;
   statusSince: number;
+  /** A permission prompt waiting for an answer in the island. */
+  permission: { id: string; detail: string; askedAt: number } | null;
 }
+
+export type PermissionAnswer = "allow" | "deny" | "terminal";
 
 interface SessionsStore {
   sessions: Session[];
@@ -30,6 +34,8 @@ interface SessionsStore {
 export interface HookStatus {
   installed: boolean;
   serverRunning: boolean;
+  /** Permission prompts are answered from the island. */
+  permissions: boolean;
 }
 
 const store = createStore<SessionsStore>({ sessions: [], acknowledged: [], selectedId: null });
@@ -67,7 +73,7 @@ export function useHookStatus() {
 export function refreshHooks() {
   return invoke<HookStatus>("claude_hooks_status")
     .then((s) => hooks.set(s))
-    .catch(() => hooks.set({ installed: false, serverRunning: false }));
+    .catch(() => hooks.set({ installed: false, serverRunning: false, permissions: false }));
 }
 
 export function needsYou(s: Session, acknowledged: string[]) {
@@ -108,6 +114,12 @@ export const sessionActions = {
     store.set((v) => ({ ...v, acknowledged: [...v.acknowledged, ackKey(s)].slice(-100) }));
   },
   dismiss: (id: string) => invoke("session_dismiss", { id }),
+  answer: (permissionId: string, answer: PermissionAnswer) =>
+    invoke("session_permission", { id: permissionId, answer }).catch(() => {}),
+  async setPermissions(on: boolean) {
+    await invoke("claude_permissions_set", { on });
+    await refreshHooks();
+  },
   async installHooks() {
     await invoke("claude_hooks_install");
     await refreshHooks();

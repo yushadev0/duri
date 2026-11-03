@@ -12,6 +12,7 @@ const s = (id: string, status: Session["status"], statusSince = 1): Session => (
   startedAt: 0,
   updatedAt: 0,
   statusSince,
+  permission: null,
 });
 
 describe("focusSession", () => {

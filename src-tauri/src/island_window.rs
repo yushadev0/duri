@@ -71,6 +71,14 @@ impl Inner {
     }
 }
 
+impl IslandState {
+    /// Whether the island is on screen (not hidden from the tray or by a
+    /// fullscreen app).
+    pub fn is_visible(&self) -> bool {
+        self.0.lock().map(|s| s.visible()).unwrap_or(false)
+    }
+}
+
 /// Hides the island from the tray menu, or shows it again.
 pub fn set_hidden(app: &AppHandle, hidden: bool) {
     if let Ok(mut s) = app.state::<IslandState>().0.lock() {

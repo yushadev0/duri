@@ -300,12 +300,15 @@ export function Island() {
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (mode === "expanded" || e.button !== 0) return;
     dragStart.current = e.clientY;
-    e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (dragStart.current === null) return;
     const dy = e.clientY - dragStart.current;
-    if (dragY !== null || Math.abs(dy) > 4) setDragY(dy);
+    if (dragY === null && Math.abs(dy) <= 4) return;
+    // Capture only once it is really a drag: capturing on press would send
+    // the click to the island instead of the button under the pointer.
+    if (!e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.setPointerCapture(e.pointerId);
+    setDragY(dy);
   };
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (dragStart.current === null) return;

@@ -134,7 +134,9 @@
     "transparencyLow": "Low",
     "transparencyHigh": "High",
     "hideInFullscreen": "Hide in Fullscreen",
-    "hideInFullscreenHint": "Hides the island while a fullscreen app, game or video is in front."
+    "hideInFullscreenHint": "Hides the island while a fullscreen app, game or video is in front.",
+    "claudePermissions": "Answer Permission Prompts in Duri",
+    "claudePermissionsHint": "Allow or deny Claude Code's requests from the island. Unanswered ones go back to the terminal after 2 minutes."
   },
   "tray": {
     "settings": "Settings…",
@@ -167,6 +169,13 @@
       "last": "Last step",
       "finished": "Turn finished",
       "ready": "Ready for your prompt"
+    },
+    "permission": {
+      "ask": "Wants to use {{detail}}",
+      "label": "Permission",
+      "allow": "Allow",
+      "deny": "Deny",
+      "terminal": "Answer in Terminal"
     }
   },
   "clipboard": {

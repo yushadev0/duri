@@ -134,7 +134,9 @@
     "transparencyLow": "Az",
     "transparencyHigh": "Çok",
     "hideInFullscreen": "Tam Ekranda Gizle",
-    "hideInFullscreenHint": "Önde tam ekran bir uygulama, oyun ya da video varken adayı gizler."
+    "hideInFullscreenHint": "Önde tam ekran bir uygulama, oyun ya da video varken adayı gizler.",
+    "claudePermissions": "İzin İsteklerini Duri'de Yanıtla",
+    "claudePermissionsHint": "Claude Code'un isteklerine adadan izin ver ya da reddet. Yanıtlanmayanlar 2 dakika sonra terminale döner."
   },
   "tray": {
     "settings": "Ayarlar…",
@@ -167,6 +169,13 @@
       "last": "Son adım",
       "finished": "Tur tamamlandı",
       "ready": "İsteğini bekliyor"
+    },
+    "permission": {
+      "ask": "İzin istiyor: {{detail}}",
+      "label": "İzin",
+      "allow": "İzin Ver",
+      "deny": "Reddet",
+      "terminal": "Terminalde Yanıtla"
     }
   },
   "clipboard": {

@@ -296,6 +296,15 @@ function Integrations() {
             </button>
           )}
         </Row>
+        {hooks?.installed && (
+          <Row title={t("settings.claudePermissions")} hint={t("settings.claudePermissionsHint")}>
+            <Switch
+              checked={hooks.permissions}
+              onChange={(on) => run(() => sessionActions.setPermissions(on))}
+              label={t("settings.claudePermissions")}
+            />
+          </Row>
+        )}
         <Row title="Codex" hint={t("settings.codexHint")} />
       </section>
     </>
