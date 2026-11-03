@@ -1,9 +1,11 @@
 import { ChevronsUpDown, Music2, Pause, Play, SkipBack, SkipForward } from "lucide-react";
+import { useReducedMotion } from "motion/react";
 import { useRef, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton } from "../../components/Button";
 import { VolumeSlider } from "../../components/VolumeSlider";
 import { formatTrackTime } from "../../lib/format";
+import { useStep } from "../../lib/ticks";
 import { useNow } from "../../lib/useNow";
 import styles from "./music.module.css";
 import { sourceName } from "./sources";
@@ -23,13 +25,48 @@ function Artwork({ size, radius }: { size: number; radius: number }) {
   );
 }
 
-function Equalizer({ playing, color, height = 14 }: { playing: boolean; color: string; height?: number }) {
+/** Bar heights for the stepped equalizer, one row per step. */
+const EQ_FRAMES = [
+  [0.45, 0.9, 0.6, 0.35],
+  [0.8, 0.5, 1, 0.6],
+  [0.35, 0.75, 0.45, 0.95],
+  [0.65, 1, 0.3, 0.7],
+  [1, 0.4, 0.8, 0.45],
+  [0.5, 0.65, 0.55, 1],
+];
+const EQ_STEP_MS = 250;
+
+/**
+ * Playing indicator. In the expanded view it's a smooth CSS animation; in
+ * the always-visible pill it steps a few times a second instead, because a
+ * running CSS animation repaints the whole transparent island window at the
+ * display's refresh rate (most of Duri's idle CPU before 0.2).
+ */
+function Equalizer({
+  playing,
+  color,
+  height = 14,
+  smooth = false,
+}: {
+  playing: boolean;
+  color: string;
+  height?: number;
+  smooth?: boolean;
+}) {
+  const reduceMotion = useReducedMotion();
+  const step = useStep(playing && !smooth && !reduceMotion, EQ_STEP_MS);
+  const frame = EQ_FRAMES[step % EQ_FRAMES.length];
   return (
-    <span className={styles.eq} data-playing={playing} style={{ height, color } as CSSProperties} aria-hidden>
-      <i />
-      <i />
-      <i />
-      <i />
+    <span
+      className={styles.eq}
+      data-playing={playing}
+      data-stepped={!smooth}
+      style={{ height, color } as CSSProperties}
+      aria-hidden
+    >
+      {frame.map((h, i) => (
+        <i key={i} style={!smooth && playing && !reduceMotion ? { transform: `scaleY(${h})` } : undefined} />
+      ))}
     </span>
   );
 }
@@ -192,7 +229,7 @@ export function MusicExpanded() {
             <span className={styles.sourceText}>{sourceName(state.sourceAppId)}</span>
           )}
         </div>
-        <Equalizer playing={state.playing} color={accent} height={18} />
+        <Equalizer playing={state.playing} color={accent} height={18} smooth />
       </div>
       <Scrubber />
       <div className={styles.transport}>

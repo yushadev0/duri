@@ -1,7 +1,9 @@
 import { Asterisk, Bot, Check, SquareTerminal, X } from "lucide-react";
+import { useReducedMotion } from "motion/react";
 import { useMemo, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton, TextButton } from "../../components/Button";
+import { useStep } from "../../lib/ticks";
 import { useNow } from "../../lib/useNow";
 import type { Activity, DuriApp } from "../types";
 import {
@@ -34,16 +36,23 @@ function AgentIcon({ agent, size = 18 }: { agent: Agent; size?: number }) {
   );
 }
 
+/** Working dots light up one after another, a few repaints a second. */
+function WorkingDots({ color }: { color: string }) {
+  const reduceMotion = useReducedMotion();
+  const step = useStep(!reduceMotion, 400);
+  const on = reduceMotion ? -1 : step % 3;
+  return (
+    <span className={styles.dots} style={{ color }} aria-hidden>
+      {[0, 1, 2].map((i) => (
+        <i key={i} data-on={i === on} />
+      ))}
+    </span>
+  );
+}
+
 function StatusGlyph({ status }: { status: Status }) {
   const color = STATUS_COLOR[status];
-  if (status === "working")
-    return (
-      <span className={styles.dots} style={{ color }} aria-hidden>
-        <i />
-        <i />
-        <i />
-      </span>
-    );
+  if (status === "working") return <WorkingDots color={color} />;
   if (status === "waiting")
     return (
       <span className={styles.bang} style={{ background: color }} aria-hidden>

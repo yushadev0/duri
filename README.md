@@ -73,6 +73,18 @@ Duri's features are called **apps**. Each one can be switched off in Settings â€
 - Clicks on the empty space around the island go to the windows underneath, and it never takes focus from what you're typing in.
 - It hides while a fullscreen app, game or video is in front.
 
+## Performance
+
+Duri is meant to sit there all day, so it stays out of the way. Measured on an Intel Core i5-11400H (12 threads) with Windows 11, 60 seconds per state, island resting:
+
+| Whileâ€¦ | CPU (one core) | CPU (whole PC) | Memory |
+| --- | --- | --- | --- |
+| nothing is playing | 0.6% | 0.05% | 119 MB |
+| music is playing | 2.3% | 0.19% | 129 MB |
+| a Claude Code session is working | 1.4% | 0.12% | 126 MB |
+
+CPU is the time used by Duri and its WebView2 processes; memory is the private working set, as Task Manager shows it. Most of the memory is WebView2 itself. Up to 0.1.1 the animated pill kept the island repainting at the display's refresh rate and used up to 20% of a core while music played; it now changes a few times a second. Measure it yourself with `powershell -ExecutionPolicy Bypass -File scriptsench.ps1`.
+
 ## Settings
 
 <img src="docs/media/settings.png" width="560" alt="Duri settings" />

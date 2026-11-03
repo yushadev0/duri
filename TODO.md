@@ -11,7 +11,6 @@
 - [ ] **Approve Claude Code permission prompts** from the island (PermissionRequest hook answering allow/deny)
 - [ ] **Verify Codex tracking** against a real Codex install (parser is written from the rollout format, untested)
 - [ ] **Code-sign the installer** so SmartScreen doesn't warn on first run
-- [ ] **Idle CPU audit** of the polling threads (hit test 20 ms, volume 100 ms, music 500 ms) and back off when nothing changes
 - [ ] **Keyboard navigation** inside the expanded island (Tab between controls, arrows in lists)
 - [ ] **Two players from the same app** (e.g. two Chrome windows) share one source id, so the source picker can only reach the first; key sources by session, not app id
 - [ ] Optional "Copied" confirmation in the pill when something is copied
@@ -26,4 +25,5 @@
 - [x] Right-click menu, focus that stays on the island after a click
 - [x] 12/24-hour clock (follows Windows by default), island transparency, hide in fullscreen
 - [x] Releases: tag-triggered GitHub Actions build, in-app updater (v0.1.0 published)
+- [x] Idle CPU: stepped pill animations, aligned clocks, cheaper hit test (20% of a core with music down to 2%), benchmark in README
 - [x] GitHub page: README with demo GIF and screenshots (demo content only), repo description and topics

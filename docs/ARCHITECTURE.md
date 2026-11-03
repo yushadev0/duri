@@ -26,7 +26,7 @@ duri/
 
 The island is one transparent, borderless, always-on-top Tauri window (640×320 logical px) at the top center of the primary monitor. It has `WS_EX_NOACTIVATE`, so clicking it never steals focus, and `WS_EX_TOOLWINDOW`, so it stays out of Alt+Tab and the taskbar.
 
-Because the window is much bigger than the visible pill, it ignores cursor events by default. The frontend reports the visible rectangles with `island_set_hit_rects`. A Rust thread checks the cursor every 20 ms and turns cursor events on only while the cursor is over one of those rectangles. The same thread emits `island://pointer` (true/false). The webview can't get `mouseleave` once events are ignored, so hover is driven entirely by this event.
+Because the window is much bigger than the visible pill, it ignores cursor events by default. The frontend reports the visible rectangles with `island_set_hit_rects`. A Rust thread checks the cursor (`GetCursorPos`) every 20 ms while it is near the island and every 60 ms elsewhere, and turns cursor events on only while the cursor is over one of those rectangles. The window position and scale are re-read once a second, not every tick. The same thread emits `island://pointer` (true/false). The webview can't get `mouseleave` once events are ignored, so hover is driven entirely by this event.
 
 **Visibility.** The window is shown unless the tray menu hid it or a fullscreen app is in front (`apply_visibility` in `island_window.rs`). A watcher thread checks every 500 ms: Windows' own notification state catches exclusive-fullscreen games and presentation mode, and a foreground window that covers the whole primary monitor catches borderless games, F11 browsers and video players. Browsers report fullscreen as still maximized, so the check is "covers the monitor and has no title bar" rather than "not maximized". The desktop (`Progman`/`WorkerW`) never counts.
 
@@ -67,10 +67,18 @@ Timers and the stopwatch store absolute Unix-ms timestamps (`endsAt`, `runningSi
 
 ## Volume
 
-`apps/volume.rs` owns the default output device's `IAudioEndpointVolume` on one COM thread. It polls the level every 100 ms, which also catches changes from other apps and device switches, and emits `volume://changed`. The UI turns each change into a short-lived, high-priority activity (the volume pill). Volume is a `hidden` app: it never appears in the launcher or dock.
+`apps/volume.rs` owns the default output device's `IAudioEndpointVolume` on one COM thread. Duri's own changes apply at once; a 250 ms poll catches changes made elsewhere (other apps, device switches) and emits `volume://changed`. The UI turns each change into a short-lived, high-priority activity (the volume pill). Volume is a `hidden` app: it never appears in the launcher or dock.
 
 **Replace the Windows volume popup.** Windows 11's flyout can't be hidden reliably, so a `WH_KEYBOARD_LL` hook takes the volume keys, changes the volume itself, and swallows the key, so Windows never opens its popup. Known limitation: while a Duri window (Settings, or the island in typing mode) is in front, Windows still shows its popup, because it does so whenever the foreground app changes the volume.
 
 ## Storage
 
 SQLite at `%APPDATA%\Duri\duri.db`, WAL mode. Migrations are an append-only list in `db.rs`, tracked by `PRAGMA user_version`. Small state is stored as JSON in the `kv` table.
+
+## Idle cost
+
+The island window is transparent, so anything that changes in it makes WebView2 recompose the whole window. A CSS animation that never ends would do that at the display's refresh rate, all day. Rules that keep Duri near zero while it rests:
+
+- No infinite CSS animations in the pill or bubble. Use `useStep` (`src/lib/ticks.ts`) to step a few times a second (the music equalizer, the working dots). Smooth animations are fine in compact and expanded views, which the person is looking at and which close again.
+- Re-render on the boundary that changes what's shown: `useAlignedNow(enabled, 60_000)` for a clock without seconds, `useAlignedNow(enabled, 1000, endsAt)` for a countdown. `useNow` without an interval (every frame) is for precise digits in open views only.
+- Measure with `scripts/bench.ps1` (duri.exe plus its WebView2 processes) before and after a change that touches the pill.

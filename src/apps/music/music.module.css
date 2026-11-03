@@ -35,6 +35,11 @@
   animation-play-state: running;
 }
 
+/* The pill steps through frames from JS instead (see Equalizer). */
+.eq[data-stepped="true"] i {
+  animation: none;
+}
+
 .eq i:nth-child(2) {
   animation-duration: 0.7s;
   animation-delay: -0.3s;

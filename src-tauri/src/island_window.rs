@@ -297,32 +297,70 @@ pub fn island_set_focus(app: AppHandle, focused: bool) {
     set_focused(&app, focused);
 }
 
+/// How often the cursor is checked while it is near the island, and while
+/// it is elsewhere on screen.
+const HIT_TEST_NEAR: Duration = Duration::from_millis(20);
+const HIT_TEST_FAR: Duration = Duration::from_millis(60);
+/// "Near" = within this many logical px of the island window.
+const NEAR_MARGIN: f64 = 80.0;
+/// The window's position and scale only change on display changes; re-read
+/// them this often instead of every tick.
+const GEOMETRY_REFRESH: Duration = Duration::from_secs(1);
+
+/// Cursor position in physical screen pixels.
+#[cfg(windows)]
+fn cursor_pos() -> Option<(f64, f64)> {
+    use windows::Win32::Foundation::POINT;
+    use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
+    let mut p = POINT::default();
+    unsafe { GetCursorPos(&mut p).ok()? };
+    Some((p.x as f64, p.y as f64))
+}
+
+#[cfg(not(windows))]
+fn cursor_pos() -> Option<(f64, f64)> {
+    None
+}
+
+/// Whether a point (logical px, relative to the window) is within `margin`
+/// of the window's bounds.
+pub fn near_window(x: f64, y: f64, margin: f64) -> bool {
+    x >= -margin && y >= -margin && x <= WIDTH + margin && y <= HEIGHT + margin
+}
+
 pub fn spawn_hit_test(app: AppHandle) {
     std::thread::Builder::new()
         .name("duri-hit-test".into())
-        .spawn(move || loop {
-            std::thread::sleep(Duration::from_millis(20));
-            let Some(win) = app.get_webview_window(LABEL) else {
-                continue;
-            };
-            let (Ok(cursor), Ok(origin), Ok(scale)) =
-                (win.cursor_position(), win.outer_position(), win.scale_factor())
-            else {
-                continue;
-            };
-            let lx = (cursor.x - origin.x as f64) / scale;
-            let ly = (cursor.y - origin.y as f64) / scale;
+        .spawn(move || {
+            let mut geometry: Option<((f64, f64), f64, std::time::Instant)> = None;
+            let mut interval = HIT_TEST_NEAR;
+            loop {
+                std::thread::sleep(interval);
+                let Some(win) = app.get_webview_window(LABEL) else {
+                    continue;
+                };
+                let stale = geometry.is_none_or(|(_, _, at)| at.elapsed() >= GEOMETRY_REFRESH);
+                if stale && let (Ok(origin), Ok(scale)) = (win.outer_position(), win.scale_factor()) {
+                    geometry = Some(((origin.x as f64, origin.y as f64), scale, std::time::Instant::now()));
+                }
+                let (Some(((ox, oy), scale, _)), Some((cx, cy))) = (geometry, cursor_pos()) else {
+                    continue;
+                };
+                let lx = (cx - ox) / scale;
+                let ly = (cy - oy) / scale;
 
-            let state = app.state::<IslandState>();
-            let Ok(mut s) = state.0.lock() else { continue };
-            #[cfg(windows)]
-            track_foreground(&mut s);
-            let inside = s.visible() && s.rects.iter().any(|r| r.contains(lx, ly));
-            if inside != s.inside {
-                s.inside = inside;
-                drop(s);
-                let _ = win.set_ignore_cursor_events(!inside);
-                let _ = win.emit_to(LABEL, "island://pointer", inside);
+                let state = app.state::<IslandState>();
+                let Ok(mut s) = state.0.lock() else { continue };
+                #[cfg(windows)]
+                track_foreground(&mut s);
+                let inside = s.visible() && s.rects.iter().any(|r| r.contains(lx, ly));
+                interval = if inside || near_window(lx, ly, NEAR_MARGIN) { HIT_TEST_NEAR } else { HIT_TEST_FAR };
+                if inside != s.inside {
+                    s.inside = inside;
+                    drop(s);
+                    let _ = win.set_ignore_cursor_events(!inside);
+                    let _ = win.emit_to(LABEL, "island://pointer", inside);
+                }
             }
         })
         .expect("failed to spawn hit-test thread");
@@ -433,7 +471,15 @@ pub fn island_set_hit_rects(state: State<'_, IslandState>, rects: Vec<Rect>) {
 
 #[cfg(test)]
 mod tests {
-    use super::{is_fullscreen, Rect};
+    use super::{is_fullscreen, near_window, Rect};
+
+    #[test]
+    fn near_the_window() {
+        assert!(near_window(10.0, 10.0, 80.0));
+        assert!(near_window(-60.0, 300.0, 80.0));
+        assert!(!near_window(-100.0, 10.0, 80.0));
+        assert!(!near_window(300.0, 500.0, 80.0));
+    }
 
     // Measured on a 1920×1080 monitor with Edge.
     const MONITOR: (i32, i32, i32, i32) = (0, 0, 1920, 1080);

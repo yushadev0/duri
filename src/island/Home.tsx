@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { DuriApp } from "../apps/types";
 import { IconButton } from "../components/Button";
 import { formatClock, useHour12 } from "../lib/clock";
-import { useNow } from "../lib/useNow";
+import { useAlignedNow } from "../lib/ticks";
 import styles from "./Home.module.css";
 
 interface HomeProps {
@@ -16,7 +16,7 @@ interface HomeProps {
 export function Home({ apps, onOpen, onSettings }: HomeProps) {
   const { t, i18n } = useTranslation();
   const hour12 = useHour12();
-  const now = new Date(useNow(true, 1000));
+  const now = new Date(useAlignedNow(true, 60_000));
   const time = formatClock(now, i18n.language, hour12);
   const date = now.toLocaleDateString(i18n.language, { weekday: "long", day: "numeric", month: "long" });
 

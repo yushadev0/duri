@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { IconButton, TextButton } from "../../components/Button";
 import { Ring } from "../../components/Ring";
 import { formatCountdown } from "../../lib/format";
+import { useAlignedNow } from "../../lib/ticks";
 import { useNow } from "../../lib/useNow";
 import type { Activity, DuriApp } from "../types";
 import {
@@ -23,8 +24,16 @@ const MIN = 60_000;
 const PRESETS = [1, 5, 10, 25].map((m) => m * MIN);
 const STEPS = [1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 45, 60, 90, 120, 180].map((m) => m * MIN);
 
-function useTimerNow(timers: Timer[]) {
-  return useNow(timers.some((t) => t.state === "running"), 200);
+/**
+ * Clock for timer views. The expanded view ticks smoothly; the pill and
+ * compact views only re-render when the soonest timer's seconds change.
+ */
+function useTimerNow(timers: Timer[], smooth = false) {
+  const running = timers.filter((t): t is Timer & { state: "running"; endsAt: number } => t.state === "running");
+  const phase = running.length ? Math.min(...running.map((t) => t.endsAt)) : 0;
+  const smoothNow = useNow(smooth && running.length > 0, 200);
+  const steppedNow = useAlignedNow(!smooth && running.length > 0, 1000, phase);
+  return smooth ? smoothNow : steppedNow;
 }
 
 function TimerRing({ timer, now, size, stroke }: { timer: Timer; now: number; size: number; stroke?: number }) {
@@ -148,7 +157,7 @@ function TimerRow({ timer, now }: { timer: Timer; now: number }) {
 export function TimerExpanded() {
   const { t } = useTranslation();
   const { timers } = useTimersSnapshot();
-  const now = useTimerNow(timers);
+  const now = useTimerNow(timers, true);
   const [step, setStep] = useState(6); // 15 min
   const custom = STEPS[step];
 

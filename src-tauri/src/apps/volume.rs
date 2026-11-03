@@ -19,7 +19,9 @@ use tauri::{AppHandle, Emitter, Manager, State};
 
 /// Matches Windows' own step for the volume keys.
 pub const KEY_STEP: f32 = 0.02;
-const POLL: Duration = Duration::from_millis(100);
+/// Own changes (keys, slider) apply at once; this only catches changes made
+/// elsewhere (other apps, the Windows mixer).
+const POLL: Duration = Duration::from_millis(250);
 const REFRESH_DEVICE: Duration = Duration::from_secs(2);
 
 #[derive(Serialize, Clone, Copy, Debug, Default, PartialEq)]

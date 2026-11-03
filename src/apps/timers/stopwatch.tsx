@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton } from "../../components/Button";
 import { formatStopwatch } from "../../lib/format";
+import { useAlignedNow } from "../../lib/ticks";
 import { useNow } from "../../lib/useNow";
 import type { Activity, DuriApp } from "../types";
 import { startTimers, stopwatchActions, stopwatchElapsed, useTimersSnapshot } from "./store";
@@ -12,11 +13,17 @@ const GO = "var(--accent-go)";
 const STOP = "var(--accent-stop)";
 const GREY = "var(--island-fg)";
 
+/**
+ * Precise views redraw every frame (centiseconds); the pill only when the
+ * shown second changes, i.e. on the grid where elapsed time is a whole second.
+ */
 function useStopwatch(precise: boolean) {
   const { stopwatch } = useTimersSnapshot();
   const running = stopwatch.runningSince !== null;
-  const now = useNow(running, precise ? undefined : 250);
-  return { stopwatch, running, elapsed: stopwatchElapsed(stopwatch, now) };
+  const phase = (stopwatch.runningSince ?? 0) - stopwatch.accumulatedMs;
+  const frameNow = useNow(running && precise);
+  const secondNow = useAlignedNow(running && !precise, 1000, phase);
+  return { stopwatch, running, elapsed: stopwatchElapsed(stopwatch, precise ? frameNow : secondNow) };
 }
 
 function useDecimal() {
@@ -69,7 +76,8 @@ export function StopwatchPill() {
 }
 
 export function StopwatchMinimal() {
-  const { running } = useStopwatch(false);
+  const { stopwatch } = useTimersSnapshot();
+  const running = stopwatch.runningSince !== null;
   return <TimerIcon size={18} color={running ? GO : "var(--island-fg-2)"} />;
 }
 
