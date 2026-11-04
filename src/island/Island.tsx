@@ -184,17 +184,6 @@ export function Island() {
     };
   }, []);
 
-  // Debounce hover/leave so brushing past the island doesn't open it.
-  useEffect(() => {
-    const inside = state.pointerInside;
-    const delay = inside ? HOVER_DELAY_MS : state.mode === "expanded" ? LEAVE_DELAY_EXPANDED_MS : LEAVE_DELAY_MS;
-    const id = setTimeout(
-      () => dispatch(inside ? { type: "hover", appId: primaryRef.current } : { type: "leave" }),
-      delay,
-    );
-    return () => clearTimeout(id);
-  }, [state.pointerInside, state.mode, state.locked]);
-
   // Clicking the island brings it to the front; give focus back to the
   // previous app as soon as it rests again (pointer left, Esc, outside click).
   useEffect(() => {
@@ -253,7 +242,8 @@ export function Island() {
           dispatch({ type: "collapse" });
           return;
         }
-        const target = primary.current ?? apps.find((a) => !a.hidden)?.id;
+        const top = apps.find((a) => a.id === primary.current);
+        const target = top && !top.noExpand ? top.id : apps.find((a) => !a.hidden)?.id;
         if (target) openFromKeyboard(target);
       } else if (e.payload === "note" && has("notes")) {
         notesActions.create();
@@ -305,10 +295,45 @@ export function Island() {
   const dragStart = useRef<number | null>(null);
   const suppressClick = useRef(false);
   const tucked = settings.tucked;
-  const resting = state.mode === "idle" && !state.pointerInside && !alertKey && dragY === null;
+  // Volume and lock key indicators show through tucking, auto-hide and
+  // fullscreen apps, like the Windows popups they stand in for.
+  const hudActive = ranked.some((r) => r.activity.hud);
+  // The pointer reaching the handle doesn't count as leaving rest: the
+  // island would flash its pill before the hover opens it.
+  const resting = state.mode === "idle" && !alertKey && !hudActive && dragY === null;
   // Auto-hide goes one step further than tucking: nothing shows at rest.
   const away = settings.autoHide && resting;
   const handle = (tucked || settings.autoHide) && resting;
+
+  // Debounce hover/leave so brushing past the island doesn't open it. The
+  // auto-hide strip sits at the very edge of the screen, so reaching it is
+  // deliberate: it opens at once, like an auto-hiding taskbar.
+  useEffect(() => {
+    const inside = state.pointerInside;
+    const delay = inside
+      ? away
+        ? 0
+        : HOVER_DELAY_MS
+      : state.mode === "expanded"
+        ? LEAVE_DELAY_EXPANDED_MS
+        : LEAVE_DELAY_MS;
+    const id = setTimeout(
+      () => dispatch(inside ? { type: "hover", appId: primaryRef.current } : { type: "leave" }),
+      delay,
+    );
+    return () => clearTimeout(id);
+  }, [state.pointerInside, state.mode, state.locked]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Lets the backend show the island over a fullscreen app while an
+  // indicator is up. Turning it off waits for the pill to settle.
+  useEffect(() => {
+    if (hudActive) {
+      invoke("island_set_hud", { on: true }).catch(() => {});
+      return;
+    }
+    const id = setTimeout(() => invoke("island_set_hud", { on: false }).catch(() => {}), 350);
+    return () => clearTimeout(id);
+  }, [hudActive]);
 
   // Activity pills show the idle info (clock, CPU…) in the middle, between
   // the app's content at both ends, so the pill has no empty gap.
@@ -353,7 +378,10 @@ export function Island() {
 
   const transition = reduceMotion ? reducedTransition : state.growing ? morphSpring : settleSpring;
 
-  const open = (appId: string) => dispatch({ type: "open", appId });
+  const open = (appId: string) => {
+    if (apps.find((a) => a.id === appId)?.noExpand) return;
+    dispatch({ type: "open", appId });
+  };
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (mode === "expanded" || e.button !== 0) return;
     dragStart.current = e.clientY;

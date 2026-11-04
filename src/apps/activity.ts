@@ -19,5 +19,5 @@ export function rankActivities(
 
 export function sameActivity(a: Activity | null | undefined, b: Activity | null | undefined) {
   if (!a || !b) return !a && !b;
-  return a.priority === b.priority && !!a.alert === !!b.alert && a.key === b.key;
+  return a.priority === b.priority && !!a.alert === !!b.alert && !!a.hud === !!b.hud && a.key === b.key;
 }

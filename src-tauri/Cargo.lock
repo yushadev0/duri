@@ -946,6 +946,7 @@ dependencies = [
  "tiny_http",
  "uuid",
  "windows",
+ "windows-collections",
 ]
 
 [[package]]

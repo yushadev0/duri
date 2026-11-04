@@ -59,7 +59,11 @@ Duri's features are called **apps**. Each one can be switched off in Settings �
 
 **🔔 Notifications.** Windows notifications show up in the pill as they arrive, and the island keeps the recent ones (in memory only). Dismissing one there removes it from Action Center too. Copying something shows a short "Copied" confirmation.
 
-**🔊 Volume.** The pill shows the level when the volume changes, and can replace the Windows volume popup.
+**🔊 Volume.** The pill shows the level when the volume changes, and can replace the Windows volume popup. It shows even over fullscreen apps and while the island is hidden.
+
+**⌨️ Lock keys.** Caps Lock, Insert and Scroll Lock show whether they're on or off when you press them, next to the volume indicator.
+
+**🎧 Bluetooth.** A short notice when a paired Bluetooth device connects or disconnects.
 
 <p>
   <img src="docs/media/sessions-alert.png" height="72" alt="A Claude Code permission alert" />

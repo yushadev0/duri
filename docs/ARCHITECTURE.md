@@ -51,7 +51,7 @@ Every app implements `DuriApp` (`src/apps/types.ts`). It provides four presentat
 
 Backend modules own their state and background threads. They expose `#[tauri::command]`s and emit `<app>://<event>` events. The frontend mirrors their state in small stores (`src/lib/store.ts`, read via `useSyncExternalStore`).
 
-Current priorities: timer finished 100 · session needs you 90 · timer 60 · session working 50 · music playing 40 · session just finished 35 · stopwatch running 30 · stopwatch paused 10.
+Current priorities: timer finished 100 · lock key 96 · volume 95 · copied 93 · session needs you 90 · notification / Bluetooth device 85 · timer 60 · session working 50 · music playing 40 · session just finished 35 · stopwatch running 30 · stopwatch paused 10.
 
 ## Time
 
@@ -70,6 +70,16 @@ Timers and the stopwatch store absolute Unix-ms timestamps (`endsAt`, `runningSi
 `apps/volume.rs` owns the default output device's `IAudioEndpointVolume` on one COM thread. Duri's own changes apply at once; a 250 ms poll catches changes made elsewhere (other apps, device switches) and emits `volume://changed`. The UI turns each change into a short-lived, high-priority activity (the volume pill). Volume is a `hidden` app: it never appears in the launcher or dock.
 
 **Replace the Windows volume popup.** Windows 11's flyout can't be hidden reliably, so a `WH_KEYBOARD_LL` hook takes the volume keys, changes the volume itself, and swallows the key, so Windows never opens its popup. Known limitation: while a Duri window (Settings, or the island in typing mode) is in front, Windows still shows its popup, because it does so whenever the foreground app changes the volume.
+
+**Indicators over everything.** Volume and lock key activities set `hud: true`. They show while the island is tucked or auto-hidden, and `island_set_hud` tells the backend to show the window over a fullscreen app until the indicator is gone (350 ms later, so the pill settles). That show uses `SetWindowPos(HWND_TOPMOST, SWP_NOACTIVATE | SWP_SHOWWINDOW)` rather than Tauri's `show`, so a borderless game never loses focus, and is undone with a raw `ShowWindow(SW_HIDE)`, since Tauri didn't see it. Exclusive-fullscreen games and presentation mode stay untouched.
+
+## Lock keys
+
+`apps/keys.rs` has its own `WH_KEYBOARD_LL` hook that only watches Caps Lock, Insert and Scroll Lock (it never swallows them, and ignores auto-repeat). The hook runs before Windows flips the toggle, so another thread reads `GetKeyState` 40 ms later and emits `keys://lock`.
+
+## Bluetooth
+
+`apps/bluetooth.rs` runs a WinRT `DeviceWatcher` over paired Bluetooth association endpoints (classic and LE) with `System.Devices.Aep.IsConnected`, so changes arrive as events and nothing is polled. The first enumeration only records the current state. A dual-mode device has two endpoints that change together, so notices are deduplicated per container id for 4 s. The class of device (major/minor) picks the icon. If Windows stops the watcher (the Bluetooth service restarting), a new one starts.
 
 ## Storage
 

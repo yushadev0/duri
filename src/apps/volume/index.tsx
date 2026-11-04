@@ -5,8 +5,8 @@ import type { Activity, DuriApp } from "../types";
 import { startVolume, useVolume } from "./store";
 import styles from "./volume.module.css";
 
-/** Above everything except a finished timer, but only for a moment. */
-const HUD: Activity = { priority: 95 };
+/** Above everything except a finished timer, but only for a moment; shows even over fullscreen apps. */
+const HUD: Activity = { priority: 95, hud: true };
 
 function Pill() {
   const { t } = useTranslation();

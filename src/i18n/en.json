@@ -41,6 +41,14 @@
     "notifications": {
       "name": "Notifications",
       "description": "Windows notifications in the island, and a quick confirmation when you copy."
+    },
+    "keys": {
+      "name": "Lock Keys",
+      "description": "Shows Caps Lock, Insert and Scroll Lock in the island when you press them."
+    },
+    "bluetooth": {
+      "name": "Bluetooth",
+      "description": "Tells you when a Bluetooth device connects or disconnects."
     }
   },
   "music": {
@@ -138,7 +146,7 @@
     "transparencyLow": "Low",
     "transparencyHigh": "High",
     "hideInFullscreen": "Hide in Fullscreen",
-    "hideInFullscreenHint": "Hides the island while a fullscreen app, game or video is in front.",
+    "hideInFullscreenHint": "Hides the island while a fullscreen app, game or video is in front. Volume and lock key indicators still show.",
     "claudePermissions": "Answer Permission Prompts in Duri",
     "claudePermissionsHint": "Allow or deny Claude Code's requests from the island. Unanswered ones go back to the terminal after 2 minutes.",
     "shortcuts": "Keyboard Shortcuts",
@@ -150,7 +158,7 @@
     "shortcutOff": "Off",
     "shortcutTaken": "Another app uses this shortcut. Pick a different one.",
     "autoHide": "Automatically Hide the Island",
-    "autoHideHint": "Like an auto-hiding taskbar: it stays out of sight until you move the pointer to the top of the screen. Alerts still show."
+    "autoHideHint": "Like an auto-hiding taskbar: it stays out of sight until you move the pointer to the top of the screen. Alerts and the volume and lock key indicators still show."
   },
   "tray": {
     "settings": "Settings…",
@@ -265,5 +273,16 @@
     "dismiss": "Dismiss",
     "clear": "Clear All",
     "count": "{{count}} notifications"
+  },
+  "keys": {
+    "caps": "Caps Lock",
+    "insert": "Insert",
+    "scroll": "Scroll Lock",
+    "on": "On",
+    "off": "Off"
+  },
+  "bluetooth": {
+    "connected": "Connected",
+    "disconnected": "Disconnected"
   }
 }

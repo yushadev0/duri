@@ -41,6 +41,14 @@
     "notifications": {
       "name": "Bildirimler",
       "description": "Windows bildirimleri adada, kopyaladığında da kısa bir onay."
+    },
+    "keys": {
+      "name": "Kilit Tuşları",
+      "description": "Caps Lock, Insert ve Scroll Lock'a bastığınızda durumunu adada gösterir."
+    },
+    "bluetooth": {
+      "name": "Bluetooth",
+      "description": "Bir Bluetooth cihazı bağlandığında ya da bağlantısı koptuğunda haber verir."
     }
   },
   "music": {
@@ -138,7 +146,7 @@
     "transparencyLow": "Az",
     "transparencyHigh": "Çok",
     "hideInFullscreen": "Tam Ekranda Gizle",
-    "hideInFullscreenHint": "Önde tam ekran bir uygulama, oyun ya da video varken adayı gizler.",
+    "hideInFullscreenHint": "Önde tam ekran bir uygulama, oyun ya da video varken adayı gizler. Ses ve kilit tuşu göstergeleri yine görünür.",
     "claudePermissions": "İzin İsteklerini Duri'de Yanıtla",
     "claudePermissionsHint": "Claude Code'un isteklerine adadan izin ver ya da reddet. Yanıtlanmayanlar 2 dakika sonra terminale döner.",
     "shortcuts": "Klavye Kısayolları",
@@ -150,7 +158,7 @@
     "shortcutOff": "Kapalı",
     "shortcutTaken": "Bu kısayolu başka bir uygulama kullanıyor. Başka bir tane seç.",
     "autoHide": "Adayı Otomatik Gizle",
-    "autoHideHint": "Otomatik gizlenen görev çubuğu gibi: işaretçiyi ekranın üstüne götürene kadar görünmez. Uyarılar yine görünür."
+    "autoHideHint": "Otomatik gizlenen görev çubuğu gibi: işaretçiyi ekranın üstüne götürene kadar görünmez. Uyarılar ile ses ve kilit tuşu göstergeleri yine görünür."
   },
   "tray": {
     "settings": "Ayarlar…",
@@ -265,5 +273,16 @@
     "dismiss": "Kapat",
     "clear": "Tümünü Temizle",
     "count": "{{count}} bildirim"
+  },
+  "keys": {
+    "caps": "Caps Lock",
+    "insert": "Insert",
+    "scroll": "Scroll Lock",
+    "on": "Açık",
+    "off": "Kapalı"
+  },
+  "bluetooth": {
+    "connected": "Bağlandı",
+    "disconnected": "Bağlantı kesildi"
   }
 }

@@ -1,0 +1,68 @@
+.pill {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 14px;
+  color: var(--island-fg);
+}
+
+.name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.state {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--island-fg-2);
+}
+
+.state[data-on="true"] {
+  color: var(--accent-go);
+}
+
+.panel {
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px;
+}
+
+.key {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border-radius: 14px;
+  background: var(--island-fill-hover);
+  color: var(--island-fg-2);
+  min-width: 0;
+}
+
+.key[data-on="true"] {
+  background: var(--island-fg);
+  color: #000;
+}
+
+.keyText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.keyName {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.keyState {
+  font-size: 11px;
+  opacity: 0.75;
+}

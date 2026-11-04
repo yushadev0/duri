@@ -2,7 +2,9 @@
 //! work and `#[tauri::command]`s, and talks to the UI through events named
 //! `<app>://<event>`. Register new commands in `lib.rs`.
 
+pub mod bluetooth;
 pub mod clipboard;
+pub mod keys;
 pub mod music;
 pub mod notes;
 pub mod notifications;
@@ -24,4 +26,6 @@ pub fn init(app: &AppHandle, db: Arc<Db>, data_dir: &Path) {
     notifications::init(app);
     sessions::init(app);
     volume::init(app, settings.replace_volume_flyout);
+    keys::init(app);
+    bluetooth::init(app);
 }

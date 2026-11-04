@@ -46,6 +46,15 @@ struct Inner {
     hidden: bool,
     /// Hidden because a fullscreen app is in front (Settings › Hide in Fullscreen).
     fullscreen: bool,
+    /// That fullscreen app is an exclusive-fullscreen game or a presentation:
+    /// nothing may draw over it.
+    exclusive: bool,
+    /// A short-lived indicator (volume, Caps Lock…) is showing. It shows even
+    /// over a fullscreen app, like the Windows volume popup does.
+    hud: bool,
+    /// Shown over a fullscreen app for an indicator, bypassing Tauri's own
+    /// show (which may activate the window and pull the app out of focus).
+    over_fullscreen: bool,
     /// Whether the window is currently shown.
     shown: bool,
     /// The island currently has keyboard focus (someone is typing in it).
@@ -67,7 +76,7 @@ pub fn set_hide_in_fullscreen(on: bool) {
 
 impl Inner {
     fn visible(&self) -> bool {
-        !self.hidden && !self.fullscreen
+        !self.hidden && (!self.fullscreen || (self.hud && !self.exclusive))
     }
 }
 
@@ -87,10 +96,10 @@ pub fn set_hidden(app: &AppHandle, hidden: bool) {
     apply_visibility(app);
 }
 
-/// Shows or hides the window to match the tray and fullscreen state.
+/// Shows or hides the window to match the tray, fullscreen and indicator state.
 fn apply_visibility(app: &AppHandle) {
     let Some(win) = app.get_webview_window(LABEL) else { return };
-    let show = {
+    let (show, over_fullscreen) = {
         let state = app.state::<IslandState>();
         let Ok(mut s) = state.0.lock() else { return };
         let show = s.visible();
@@ -98,12 +107,69 @@ fn apply_visibility(app: &AppHandle) {
             return;
         }
         s.shown = show;
-        show
+        let fullscreen = s.fullscreen;
+        let raw = std::mem::replace(&mut s.over_fullscreen, show && fullscreen);
+        (show, if show { fullscreen } else { raw })
     };
-    if show {
-        show_without_activating(&win);
-    } else {
-        let _ = win.hide();
+    match (show, over_fullscreen) {
+        #[cfg(windows)]
+        (true, true) => show_over_fullscreen(&win),
+        (true, _) => show_without_activating(&win),
+        #[cfg(windows)]
+        (false, true) => hide_raw(&win),
+        (false, _) => {
+            let _ = win.hide();
+        }
+    }
+}
+
+/// Shows the island above a fullscreen app without activating it at all:
+/// even a brief focus change can minimize a borderless game.
+#[cfg(windows)]
+fn show_over_fullscreen(win: &WebviewWindow) {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::{
+        SetWindowPos, HWND_TOPMOST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW,
+    };
+    if let Ok(h) = win.hwnd() {
+        unsafe {
+            let _ = SetWindowPos(
+                HWND(h.0 as _),
+                Some(HWND_TOPMOST),
+                0,
+                0,
+                0,
+                0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW,
+            );
+        }
+    }
+}
+
+/// Hides a window shown by `show_over_fullscreen`. Tauri didn't see that
+/// show, so its own `hide` would think there is nothing to do.
+#[cfg(windows)]
+fn hide_raw(win: &WebviewWindow) {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::{ShowWindow, SW_HIDE};
+    if let Ok(h) = win.hwnd() {
+        unsafe {
+            let _ = ShowWindow(HWND(h.0 as _), SW_HIDE);
+        }
+    }
+}
+
+/// The UI says whether an indicator (volume, Caps Lock…) is showing.
+#[tauri::command]
+pub fn island_set_hud(app: AppHandle, on: bool) {
+    let changed = app
+        .state::<IslandState>()
+        .0
+        .lock()
+        .map(|mut s| std::mem::replace(&mut s.hud, on) != on)
+        .unwrap_or(false);
+    if changed {
+        apply_visibility(&app);
     }
 }
 
@@ -390,23 +456,47 @@ pub fn is_fullscreen(window: Bounds, monitor: Bounds, style: u32) -> bool {
     covers && style & WS_CAPTION != WS_CAPTION
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Fullscreen {
+    No,
+    /// A borderless game, F11 browser or video player: an ordinary window
+    /// covering the monitor, so the island can still draw over it.
+    Window,
+    /// Exclusive-fullscreen D3D or presentation mode.
+    Exclusive,
+}
+
 /// Whether a fullscreen app, game or video is in front on the primary
 /// monitor (where the island lives).
 #[cfg(windows)]
-fn fullscreen_in_front() -> bool {
-    use windows::Win32::Foundation::{HWND, RECT};
-    use windows::Win32::Graphics::Gdi::{GetMonitorInfoW, MonitorFromWindow, MONITORINFO, MONITOR_DEFAULTTONULL};
+fn fullscreen_in_front() -> Fullscreen {
+    if exclusive_fullscreen() {
+        Fullscreen::Exclusive
+    } else if fullscreen_window_in_front() {
+        Fullscreen::Window
+    } else {
+        Fullscreen::No
+    }
+}
+
+/// Exclusive-fullscreen games and presentation mode, as Windows sees them.
+#[cfg(windows)]
+fn exclusive_fullscreen() -> bool {
     use windows::Win32::UI::Shell::{
         SHQueryUserNotificationState, QUNS_PRESENTATION_MODE, QUNS_RUNNING_D3D_FULL_SCREEN,
     };
-    use windows::Win32::UI::WindowsAndMessaging::{GetClassNameW, GetWindowLongPtrW, GetWindowRect, GWL_STYLE};
+    matches!(
+        unsafe { SHQueryUserNotificationState() },
+        Ok(state) if state == QUNS_RUNNING_D3D_FULL_SCREEN || state == QUNS_PRESENTATION_MODE
+    )
+}
 
-    // Exclusive-fullscreen games and presentation mode, as Windows sees them.
-    if let Ok(state) = unsafe { SHQueryUserNotificationState() }
-        && (state == QUNS_RUNNING_D3D_FULL_SCREEN || state == QUNS_PRESENTATION_MODE)
-    {
-        return true;
-    }
+/// A foreground window covering the whole primary monitor.
+#[cfg(windows)]
+fn fullscreen_window_in_front() -> bool {
+    use windows::Win32::Foundation::{HWND, RECT};
+    use windows::Win32::Graphics::Gdi::{GetMonitorInfoW, MonitorFromWindow, MONITORINFO, MONITOR_DEFAULTTONULL};
+    use windows::Win32::UI::WindowsAndMessaging::{GetClassNameW, GetWindowLongPtrW, GetWindowRect, GWL_STYLE};
 
     let raw = fg::current();
     if raw == 0 || fg::is_ours(raw) {
@@ -446,12 +536,18 @@ pub fn spawn_fullscreen_watch(app: AppHandle) {
         .name("duri-fullscreen".into())
         .spawn(move || loop {
             std::thread::sleep(Duration::from_millis(500));
-            let fullscreen = HIDE_IN_FULLSCREEN.load(Ordering::SeqCst) && fullscreen_in_front();
+            let kind = if HIDE_IN_FULLSCREEN.load(Ordering::SeqCst) { fullscreen_in_front() } else { Fullscreen::No };
             let changed = app
                 .state::<IslandState>()
                 .0
                 .lock()
-                .map(|mut s| std::mem::replace(&mut s.fullscreen, fullscreen) != fullscreen)
+                .map(|mut s| {
+                    let (fullscreen, exclusive) = (kind != Fullscreen::No, kind == Fullscreen::Exclusive);
+                    let changed = s.fullscreen != fullscreen || s.exclusive != exclusive;
+                    s.fullscreen = fullscreen;
+                    s.exclusive = exclusive;
+                    changed
+                })
                 .unwrap_or(false);
             if changed {
                 apply_visibility(&app);

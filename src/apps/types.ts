@@ -16,6 +16,11 @@ export interface Activity {
   alert?: boolean;
   /** Changes when a new alert should re-trigger attention. */
   key?: string;
+  /**
+   * A short-lived indicator (volume, Caps Lock): shows even while the island
+   * is tucked away, auto-hidden or behind a fullscreen app.
+   */
+  hud?: boolean;
 }
 
 export interface IconProps {
@@ -63,6 +68,11 @@ export interface DuriApp {
   Compact: ComponentType;
   compactSize?: Size;
   Expanded: ComponentType;
+  /**
+   * Indicators whose hover view already says everything (Lock keys): clicks
+   * on the pill, the bubble or the compact view don't expand them.
+   */
+  noExpand?: boolean;
   /**
    * Apps in the dock all open at `EXPANDED_SIZE` (460×300; the bottom
    * `EXPANDED_DOCK` px hold the dock, the body gets the rest minus
