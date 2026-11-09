@@ -48,7 +48,7 @@
     },
     "bluetooth": {
       "name": "Bluetooth",
-      "description": "Bir Bluetooth cihazı bağlandığında ya da bağlantısı koptuğunda haber verir."
+      "description": "Bağlı Bluetooth cihazlarının pilini gösterir, pili azalınca uyarır, bir cihaz bağlandığında veya bağlantısı kesildiğinde haber verir."
     }
   },
   "music": {
@@ -283,6 +283,17 @@
   },
   "bluetooth": {
     "connected": "Bağlandı",
-    "disconnected": "Bağlantı kesildi"
+    "disconnected": "Bağlantı kesildi",
+    "devices": "Bağlı cihazlar",
+    "battery": "%{{level}} pil",
+    "noBattery": "pil seviyesi bildirilmiyor",
+    "low": "düşük",
+    "none": "Bağlı cihaz yok",
+    "noneHint": "Windows Bluetooth ayarlarından bir cihaz bağla.",
+    "more_one": "+{{count}} daha",
+    "more_other": "+{{count}} daha",
+    "percent": "%{{level}}",
+    "unknown": "Pil bilgisi yok",
+    "lowNotice": "Pil zayıf"
   }
 }

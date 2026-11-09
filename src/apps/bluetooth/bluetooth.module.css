@@ -12,7 +12,30 @@
   color: var(--island-fg-2);
 }
 
-/* Pill: glyph, device name, status; one line. */
+.glyph[data-low="true"] {
+  background: var(--accent-stop);
+  color: #fff;
+}
+
+/* Battery level: always written out, red when low (not color alone). */
+.percent {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--island-fg);
+}
+
+.percent[data-low="true"] {
+  color: var(--accent-stop);
+}
+
+.percent[data-unknown="true"] {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--island-fg-3);
+}
+
+/* Pill: glyph, device name, status, battery; one line. */
 .pill {
   height: 100%;
   display: flex;
@@ -72,26 +95,120 @@
   color: var(--island-fg-2);
 }
 
-.list {
+/* Hover with devices: up to three ring + level + name cells in a row. */
+.cells {
   list-style: none;
   margin: 0;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
   height: 100%;
-  overflow-y: auto;
-}
-
-.row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-width: 0;
+  gap: 14px;
+  padding: 0 18px;
 }
 
-.ago {
-  flex: none;
+.cell {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cellName {
   font-size: 11px;
+  color: var(--island-fg-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.more {
+  flex: none;
+  font-size: 12px;
   color: var(--island-fg-3);
+}
+
+/* Expanded: rings centered, up to four per row; scrolls past two rows. */
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+  height: 100%;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, var(--tile)));
+  justify-content: center;
+  align-content: safe center;
+  column-gap: 12px;
+  row-gap: 14px;
+}
+
+.tile {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.tile .percent {
+  margin-top: 2px;
+  font-size: 15px;
+}
+
+.tile .percent[data-unknown="true"] {
+  font-size: 12px;
+}
+
+.tileName {
+  max-width: 100%;
+  font-size: 12px;
+  color: var(--island-fg-2);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* No devices. */
+.empty,
+.emptyCompact {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.empty {
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.emptyCompact {
+  padding: 0 18px;
+}
+
+.emptyIcon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--island-fill);
+  color: var(--island-fg-2);
+}
+
+.empty .emptyIcon {
+  width: 48px;
+  height: 48px;
+}
+
+.emptyText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }

@@ -6,6 +6,7 @@ mod shortcuts;
 mod system;
 mod time;
 mod tray;
+mod webview_runtime;
 
 use std::sync::Arc;
 use tauri::Manager;
@@ -60,6 +61,7 @@ pub fn run() {
             apps::notes::note_update,
             apps::notes::note_delete,
             apps::notes::note_set_pinned,
+            apps::bluetooth::bluetooth_devices,
             settings::settings_get,
             system::system_stats,
             system::system_clock_24h,

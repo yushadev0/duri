@@ -81,6 +81,12 @@ Timers and the stopwatch store absolute Unix-ms timestamps (`endsAt`, `runningSi
 
 `apps/bluetooth.rs` runs a WinRT `DeviceWatcher` over paired Bluetooth association endpoints (classic and LE) with `System.Devices.Aep.IsConnected`, so changes arrive as events and nothing is polled. The first enumeration only records the current state. A dual-mode device has two endpoints that change together, so notices are deduplicated per container id for 4 s. The class of device (major/minor) picks the icon. If Windows stops the watcher (the Bluetooth service restarting), a new one starts.
 
+Battery levels are not on the endpoints: Windows keeps them as `DEVPKEY_Bluetooth_Battery` (`{104EA319-6EE2-4701-BD47-8DDBF425BBE5} 2`) on a PnP node of the same container (the Hands-Free AG node of headphones). A second thread reads them with one `FindAllAsync` over the connected containers: every 60 s, and every 4 s for 40 s after a connection change, since headphones report their level a moment after connecting. Windows sends no change events for this property. The connected list (one entry per container) goes out as `bluetooth://devices` when it changes; `bluetooth_devices` returns the last one. When a reading drops to 20% or below (or a device connects already low), `bluetooth://low` shows a notice once; devices that were already low when Duri started stay quiet. Devices that don't report a level (the DualSense, for one) show "No battery info".
+
+## WebView2 runtime
+
+Duri runs for days while WebView2 updates itself. A new webview would start the newest runtime, which can't share the user data folder with the older browser process the island is on, so it exits and the window closes at once. `webview_runtime::pin_to_running` sets `WEBVIEW2_BROWSER_EXECUTABLE_FOLDER` to the island's runtime before Settings is built; call it before building any new window.
+
 ## Storage
 
 SQLite at `%APPDATA%\Duri\duri.db`, WAL mode. Migrations are an append-only list in `db.rs`, tracked by `PRAGMA user_version`. Small state is stored as JSON in the `kv` table.

@@ -26,4 +26,5 @@
 - [x] Global shortcuts (open island, new note, search clipboard), recorded in Settings
 - [x] One expanded size for every app, auto-hide like a taskbar (v0.2.1)
 - [x] Bluetooth connect/disconnect notices, Caps Lock / Insert / Scroll Lock indicator, indicators over fullscreen and while hidden, auto-hide opens straight to the panel
+- [x] Bluetooth battery levels (rings in the dock app) and a low battery notice; Settings no longer closes at once after a WebView2 update
 - [x] GitHub page: README with demo GIF and screenshots (demo content only), repo description and topics

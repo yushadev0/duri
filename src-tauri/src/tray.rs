@@ -140,6 +140,7 @@ pub fn open_settings(app: &AppHandle) {
         island_window::bring_to_front(&w);
         return;
     }
+    crate::webview_runtime::pin_to_running();
     let result = WebviewWindowBuilder::new(app, SETTINGS_LABEL, WebviewUrl::App("index.html".into()))
         .title("Duri Settings")
         .inner_size(680.0, 540.0)

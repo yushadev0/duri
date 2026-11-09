@@ -48,7 +48,7 @@
     },
     "bluetooth": {
       "name": "Bluetooth",
-      "description": "Tells you when a Bluetooth device connects or disconnects."
+      "description": "Shows the battery of your connected Bluetooth devices, warns you when one runs low, and tells you when one connects or disconnects."
     }
   },
   "music": {
@@ -283,6 +283,17 @@
   },
   "bluetooth": {
     "connected": "Connected",
-    "disconnected": "Disconnected"
+    "disconnected": "Disconnected",
+    "devices": "Connected devices",
+    "battery": "{{level}}% battery",
+    "noBattery": "battery level not reported",
+    "low": "low",
+    "none": "No devices connected",
+    "noneHint": "Connect one in Windows Bluetooth settings.",
+    "more_one": "+{{count}} more",
+    "more_other": "+{{count}} more",
+    "percent": "{{level}}%",
+    "unknown": "No battery info",
+    "lowNotice": "Battery low"
   }
 }

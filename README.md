@@ -63,7 +63,7 @@ Duri's features are called **apps**. Each one can be switched off in Settings �
 
 **⌨️ Lock keys.** Caps Lock, Insert and Scroll Lock show whether they're on or off when you press them, next to the volume indicator.
 
-**🎧 Bluetooth.** A short notice when a paired Bluetooth device connects or disconnects.
+**🎧 Bluetooth.** The battery level of every connected Bluetooth device, as rings in the dock app, a notice when one runs low (20%), and a short notice when one connects or disconnects.
 
 <p>
   <img src="docs/media/sessions-alert.png" height="72" alt="A Claude Code permission alert" />
