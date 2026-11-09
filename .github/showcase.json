@@ -1,0 +1,27 @@
+{
+  "name": "Duri",
+  "year": 2026,
+  "frame": "desktop",
+  "stack": [
+    "Rust",
+    "Tauri",
+    "React",
+    "TypeScript"
+  ],
+  "download": "https://github.com/yushadev0/duri/releases/latest",
+  "tagline": {
+    "en": "A dynamic island for Windows.",
+    "tr": "Windows için bir dynamic island."
+  },
+  "body": {
+    "en": [
+      "Music, Claude Code sessions, the clipboard, notes and timers gather in a small pill at the top of the screen. It opens on hover and expands on click.",
+      "It checks GitHub for new versions on its own, and nothing installs without your approval."
+    ],
+    "tr": [
+      "Müzik, Claude Code oturumları, pano, notlar ve zamanlayıcılar ekranın üst kısmındaki küçük bir alanda toplanır. Üzerine gelince açılır, tıklayınca genişler.",
+      "Yeni sürümleri GitHub'dan kendisi kontrol eder; siz onaylamadan hiçbir şey kurulmaz."
+    ]
+  },
+  "cover": "showcase-cover.webp"
+}
