@@ -208,16 +208,36 @@ pub fn show_without_activating(win: &WebviewWindow) {
     }
 }
 
+/// Where the window belongs on a monitor, in physical pixels: horizontally
+/// centered at the very top. Returns `(x, y, width, height)`.
+pub fn placement(monitor_pos: (i32, i32), monitor_width: u32, scale: f64) -> (i32, i32, u32, u32) {
+    let w = (WIDTH * scale).round() as i32;
+    let h = (HEIGHT * scale).round() as i32;
+    let x = monitor_pos.0 + (monitor_width as i32 - w) / 2;
+    (x, monitor_pos.1, w as u32, h as u32)
+}
+
 /// Centers the window horizontally at the very top of the primary monitor.
 pub fn position(win: &WebviewWindow) -> tauri::Result<()> {
     if let Some(m) = win.primary_monitor()? {
-        let scale = m.scale_factor();
-        let _ = win.set_size(tauri::LogicalSize::new(WIDTH, HEIGHT));
-        let w = (WIDTH * scale).round() as i32;
-        let x = m.position().x + (m.size().width as i32 - w) / 2;
-        win.set_position(PhysicalPosition::new(x, m.position().y))?;
+        let (x, y, w, h) = placement((m.position().x, m.position().y), m.size().width, m.scale_factor());
+        win.set_size(tauri::PhysicalSize::new(w, h))?;
+        win.set_position(PhysicalPosition::new(x, y))?;
     }
     Ok(())
+}
+
+/// Puts the window back in place if it has drifted: Duri often starts with
+/// Windows sign-in, before the display's resolution and scale have settled,
+/// and resolution, scale or primary-monitor changes later move it too.
+fn keep_in_place(win: &WebviewWindow) {
+    let (Ok(Some(m)), Ok(pos), Ok(size)) = (win.primary_monitor(), win.outer_position(), win.outer_size()) else {
+        return;
+    };
+    let (x, y, w, h) = placement((m.position().x, m.position().y), m.size().width, m.scale_factor());
+    if (pos.x, pos.y, size.width, size.height) != (x, y, w, h) {
+        let _ = position(win);
+    }
 }
 
 /// WS_EX_NOACTIVATE keeps focus in whatever the user is typing into when they
@@ -378,7 +398,7 @@ const HIT_TEST_FAR: Duration = Duration::from_millis(60);
 /// "Near" = within this many logical px of the island window.
 const NEAR_MARGIN: f64 = 80.0;
 /// The window's position and scale only change on display changes; re-read
-/// them this often instead of every tick.
+/// them (and put the window back in place) this often instead of every tick.
 const GEOMETRY_REFRESH: Duration = Duration::from_secs(1);
 
 /// Cursor position in physical screen pixels.
@@ -414,6 +434,9 @@ pub fn spawn_hit_test(app: AppHandle) {
                     continue;
                 };
                 let stale = geometry.is_none_or(|(_, _, at)| at.elapsed() >= GEOMETRY_REFRESH);
+                if stale {
+                    keep_in_place(&win);
+                }
                 if stale && let (Ok(origin), Ok(scale)) = (win.outer_position(), win.scale_factor()) {
                     geometry = Some(((origin.x as f64, origin.y as f64), scale, std::time::Instant::now()));
                 }
@@ -575,7 +598,16 @@ pub fn island_set_hit_rects(state: State<'_, IslandState>, rects: Vec<Rect>) {
 
 #[cfg(test)]
 mod tests {
-    use super::{is_fullscreen, near_window, Rect};
+    use super::{is_fullscreen, near_window, placement, Rect};
+
+    #[test]
+    fn placed_top_center_of_the_monitor() {
+        // 1920×1080 at 125%: an 800×400 window, centered.
+        assert_eq!(placement((0, 0), 1920, 1.25), (560, 0, 800, 400));
+        assert_eq!(placement((0, 0), 1920, 1.0), (640, 0, 640, 320));
+        // A primary monitor that doesn't start at the origin.
+        assert_eq!(placement((-2560, -200), 2560, 1.5), (-2560 + 800, -200, 960, 480));
+    }
 
     #[test]
     fn near_the_window() {

@@ -293,6 +293,8 @@ export function Island() {
   // Alerts still show while tucked.
   const [dragY, setDragY] = useState<number | null>(null);
   const dragStart = useRef<number | null>(null);
+  // The button is down on the island (a click or the start of a drag).
+  const [pressed, setPressed] = useState(false);
   const suppressClick = useRef(false);
   const tucked = settings.tucked;
   // Volume and lock key indicators show through tucking, auto-hide and
@@ -361,20 +363,47 @@ export function Island() {
   const backdrop = view.kind === "compact" || view.kind === "expanded" ? (backdrops[view.app.id] ?? null) : null;
 
   // Tell the backend which parts of the window are clickable.
-  // While dragging, the whole window takes the pointer so the release isn't
-  // lost when the cursor leaves the island.
-  const dragging = dragY !== null;
+  // Drops a press without acting on it.
+  function cancelPress() {
+    dragStart.current = null;
+    setPressed(false);
+    setDragY(null);
+  }
+  // A release the island itself didn't get (a child stopped it, or the
+  // window lost focus) must still end the press, or the whole window would
+  // keep swallowing clicks.
   useEffect(() => {
-    const rects = dragging
+    if (!pressed) return;
+    const end = () => {
+      if (dragStart.current === null) setPressed(false);
+      else cancelPress();
+    };
+    window.addEventListener("pointerup", end);
+    window.addEventListener("pointercancel", end);
+    window.addEventListener("blur", end);
+    return () => {
+      window.removeEventListener("pointerup", end);
+      window.removeEventListener("pointercancel", end);
+      window.removeEventListener("blur", end);
+    };
+  }, [pressed]);
+
+  // While the button is down, the whole window takes the pointer: otherwise
+  // a drag that leaves the island before it passes the drag threshold makes
+  // the window click-through, and the move and the release are lost.
+  const dragging = dragY !== null;
+  const holding = dragging || pressed;
+  useEffect(() => {
+    const rects = holding
       ? [{ x: 0, y: 0, w: WINDOW_WIDTH, h: WINDOW_HEIGHT }]
       : away
         ? [revealStripRect()]
         : handle
           ? [handleHitRect(top)]
         : [inflate(islandRect(size, top), 2)];
-    if (showMinimal && !dragging) rects.push(minimalRect(size, top, bubble));
+    if (showMinimal && !holding) rects.push(minimalRect(size, top, bubble));
     invoke("island_set_hit_rects", { rects }).catch(() => {});
-  }, [size.w, size.h, showMinimal, top, bubble, handle, away, dragging]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [size.w, size.h, showMinimal, top, bubble, handle, away, holding]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const transition = reduceMotion ? reducedTransition : state.growing ? morphSpring : settleSpring;
 
@@ -385,9 +414,16 @@ export function Island() {
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (mode === "expanded" || e.button !== 0) return;
     dragStart.current = e.clientY;
+    setPressed(true);
   };
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (dragStart.current === null) return;
+    // The release happened somewhere we didn't see it: don't let a plain
+    // hover carry on a stale drag.
+    if ((e.buttons & 1) === 0) {
+      cancelPress();
+      return;
+    }
     const dy = e.clientY - dragStart.current;
     if (dragY === null && Math.abs(dy) <= 4) return;
     // Capture only once it is really a drag: capturing on press would send
@@ -398,6 +434,7 @@ export function Island() {
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (dragStart.current === null) return;
     dragStart.current = null;
+    setPressed(false);
     if (dragY === null) return;
     suppressClick.current = true;
     // The window starts at the top of the screen, so clientY ≈ 0 is the edge.
