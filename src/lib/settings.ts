@@ -26,6 +26,9 @@ export interface Settings {
   shortcutIsland: string;
   shortcutNote: string;
   shortcutClipboard: string;
+  /** Privacy app: show apps using the camera / the microphone. */
+  privacyCamera: boolean;
+  privacyMicrophone: boolean;
 }
 
 export const settingsStore = createStore<Settings>({
@@ -44,6 +47,8 @@ export const settingsStore = createStore<Settings>({
   shortcutIsland: "Ctrl+Alt+Space",
   shortcutNote: "",
   shortcutClipboard: "",
+  privacyCamera: true,
+  privacyMicrophone: true,
 });
 
 let started = false;

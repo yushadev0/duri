@@ -49,6 +49,18 @@
     "bluetooth": {
       "name": "Bluetooth",
       "description": "Bağlı Bluetooth cihazlarının pilini gösterir, pili azalınca uyarır, bir cihaz bağlandığında veya bağlantısı kesildiğinde haber verir."
+    },
+    "battery": {
+      "name": "Pil",
+      "description": "Şarj cihazını takıp çıkardığında gösterir, pil azalınca uyarır."
+    },
+    "brightness": {
+      "name": "Parlaklık",
+      "description": "Ekran parlaklığı değişince adada gösterir; ayarlamak için bir sürgü de var."
+    },
+    "privacy": {
+      "name": "Kamera ve Mikrofon",
+      "description": "Bir uygulama kamerayı ya da mikrofonu kullanırken adanın yanında bir rozet gösterir ve hangi uygulamanın başladığını söyler."
     }
   },
   "music": {
@@ -158,7 +170,9 @@
     "shortcutOff": "Kapalı",
     "shortcutTaken": "Bu kısayolu başka bir uygulama kullanıyor. Başka bir tane seç.",
     "autoHide": "Adayı Otomatik Gizle",
-    "autoHideHint": "Otomatik gizlenen görev çubuğu gibi: işaretçiyi ekranın üstüne götürene kadar görünmez. Uyarılar ile ses ve kilit tuşu göstergeleri yine görünür."
+    "autoHideHint": "Otomatik gizlenen görev çubuğu gibi: işaretçiyi ekranın üstüne götürene kadar görünmez. Uyarılar ile ses ve kilit tuşu göstergeleri yine görünür.",
+    "privacyCamera": "Kamera Kullanımını Göster",
+    "privacyMicrophone": "Mikrofon Kullanımını Göster"
   },
   "tray": {
     "settings": "Ayarlar…",
@@ -295,5 +309,35 @@
     "percent": "%{{level}}",
     "unknown": "Pil bilgisi yok",
     "lowNotice": "Pil zayıf"
+  },
+  "battery": {
+    "charging": "Şarj oluyor",
+    "pluggedIn": "Şarja takılı",
+    "onBattery": "Pille çalışıyor",
+    "low": "Pil zayıf",
+    "critical": "Pil çok zayıf",
+    "plugIn": "Şarj cihazını tak",
+    "full": "Tamamen dolu",
+    "leftHours": "{{h}} sa {{m}} dk kaldı",
+    "leftMinutes": "{{m}} dk kaldı",
+    "saver": "Pil tasarrufu açık",
+    "percent": "%{{level}}"
+  },
+  "brightness": {
+    "level": "Parlaklık"
+  },
+  "privacy": {
+    "camera": "Kamera",
+    "microphone": "Mikrofon",
+    "started": "{{app}}: {{device}} kullanılıyor",
+    "using": {
+      "camera": "kamerayı kullanıyor",
+      "microphone": "mikrofonu kullanıyor"
+    },
+    "inUse": {
+      "camera": "Kamerayı kullanan: {{apps}}",
+      "microphone": "Mikrofonu kullanan: {{apps}}"
+    },
+    "none": "Kamerayı ya da mikrofonu kullanan uygulama yok"
   }
 }

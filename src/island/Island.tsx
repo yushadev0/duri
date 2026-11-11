@@ -10,6 +10,8 @@ import { contentIn, contentOut, morphSpring, reducedTransition, settleSpring } f
 import { useHour12 } from "../lib/clock";
 import { requestSearchFocus } from "../apps/clipboard/store";
 import { notesActions } from "../apps/notes/store";
+import { DeviceBadge } from "../apps/privacy";
+import { usePrivacy, watched } from "../apps/privacy/store";
 import { updateSettings, useSettings } from "../lib/settings";
 import type { ShortcutAction } from "../lib/shortcuts";
 import { startSystemStats } from "../lib/systemStats";
@@ -117,6 +119,8 @@ function useSteadyView(view: View): View {
 }
 
 const STEADY_MS = 180;
+/** Camera / microphone badge size at the default pill size. */
+const PRIVACY_BADGE = 22;
 
 const noBackdrop = () => null;
 
@@ -362,7 +366,21 @@ export function Island() {
   const alpha = ISLAND_ALPHA[settings.transparency] ?? 1;
   const backdrop = view.kind === "compact" || view.kind === "expanded" ? (backdrops[view.app.id] ?? null) : null;
 
-  // Tell the backend which parts of the window are clickable.
+  // Camera and microphone in use: small badges left of the island, like the
+  // dots beside the iPhone's island. They stay through tucking and
+  // auto-hide, since they're about privacy, and take no clicks.
+  const { inUse } = usePrivacy();
+  const privacyOn = apps.some((a) => a.id === "privacy");
+  const badges = (["camera", "microphone"] as const).filter(
+    (d) => privacyOn && watched(d, settings) && inUse[d].length > 0,
+  );
+  const badgeSize = Math.round(PRIVACY_BADGE * bubbleZoom);
+  // Centered on the pill's line, wherever the island is in its morph.
+  const badgeTop = top + Math.round(((handle ? HANDLE.h : Math.round(PILL_HEIGHT * bubbleZoom)) - badgeSize) / 2);
+  const badgeLabel = badges
+    .map((d) => t(`privacy.inUse.${d}`, { apps: inUse[d].join(", ") }))
+    .join(". ");
+
   // Drops a press without acting on it.
   function cancelPress() {
     dragStart.current = null;
@@ -388,6 +406,7 @@ export function Island() {
     };
   }, [pressed]);
 
+  // Tell the backend which parts of the window are clickable.
   // While the button is down, the whole window takes the pointer: otherwise
   // a drag that leaves the island before it passes the drag threshold makes
   // the window click-through, and the move and the release are lost.
@@ -559,6 +578,26 @@ export function Island() {
               <secondary.app.Minimal />
             </span>
           </motion.button>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {badges.length > 0 && (
+          <motion.div
+            key="privacy"
+            className={styles.privacy}
+            role="status"
+            aria-label={badgeLabel}
+            style={{ top: badgeTop }}
+            initial={{ opacity: 0, scale: 0.3, x: -(size.w / 2 + MINIMAL_GAP) + 16 }}
+            animate={{ opacity: 1, scale: 1, x: -(size.w / 2 + MINIMAL_GAP) }}
+            exit={{ opacity: 0, scale: 0.3, x: -(size.w / 2 + MINIMAL_GAP) + 16 }}
+            transition={transition}
+          >
+            {badges.map((d) => (
+              <DeviceBadge key={d} device={d} size={badgeSize} />
+            ))}
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

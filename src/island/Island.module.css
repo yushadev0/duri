@@ -113,3 +113,13 @@
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3);
   cursor: pointer;
 }
+
+/* Camera / microphone in use, left of the island. Its right edge sits on the
+   window's center line; motion shifts it left by half the island plus a gap. */
+.privacy {
+  position: absolute;
+  right: 50%;
+  display: flex;
+  gap: 4px;
+  pointer-events: none;
+}

@@ -171,6 +171,12 @@
   color: var(--tone);
 }
 
+/* Indents an app's own options under its name. */
+.appIconSpacer {
+  width: 32px;
+  flex: none;
+}
+
 .select {
   min-width: 140px;
   height: 28px;

@@ -28,3 +28,5 @@
 - [x] Bluetooth connect/disconnect notices, Caps Lock / Insert / Scroll Lock indicator, indicators over fullscreen and while hidden, auto-hide opens straight to the panel
 - [x] Bluetooth battery levels (rings in the dock app) and a low battery notice; Settings no longer closes at once after a WebView2 update
 - [x] GitHub page: README with demo GIF and screenshots (demo content only), repo description and topics
+- [x] Island stays centered after display changes, tuck drag no longer gets stuck (v1.1.0)
+- [x] Battery (charger notices, low battery), Brightness (indicator + slider), Camera and microphone in use (v1.1.0)

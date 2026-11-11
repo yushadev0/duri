@@ -1,0 +1,73 @@
+/* Pill: icon, what happened, level; one line. */
+.pill {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 14px 0 12px;
+  color: var(--island-fg);
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The level is always written out, red when low (not color alone). */
+.percent {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--island-fg);
+}
+
+.percent[data-low="true"] {
+  color: var(--accent-stop);
+}
+
+.panel {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 20px 0 18px;
+  color: var(--island-fg);
+}
+
+.meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.label {
+  font-size: 11px;
+  color: var(--island-fg-3);
+}
+
+.headline {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.detail {
+  font-size: 12px;
+  color: var(--island-fg-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.panel .percent {
+  font-size: 20px;
+}

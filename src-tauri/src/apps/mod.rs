@@ -8,6 +8,8 @@ pub mod keys;
 pub mod music;
 pub mod notes;
 pub mod notifications;
+pub mod power;
+pub mod privacy;
 pub mod sessions;
 pub mod timers;
 pub mod volume;
@@ -25,7 +27,9 @@ pub fn init(app: &AppHandle, db: Arc<Db>, data_dir: &Path) {
     music::init(app);
     notifications::init(app);
     sessions::init(app);
-    volume::init(app, settings.replace_volume_flyout);
+    volume::init(app, settings.takes_volume_keys());
     keys::init(app);
     bluetooth::init(app);
+    power::init(app);
+    privacy::init(app);
 }

@@ -38,6 +38,10 @@ pub struct Settings {
     pub shortcut_island: String,
     pub shortcut_note: String,
     pub shortcut_clipboard: String,
+    /// Privacy app: show apps using the camera.
+    pub privacy_camera: bool,
+    /// Privacy app: show apps using the microphone.
+    pub privacy_microphone: bool,
 }
 
 impl Default for Settings {
@@ -62,7 +66,17 @@ impl Default for Settings {
             shortcut_island: "Ctrl+Alt+Space".into(),
             shortcut_note: String::new(),
             shortcut_clipboard: String::new(),
+            privacy_camera: true,
+            privacy_microphone: true,
         }
+    }
+}
+
+impl Settings {
+    /// Volume keys are taken over only while the Volume app is on: otherwise
+    /// they'd be swallowed with nothing shown instead.
+    pub fn takes_volume_keys(&self) -> bool {
+        self.replace_volume_flyout && !self.disabled_apps.iter().any(|a| a == "volume")
     }
 }
 
@@ -79,7 +93,7 @@ pub fn settings_get(db: State<'_, Arc<Db>>) -> Settings {
 pub fn save(app: &AppHandle, db: &Db, settings: &Settings) -> Result<(), String> {
     let previous = load(db);
     db.set_json(NS, KEY, settings)?;
-    crate::apps::volume::set_replace_flyout(settings.replace_volume_flyout);
+    crate::apps::volume::set_replace_flyout(settings.takes_volume_keys());
     crate::island_window::set_hide_in_fullscreen(settings.hide_in_fullscreen);
     // Re-registering every time would briefly drop the shortcuts.
     if crate::shortcuts::wanted(&previous) != crate::shortcuts::wanted(settings) {

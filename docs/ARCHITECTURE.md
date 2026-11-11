@@ -51,7 +51,7 @@ Every app implements `DuriApp` (`src/apps/types.ts`). It provides four presentat
 
 Backend modules own their state and background threads. They expose `#[tauri::command]`s and emit `<app>://<event>` events. The frontend mirrors their state in small stores (`src/lib/store.ts`, read via `useSyncExternalStore`).
 
-Current priorities: timer finished 100 · lock key 96 · volume 95 · copied 93 · session needs you 90 · notification / Bluetooth device 85 · timer 60 · session working 50 · music playing 40 · session just finished 35 · stopwatch running 30 · stopwatch paused 10.
+Current priorities: timer finished 100 · battery critically low 99 · lock key 96 · volume / brightness 95 · charger plugged in or out 94 · copied 93 · battery low 92 · session needs you 90 · camera or microphone started 87 · notification / Bluetooth device 85 · timer 60 · session working 50 · music playing 40 · session just finished 35 · stopwatch running 30 · stopwatch paused 10.
 
 ## Time
 
@@ -82,6 +82,16 @@ Timers and the stopwatch store absolute Unix-ms timestamps (`endsAt`, `runningSi
 `apps/bluetooth.rs` runs a WinRT `DeviceWatcher` over paired Bluetooth association endpoints (classic and LE) with `System.Devices.Aep.IsConnected`, so changes arrive as events and nothing is polled. The first enumeration only records the current state. A dual-mode device has two endpoints that change together, so notices are deduplicated per container id for 4 s. The class of device (major/minor) picks the icon. If Windows stops the watcher (the Bluetooth service restarting), a new one starts.
 
 Battery levels are not on the endpoints: Windows keeps them as `DEVPKEY_Bluetooth_Battery` (`{104EA319-6EE2-4701-BD47-8DDBF425BBE5} 2`) on a PnP node of the same container (the Hands-Free AG node of headphones). A second thread reads them with one `FindAllAsync` over the connected containers: every 60 s, and every 4 s for 40 s after a connection change, since headphones report their level a moment after connecting. Windows sends no change events for this property. The connected list (one entry per container) goes out as `bluetooth://devices` when it changes; `bluetooth_devices` returns the last one. When a reading drops to 20% or below (or a device connects already low), `bluetooth://low` shows a notice once; devices that were already low when Duri started stay quiet. Devices that don't report a level (the DualSense, for one) show "No battery info".
+
+## Battery and brightness
+
+`apps/power.rs` polls nothing. A hidden top-level window registers for power setting notifications (`RegisterPowerSettingNotification`): power source, battery percentage, battery saver and `GUID_VIDEO_CURRENT_MONITOR_BRIGHTNESS`. Windows sends each one right after registering (the starting values, which only fill the state) and again on every change. It is a top-level window, not a message-only one, so it also gets the `PBT_APMPOWERSTATUSCHANGE` broadcast when charging starts or stops without a percent change. Battery details come from `GetSystemPowerStatus`. Events: `power://battery` (state), `power://plugged` (charger in or out), `power://low` (once at 20%, once more at 10% with `critical`, reset by plugging in; starting Duri already low stays quiet until the next threshold) and `power://brightness`. The Battery and Brightness apps share one store (`src/apps/power/store.ts`).
+
+Brightness is set with WMI (`WmiMonitorBrightnessMethods.WmiSetBrightness` in `ROOT\WMI`), the same path as the Windows slider for built-in panels. External monitors don't report brightness this way, so on desktops the Brightness app never shows. On most laptops the brightness keys are handled by the firmware and never reach a keyboard hook, so Duri can't take them over the way it does the volume keys: Windows' own brightness popup may appear next to Duri's indicator.
+
+## Camera and microphone
+
+`apps/privacy.rs` reads what drives the taskbar's own camera and microphone icons: `HKCU\...\CapabilityAccessManager\ConsentStore\{webcam,microphone}`, one subkey per packaged app and one per desktop app under `NonPackaged` (the exe path with `#` for `\`). An app is using the device while its `LastUsedTimeStop` is 0. `RegNotifyChangeKeyValue` on both trees wakes the worker, with a safety re-read every 60 s. Desktop apps are named by their exe's FileDescription ("Google Chrome"), packaged ones from their family name ("Windows Camera"). `privacy://changed` carries the names per device. The island draws the badges itself, left of the island (no clicks, so no hit rect), and they stay while the island is tucked or auto-hidden. The app shows a notice when a new app starts. Settings › Apps can turn off the whole app or each device.
 
 ## WebView2 runtime
 

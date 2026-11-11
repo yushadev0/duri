@@ -65,6 +65,12 @@ Duri's features are called **apps**. Each one can be switched off in Settings �
 
 **🎧 Bluetooth.** The battery level of every connected Bluetooth device, as rings in the dock app, a notice when one runs low (20%), and a short notice when one connects or disconnects.
 
+**🔋 Battery.** A short notice when you plug the charger in or out, and a warning when the laptop battery runs low (20%, and again at 10%, which keeps the island open).
+
+**☀️ Brightness.** The pill shows the screen brightness when it changes, with a slider on hover. Built-in laptop screens only.
+
+**🎥 Camera and microphone.** A green camera or orange microphone badge beside the island while an app uses them, and a short notice naming the app that started. Each one can be turned off in Settings.
+
 <p>
   <img src="docs/media/sessions-alert.png" height="72" alt="A Claude Code permission alert" />
   <img src="docs/media/timer-done.png" height="72" alt="A finished timer" />

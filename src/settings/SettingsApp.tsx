@@ -5,7 +5,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { Info, LayoutGrid, SlidersHorizontal } from "lucide-react";
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { registry } from "../apps/registry";
 import { refreshHooks, sessionActions, useHookStatus } from "../apps/sessions/store";
@@ -291,13 +291,6 @@ function General() {
             label={t("settings.hideInFullscreen")}
           />
         </Row>
-        <Row title={t("settings.replaceFlyout")} hint={t("settings.replaceFlyoutHint")}>
-          <Switch
-            checked={settings.replaceVolumeFlyout}
-            onChange={(replaceVolumeFlyout) => updateSettings({ replaceVolumeFlyout })}
-            label={t("settings.replaceFlyout")}
-          />
-        </Row>
         <Row title={t("settings.usage")} hint={t("settings.usageHint")} />
       </section>
       <Shortcuts />
@@ -317,24 +310,55 @@ function Apps() {
     <>
       <p className={styles.paneHint}>{t("settings.appsHint")}</p>
       <section className={styles.group}>
-        {registry.map((app) => (
-          <Row
-            key={app.id}
-            title={t(app.nameKey)}
-            hint={t(app.descriptionKey)}
-            icon={
-              <span className={styles.appIcon} style={{ "--tone": app.accent } as CSSProperties}>
-                <app.Icon size={18} />
-              </span>
-            }
-          >
-            <Switch
-              checked={!settings.disabledApps.includes(app.id)}
-              onChange={(on) => setEnabled(app.id, on)}
-              label={t(app.nameKey)}
-            />
-          </Row>
-        ))}
+        {registry.map((app) => {
+          const on = !settings.disabledApps.includes(app.id);
+          return (
+            <Fragment key={app.id}>
+              <Row
+                title={t(app.nameKey)}
+                hint={t(app.descriptionKey)}
+                icon={
+                  <span className={styles.appIcon} style={{ "--tone": app.accent } as CSSProperties}>
+                    <app.Icon size={18} />
+                  </span>
+                }
+              >
+                <Switch checked={on} onChange={(v) => setEnabled(app.id, v)} label={t(app.nameKey)} />
+              </Row>
+              {app.id === "volume" && on && (
+                <Row
+                  title={t("settings.replaceFlyout")}
+                  hint={t("settings.replaceFlyoutHint")}
+                  icon={<span className={styles.appIconSpacer} />}
+                >
+                  <Switch
+                    checked={settings.replaceVolumeFlyout}
+                    onChange={(replaceVolumeFlyout) => updateSettings({ replaceVolumeFlyout })}
+                    label={t("settings.replaceFlyout")}
+                  />
+                </Row>
+              )}
+              {app.id === "privacy" && on && (
+                <>
+                  <Row title={t("settings.privacyCamera")} icon={<span className={styles.appIconSpacer} />}>
+                    <Switch
+                      checked={settings.privacyCamera}
+                      onChange={(privacyCamera) => updateSettings({ privacyCamera })}
+                      label={t("settings.privacyCamera")}
+                    />
+                  </Row>
+                  <Row title={t("settings.privacyMicrophone")} icon={<span className={styles.appIconSpacer} />}>
+                    <Switch
+                      checked={settings.privacyMicrophone}
+                      onChange={(privacyMicrophone) => updateSettings({ privacyMicrophone })}
+                      label={t("settings.privacyMicrophone")}
+                    />
+                  </Row>
+                </>
+              )}
+            </Fragment>
+          );
+        })}
       </section>
       <Integrations />
     </>

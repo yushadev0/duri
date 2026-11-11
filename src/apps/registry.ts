@@ -1,9 +1,12 @@
+import { batteryApp } from "./battery";
 import { bluetoothApp } from "./bluetooth";
+import { brightnessApp } from "./brightness";
 import { clipboardApp } from "./clipboard";
 import { keysApp } from "./keys";
 import { musicApp } from "./music";
 import { notesApp } from "./notes";
 import { notificationsApp } from "./notifications";
+import { privacyApp } from "./privacy";
 import { sessionsApp } from "./sessions";
 import { stopwatchApp } from "./timers/stopwatch";
 import { timerApp } from "./timers/timer";
@@ -25,4 +28,7 @@ export const registry: DuriApp[] = [
   volumeApp,
   keysApp,
   bluetoothApp,
+  batteryApp,
+  brightnessApp,
+  privacyApp,
 ];

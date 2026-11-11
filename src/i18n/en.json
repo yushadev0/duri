@@ -49,6 +49,18 @@
     "bluetooth": {
       "name": "Bluetooth",
       "description": "Shows the battery of your connected Bluetooth devices, warns you when one runs low, and tells you when one connects or disconnects."
+    },
+    "battery": {
+      "name": "Battery",
+      "description": "Shows when you plug the charger in or out, and warns you when the battery runs low."
+    },
+    "brightness": {
+      "name": "Brightness",
+      "description": "Shows the screen brightness in the island when it changes, with a slider to adjust it."
+    },
+    "privacy": {
+      "name": "Camera and Microphone",
+      "description": "Shows a badge beside the island while an app uses the camera or microphone, and says which app started."
     }
   },
   "music": {
@@ -158,7 +170,9 @@
     "shortcutOff": "Off",
     "shortcutTaken": "Another app uses this shortcut. Pick a different one.",
     "autoHide": "Automatically Hide the Island",
-    "autoHideHint": "Like an auto-hiding taskbar: it stays out of sight until you move the pointer to the top of the screen. Alerts and the volume and lock key indicators still show."
+    "autoHideHint": "Like an auto-hiding taskbar: it stays out of sight until you move the pointer to the top of the screen. Alerts and the volume and lock key indicators still show.",
+    "privacyCamera": "Show Camera Use",
+    "privacyMicrophone": "Show Microphone Use"
   },
   "tray": {
     "settings": "Settings…",
@@ -295,5 +309,35 @@
     "percent": "{{level}}%",
     "unknown": "No battery info",
     "lowNotice": "Battery low"
+  },
+  "battery": {
+    "charging": "Charging",
+    "pluggedIn": "Plugged In",
+    "onBattery": "On Battery",
+    "low": "Low Battery",
+    "critical": "Battery Very Low",
+    "plugIn": "Plug in your charger",
+    "full": "Fully charged",
+    "leftHours": "{{h}} h {{m}} min left",
+    "leftMinutes": "{{m}} min left",
+    "saver": "Battery saver on",
+    "percent": "{{level}}%"
+  },
+  "brightness": {
+    "level": "Brightness"
+  },
+  "privacy": {
+    "camera": "Camera",
+    "microphone": "Microphone",
+    "started": "{{app}} started using the {{device}}",
+    "using": {
+      "camera": "using camera",
+      "microphone": "using microphone"
+    },
+    "inUse": {
+      "camera": "Camera in use by {{apps}}",
+      "microphone": "Microphone in use by {{apps}}"
+    },
+    "none": "No app is using the camera or microphone"
   }
 }
