@@ -1,0 +1,4 @@
+EXPORTS
+    DuriHookProc
+    DllGetClassObject PRIVATE
+    DllCanUnloadNow PRIVATE

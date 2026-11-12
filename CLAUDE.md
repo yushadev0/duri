@@ -24,6 +24,7 @@ Read `docs/ARCHITECTURE.md` and `docs/ADDING_AN_APP.md`. In short:
 - `src/island/` is the shell: a pure reducer (`state.ts`), the morphing `Island.tsx`, and hit rects that the Rust hit-test thread uses for click-through. Hover comes from the `island://pointer` event.
 - `src/apps/<id>/` exports a `DuriApp` (Minimal/Pill/Compact/Expanded + `useActivity`), listed in `src/apps/registry.ts`.
 - `src-tauri/src/apps/<id>.rs` is the backend half: commands + `<id>://<event>` events.
+- Taskbar clock (ARCHITECTURE › Taskbar clock): `src-clock/clock.cpp` is a C++/WinRT DLL that runs inside explorer.exe, built by `src-tauri/build.rs`; `src-tauri/src/taskbar_clock/` loads it and sends the text. Never copy code from Windhawk mods (GPL; Duri is MIT). Restarting explorer in a test closes the user's folder windows: note and reopen them.
 - windows-rs 0.62: wait on WinRT async with `.join()`, not `.get()`.
 - Focus model (see ARCHITECTURE › Focus): the island hands focus back to `last_external` unless an app calls `useIsland().setTyping(true)`. Never show the island with plain activation.
 - Debug: `curl http://127.0.0.1:47321/duri/sessions` lists the sessions Duri sees.
@@ -38,4 +39,5 @@ Done too: Clipboard (search, pin, paste back; verified end to end).
 Done too: Notes (autosave, focus verified with a scratch window).
 Done too: TODO ideas (island style, pill size, bottom dock, volume HUD + flyout replacement, music volume slider).
 Done too (1.1.0): Battery, Brightness, Camera and microphone apps (`apps/power.rs`, `apps/privacy.rs`).
-Next: see TODO.md › Next (GitHub page, demo video, Releases + updater, 12/24h clock, transparency, tuck away, hide in fullscreen). TODO.md › Suggestions are Claude's ideas: ask before doing them.
+Done too (1.2.0): Taskbar clock customization (opt-in, own Settings pane).
+Next: nothing planned; see TODO.md. TODO.md › Suggestions are Claude's ideas: ask before doing them.

@@ -30,3 +30,4 @@
 - [x] GitHub page: README with demo GIF and screenshots (demo content only), repo description and topics
 - [x] Island stays centered after display changes, tuck drag no longer gets stuck (v1.1.0)
 - [x] Battery (charger notices, low battery), Brightness (indicator + slider), Camera and microphone in use (v1.1.0)
+- [x] Taskbar clock: up to 3 lines, alignment, time/date formats, CPU/RAM/GPU/battery, network and disk speed, weather and forecast (Open-Meteo), song in the Windows tray clock; own Settings pane (opt-in, helper DLL inside explorer; v1.2.0)

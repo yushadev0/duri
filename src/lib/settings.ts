@@ -9,6 +9,7 @@ export type PillSize = "compact" | "default" | "large";
 export type IdleInfo = "none" | "clock" | "stats" | "both";
 export type ClockFormat = "system" | "12h" | "24h";
 export type Transparency = "off" | "low" | "high";
+export type ClockAlign = "left" | "center" | "right";
 
 export interface Settings {
   language: LanguagePref;
@@ -29,6 +30,17 @@ export interface Settings {
   /** Privacy app: show apps using the camera / the microphone. */
   privacyCamera: boolean;
   privacyMicrophone: boolean;
+  /** Replace the text of the Windows tray clock (loads a helper into explorer). */
+  taskbarClock: boolean;
+  taskbarClockLine1: string;
+  taskbarClockLine2: string;
+  taskbarClockLine3: string;
+  taskbarClockAlign: ClockAlign;
+  /** The city the weather tokens are for; nothing is fetched until one is picked. */
+  taskbarClockCity: string;
+  taskbarClockLatitude: number | null;
+  taskbarClockLongitude: number | null;
+  taskbarClockFahrenheit: boolean;
 }
 
 export const settingsStore = createStore<Settings>({
@@ -49,6 +61,15 @@ export const settingsStore = createStore<Settings>({
   shortcutClipboard: "",
   privacyCamera: true,
   privacyMicrophone: true,
+  taskbarClock: false,
+  taskbarClockLine1: "{time}",
+  taskbarClockLine2: "CPU {cpu}%  RAM {ram}%",
+  taskbarClockLine3: "",
+  taskbarClockAlign: "right",
+  taskbarClockCity: "",
+  taskbarClockLatitude: null,
+  taskbarClockLongitude: null,
+  taskbarClockFahrenheit: false,
 });
 
 let started = false;

@@ -89,6 +89,32 @@ Duri's features are called **apps**. Each one can be switched off in Settings �
 - Or let it hide itself, like an auto-hiding taskbar: it stays out of sight until the pointer reaches the top of the screen (Settings › General).
 - Every app opens at the same size, so the dock stays in place while you switch between them.
 
+## Taskbar clock (optional)
+
+Duri can also replace the text of the Windows clock in the taskbar corner with up to three lines of your own, aligned left, center or right. Turn it on in Settings › Taskbar Clock, which lists every value below with a live example; click one to add it to a line.
+
+| Write | Get |
+| --- | --- |
+| `{time}`, `{date}` | the time and date as Windows formats them |
+| `{time:HH:mm:ss}`, `{date:ddd d MMM}` | your own format ([format pictures](https://learn.microsoft.com/windows/win32/intl/day--month--year--and-era-format-pictures)) |
+| `{weekday}`, `{weekday:short}` | the day of the week |
+| `{cpu}`, `{ram}`, `{gpu}`, `{battery}` | usage and battery in percent; `{ram_used}` in GB |
+| `{down}`, `{up}`, `{disk_read}`, `{disk_write}` | network and disk speed |
+| `{temp}`, `{feels}`, `{icon}`, `{weather}`, `{high}`, `{low}`, `{rain}`, `{humidity}`, `{wind}`, `{city}` | the weather in the city you pick |
+| `{forecast}`, `{forecast:7}` | the next 3 (or 1 – 7) days |
+| `{song}`, `{artist}` | what's playing |
+
+Values update every second; only the ones your lines use are measured. Weather comes from [Open-Meteo](https://open-meteo.com) (no account), refreshed every 15 minutes; the only thing sent is the location of the city you picked, and nothing at all while your lines have no weather in them. The taskbar makes room for whatever you write, and clicking the clock still opens the notification center.
+
+**Read this before turning it on.** Windows has no supported way to change that clock, so this is the one feature where Duri runs code inside another program:
+
+- Duri loads a small helper (`duri_clock.dll`, source in [`src-clock`](src-clock)) into Windows Explorer (`explorer.exe`). It is off until you turn it on, and Settings asks every time.
+- It hooks no functions and patches nothing. It finds the clock's text in the taskbar's own UI tree, hides it, and puts its own text beside it. If a Windows update changes the taskbar so the clock can't be found, the normal clock simply stays.
+- A bug in the helper could still crash Explorer. Windows restarts it by itself; if that happens twice right after Duri loaded the helper, Duri turns the feature off.
+- Some antivirus tools flag any program that loads code into Explorer. Duri's installer is not code-signed, which makes that more likely.
+- Turning it off, or quitting Duri, brings the Windows clock back within a couple of seconds. The helper itself stays loaded, doing nothing, until Explorer restarts (sign out, or restart Explorer from Task Manager).
+- Windows 11 only, on the 64-bit taskbar Windows ships with. Taskbar replacements are not supported.
+
 ## Performance
 
 Duri is meant to sit there all day, so it stays out of the way. Measured on an Intel Core i5-11400H (12 threads) with Windows 11, 60 seconds per state, island resting:
@@ -109,7 +135,7 @@ Style (floating, or attached to the top edge like a notch), pill size, transpare
 
 ## Build from source
 
-Requirements: Windows 10/11, [Node.js](https://nodejs.org) 20+, [pnpm](https://pnpm.io), [Rust](https://rustup.rs) (MSVC toolchain) and the Visual Studio C++ Build Tools.
+Requirements: Windows 10/11, [Node.js](https://nodejs.org) 20+, [pnpm](https://pnpm.io), [Rust](https://rustup.rs) (MSVC toolchain) and the Visual Studio C++ Build Tools with a Windows 10/11 SDK (the taskbar clock helper is C++/WinRT, built by `cargo` along with the rest).
 
 ```powershell
 pnpm install
@@ -125,7 +151,7 @@ Ideas and pull requests are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.m
 
 ## Türkçe
 
-Duri, Windows için bir dinamik ada. Ekranın üstünde küçük bir hap olarak durur: o an olanı gösterir, üzerine gelince açılır, tıklayınca büyür. İçinde Müzik, Claude Code ve Codex oturum takibi, Pano geçmişi, Notlar, Zamanlayıcı, Kronometre ve ses göstergesi var. Tam ekran bir uygulama ya da video açıkken kendini gizler, yeni sürümleri kendisi bulur. Arayüz Türkçe ve İngilizce.
+Duri, Windows için bir dinamik ada. Ekranın üstünde küçük bir hap olarak durur: o an olanı gösterir, üzerine gelince açılır, tıklayınca büyür. İçinde Müzik, Claude Code ve Codex oturum takibi, Pano geçmişi, Notlar, Zamanlayıcı, Kronometre ve ses göstergesi var. İstersen görev çubuğundaki Windows saatinin yerine üç satıra kadar kendi yazını, istediğin biçimde saat ve tarihi, CPU, RAM, GPU, ağ ve disk kullanımını, hava durumunu ve çalan şarkıyı da gösterir; bu özellik Windows Gezgini'ne küçük bir yardımcı yüklediği için varsayılan olarak kapalıdır (ayrıntılar yukarıda, "Taskbar clock" başlığında). Tam ekran bir uygulama ya da video açıkken kendini gizler, yeni sürümleri kendisi bulur. Arayüz Türkçe ve İngilizce.
 
 Kurmak için [son sürümden](https://github.com/yushadev0/duri/releases/latest) `Duri_x.y.z_x64-setup.exe` dosyasını indirip çalıştır. SmartScreen uyarırsa **Ek bilgi › Yine de çalıştır**'ı seç.
 

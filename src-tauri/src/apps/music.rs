@@ -81,6 +81,16 @@ pub struct Music {
     latest: Mutex<MusicSnapshot>,
 }
 
+/// Title and artist of the current track; empty while nothing is playing.
+pub fn now_playing(app: &AppHandle) -> (String, String) {
+    let Some(music) = app.try_state::<Music>() else { return Default::default() };
+    let Ok(latest) = music.latest.lock() else { return Default::default() };
+    if !latest.state.available {
+        return Default::default();
+    }
+    (latest.state.title.clone(), latest.state.artist.clone())
+}
+
 pub fn init(app: &AppHandle) {
     let (tx, rx) = mpsc::channel();
     app.manage(Music {

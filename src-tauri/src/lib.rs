@@ -4,6 +4,7 @@ mod island_window;
 mod settings;
 mod shortcuts;
 mod system;
+mod taskbar_clock;
 mod time;
 mod tray;
 mod webview_runtime;
@@ -36,8 +37,9 @@ pub fn run() {
             app.manage(shortcuts::Shortcuts::default());
 
             island_window::set_hide_in_fullscreen(settings::load(&db).hide_in_fullscreen);
-            apps::init(app.handle(), db, &dir);
+            apps::init(app.handle(), db.clone(), &dir);
             system::init(app.handle());
+            taskbar_clock::init(app.handle(), db, &dir);
             island_window::create(app.handle())?;
             island_window::spawn_hit_test(app.handle().clone());
             island_window::spawn_fullscreen_watch(app.handle().clone());
@@ -68,6 +70,10 @@ pub fn run() {
             settings::settings_get,
             system::system_stats,
             system::system_clock_24h,
+            taskbar_clock::taskbar_clock_status,
+            taskbar_clock::taskbar_clock_preview,
+            taskbar_clock::taskbar_clock_reference,
+            taskbar_clock::taskbar_clock_search_city,
             settings::settings_set,
             shortcuts::shortcuts_failed,
             tray::open_settings_window,

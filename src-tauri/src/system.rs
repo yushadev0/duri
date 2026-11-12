@@ -31,7 +31,7 @@ pub fn cpu_percent(prev: (u64, u64, u64), now: (u64, u64, u64)) -> u8 {
 }
 
 #[cfg(windows)]
-mod sample {
+pub(crate) mod sample {
     use windows::Win32::Foundation::FILETIME;
     use windows::Win32::System::SystemInformation::{GlobalMemoryStatusEx, MEMORYSTATUSEX};
     use windows::Win32::System::Threading::GetSystemTimes;
@@ -50,6 +50,13 @@ mod sample {
         let mut status = MEMORYSTATUSEX { dwLength: std::mem::size_of::<MEMORYSTATUSEX>() as u32, ..Default::default() };
         unsafe { GlobalMemoryStatusEx(&mut status).ok()? };
         Some(status.dwMemoryLoad as u8)
+    }
+
+    /// Physical memory in use, in GB (as Task Manager counts it).
+    pub fn memory_used_gb() -> Option<f64> {
+        let mut status = MEMORYSTATUSEX { dwLength: std::mem::size_of::<MEMORYSTATUSEX>() as u32, ..Default::default() };
+        unsafe { GlobalMemoryStatusEx(&mut status).ok()? };
+        Some(status.ullTotalPhys.saturating_sub(status.ullAvailPhys) as f64 / (1024.0 * 1024.0 * 1024.0))
     }
 }
 

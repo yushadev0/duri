@@ -4,8 +4,8 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { Info, LayoutGrid, SlidersHorizontal } from "lucide-react";
-import { Fragment, useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { Clock, Info, LayoutGrid, SlidersHorizontal } from "lucide-react";
+import { Fragment, useEffect, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { registry } from "../apps/registry";
 import { refreshHooks, sessionActions, useHookStatus } from "../apps/sessions/store";
@@ -13,12 +13,15 @@ import { DuriMark } from "../components/DuriMark";
 import { updateSettings, useSettings, type ClockFormat, type IdleInfo, type IslandStyle, type LanguagePref, type PillSize, type Transparency } from "../lib/settings";
 import { checkForUpdates, installUpdate, useUpdateStatus } from "../lib/updates";
 import { acceleratorFromEvent, acceleratorKeys } from "../lib/shortcuts";
+import { Row, Segmented, Switch } from "./controls";
 import styles from "./Settings.module.css";
+import { TaskbarClockPane } from "./TaskbarClockPane";
 
-type Pane = "general" | "apps" | "about";
+type Pane = "general" | "apps" | "taskbar" | "about";
 const PANES: { id: Pane; Icon: typeof Info }[] = [
   { id: "general", Icon: SlidersHorizontal },
   { id: "apps", Icon: LayoutGrid },
+  { id: "taskbar", Icon: Clock },
   { id: "about", Icon: Info },
 ];
 const PANE_KEY = "duri.settings.pane";
@@ -27,55 +30,11 @@ const REPO_URL = "https://github.com/yushadev0/duri";
 function loadPane(): Pane {
   try {
     const p = localStorage.getItem(PANE_KEY);
-    if (p === "general" || p === "apps" || p === "about") return p;
+    if (p === "general" || p === "apps" || p === "taskbar" || p === "about") return p;
   } catch {
     // storage unavailable
   }
   return "general";
-}
-
-function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      className={styles.switch}
-      onClick={() => onChange(!checked)}
-    >
-      <span className={styles.knob} />
-    </button>
-  );
-}
-
-function Segmented<T extends string>({
-  value,
-  options,
-  onChange,
-  label,
-}: {
-  value: T;
-  options: { value: T; label: string }[];
-  onChange: (v: T) => void;
-  label: string;
-}) {
-  return (
-    <div className={styles.segmented} role="radiogroup" aria-label={label}>
-      {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          role="radio"
-          aria-checked={value === o.value}
-          className={styles.segment}
-          onClick={() => onChange(o.value)}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
-  );
 }
 
 /**
@@ -155,19 +114,6 @@ function Shortcuts() {
       </section>
       <p className={styles.paneHint}>{t("settings.shortcutsHint")}</p>
     </>
-  );
-}
-
-function Row({ title, hint, children, icon }: { title: string; hint?: string; children?: ReactNode; icon?: ReactNode }) {
-  return (
-    <div className={styles.row}>
-      {icon}
-      <div className={styles.rowText}>
-        <span className={styles.rowTitle}>{title}</span>
-        {hint && <span className={styles.rowHint}>{hint}</span>}
-      </div>
-      {children}
-    </div>
   );
 }
 
@@ -534,6 +480,7 @@ export function SettingsApp() {
       <main className={styles.content} role="tabpanel">
         {pane === "general" && <General />}
         {pane === "apps" && <Apps />}
+        {pane === "taskbar" && <TaskbarClockPane />}
         {pane === "about" && <About />}
       </main>
     </div>

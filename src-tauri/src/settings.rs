@@ -42,6 +42,22 @@ pub struct Settings {
     pub privacy_camera: bool,
     /// Privacy app: show apps using the microphone.
     pub privacy_microphone: bool,
+    /// Replace the Windows tray clock's text. Loads a helper into
+    /// explorer.exe, so it is off until the user opts in.
+    pub taskbar_clock: bool,
+    /// The clock's lines, see `taskbar_clock::template`. Blank ones are
+    /// left out.
+    pub taskbar_clock_line1: String,
+    pub taskbar_clock_line2: String,
+    pub taskbar_clock_line3: String,
+    /// "left", "center" or "right".
+    pub taskbar_clock_align: String,
+    /// The city the weather tokens are for: its name as shown, and where it
+    /// is. Nothing is fetched until one is picked.
+    pub taskbar_clock_city: String,
+    pub taskbar_clock_latitude: Option<f64>,
+    pub taskbar_clock_longitude: Option<f64>,
+    pub taskbar_clock_fahrenheit: bool,
 }
 
 impl Default for Settings {
@@ -68,6 +84,15 @@ impl Default for Settings {
             shortcut_clipboard: String::new(),
             privacy_camera: true,
             privacy_microphone: true,
+            taskbar_clock: false,
+            taskbar_clock_line1: "{time}".into(),
+            taskbar_clock_line2: "CPU {cpu}%  RAM {ram}%".into(),
+            taskbar_clock_line3: String::new(),
+            taskbar_clock_align: "right".into(),
+            taskbar_clock_city: String::new(),
+            taskbar_clock_latitude: None,
+            taskbar_clock_longitude: None,
+            taskbar_clock_fahrenheit: false,
         }
     }
 }
@@ -99,6 +124,7 @@ pub fn save(app: &AppHandle, db: &Db, settings: &Settings) -> Result<(), String>
     if crate::shortcuts::wanted(&previous) != crate::shortcuts::wanted(settings) {
         crate::shortcuts::apply(app, settings);
     }
+    crate::taskbar_clock::apply(app, db, &previous, settings);
     app.emit("settings://changed", settings).map_err(|e| e.to_string())
 }
 
