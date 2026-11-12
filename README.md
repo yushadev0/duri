@@ -93,6 +93,17 @@ Duri's features are called **apps**. Each one can be switched off in Settings �
 
 Duri can also replace the text of the Windows clock in the taskbar corner with up to three lines of your own, aligned left, center or right. Turn it on in Settings › Taskbar Clock, which lists every value below with a live example; click one to add it to a line.
 
+<table>
+  <tr>
+    <td width="50%"><img src="docs/media/taskbar-clock-windows.png" alt="The Windows clock as it comes" /><br />The Windows clock, as it comes</td>
+    <td width="50%"><img src="docs/media/taskbar-clock-system.png" alt="Time with seconds over CPU, RAM and GPU usage" /><br /><code>{time:HH:mm:ss}</code><br /><code>CPU {cpu}%  RAM {ram}%  GPU {gpu}%</code></td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/taskbar-clock-weather.png" alt="The weather in Istanbul, centered" /><br /><code>{icon} {temp}  {weather}</code><br /><code>{city}  H {high}  L {low}</code>, centered</td>
+    <td><img src="docs/media/taskbar-clock-three-lines.png" alt="Three lines: time and date, network speed, disk speed" /><br /><code>{time}  {date:dd.MM.yyyy}</code><br /><code>Down {down}  Up {up}</code><br /><code>Read {disk_read}  Write {disk_write}</code>, left</td>
+  </tr>
+</table>
+
 | Write | Get |
 | --- | --- |
 | `{time}`, `{date}` | the time and date as Windows formats them |
@@ -105,6 +116,11 @@ Duri can also replace the text of the Windows clock in the taskbar corner with u
 | `{song}`, `{artist}` | what's playing |
 
 Values update every second; only the ones your lines use are measured. Weather comes from [Open-Meteo](https://open-meteo.com) (no account), refreshed every 15 minutes; the only thing sent is the location of the city you picked, and nothing at all while your lines have no weather in them. The taskbar makes room for whatever you write, and clicking the clock still opens the notification center.
+
+<p>
+  <img src="docs/media/settings-taskbar-clock.png" width="49%" alt="Settings › Taskbar Clock: three lines, alignment and a live preview" />
+  <img src="docs/media/settings-taskbar-clock-tokens.png" width="49%" alt="The list of values, each with what it shows right now" />
+</p>
 
 **Read this before turning it on.** Windows has no supported way to change that clock, so this is the one feature where Duri runs code inside another program:
 
@@ -131,7 +147,7 @@ CPU is the time used by Duri and its WebView2 processes; memory is the private w
 
 <img src="docs/media/settings.png" width="560" alt="Duri settings" />
 
-Style (floating, or attached to the top edge like a notch), pill size, transparency, auto-hide, what the idle pill shows, 12/24-hour clock, hide in fullscreen, replace the Windows volume popup, open at login, automatic update checks, and English or Turkish.
+Style (floating, or attached to the top edge like a notch), pill size, transparency, auto-hide, what the idle pill shows, 12/24-hour clock, hide in fullscreen, keyboard shortcuts, open at login, automatic update checks, and English or Turkish. Apps can be turned off one by one (with options such as replacing the Windows volume popup), and the taskbar clock has a tab of its own.
 
 ## Build from source
 
