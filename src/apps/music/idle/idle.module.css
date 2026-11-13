@@ -293,7 +293,8 @@
 .lyricsViewport {
   height: 100vh;
   overflow: hidden;
-  mask-image: linear-gradient(transparent, #000 20%, #000 76%, transparent);
+  /* The top band stays empty: the clock (Idle Mode clock setting) sits there. */
+  mask-image: linear-gradient(transparent, transparent 10%, #000 26%, #000 76%, transparent);
 }
 
 .lyricsViewport[data-synced="false"] {
