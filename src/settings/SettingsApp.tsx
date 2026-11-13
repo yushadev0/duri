@@ -256,7 +256,7 @@ function Apps() {
     <>
       <p className={styles.paneHint}>{t("settings.appsHint")}</p>
       <section className={styles.group}>
-        {registry.map((app) => {
+        {registry.filter((app) => !app.system).map((app) => {
           const on = !settings.disabledApps.includes(app.id);
           return (
             <Fragment key={app.id}>

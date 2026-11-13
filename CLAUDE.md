@@ -41,4 +41,5 @@ Done too: TODO ideas (island style, pill size, bottom dock, volume HUD + flyout 
 Done too (1.1.0): Battery, Brightness, Camera and microphone apps (`apps/power.rs`, `apps/privacy.rs`).
 Done too (1.2.0): Taskbar clock customization (opt-in, own Settings pane).
 Done too (1.3.0): Lyrics (LRCLIB, word sync) in Music's expanded view and optionally the pill, and fullscreen Idle Mode (Network / Lyrics / Cover).
+Done too (1.3.1): update prompt in the island (`src/apps/update/`, a `system` app) replaces the Windows notification.
 Next: nothing planned; see TODO.md. TODO.md › Suggestions are Claude's ideas: ask before doing them.

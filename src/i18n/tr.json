@@ -61,6 +61,10 @@
     "privacy": {
       "name": "Kamera ve Mikrofon",
       "description": "Bir uygulama kamerayı ya da mikrofonu kullanırken adanın yanında bir rozet gösterir ve hangi uygulamanın başladığını söyler."
+    },
+    "update": {
+      "name": "Güncellemeler",
+      "description": "Duri'nin yeni bir sürümü çıktığında sorar."
     }
   },
   "music": {
@@ -367,8 +371,13 @@
     "downloading": "İndiriliyor…",
     "downloadingProgress": "İndiriliyor… %{{percent}}",
     "restartHint": "Güncellemeden sonra Duri yeniden başlar. Notların, panodakiler ve zamanlayıcıların kalır.",
-    "notifyTitle": "Duri {{version}} hazır",
-    "notifyBody": "Kurmak için Ayarlar › Hakkında’yı aç."
+    "available": "Duri {{version}} Mevcut",
+    "download": "İndir",
+    "notNow": "Vazgeç",
+    "close": "Kapat",
+    "installFailed": "Duri {{version}} Kurulamadı",
+    "installFailedHint": "Ayarlar › Hakkında'dan yeniden dene.",
+    "promptHint": "Kurulunca Duri yeniden başlar."
   },
   "notifications": {
     "copied": "Kopyalandı",

@@ -10,6 +10,7 @@ import { privacyApp } from "./privacy";
 import { sessionsApp } from "./sessions";
 import { stopwatchApp } from "./timers/stopwatch";
 import { timerApp } from "./timers/timer";
+import { updateApp } from "./update";
 import { volumeApp } from "./volume";
 import type { DuriApp } from "./types";
 
@@ -31,4 +32,5 @@ export const registry: DuriApp[] = [
   batteryApp,
   brightnessApp,
   privacyApp,
+  updateApp,
 ];

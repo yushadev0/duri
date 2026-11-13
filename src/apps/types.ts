@@ -47,6 +47,8 @@ export interface DuriApp {
   accent: string;
   /** System apps (e.g. Volume) that only appear on their own, never in the launcher or dock. */
   hidden?: boolean;
+  /** Part of Duri itself (the update prompt): not listed in Settings › Apps, can't be turned off. */
+  system?: boolean;
   /** Called once when the island starts, to begin listening to the backend. */
   start?: () => void;
   useActivity: () => Activity | null;

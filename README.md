@@ -24,7 +24,7 @@ It shows what's going on, opens on hover and expands on click.
 2. Run it. Windows SmartScreen may warn that the publisher is unknown, because the installer isn't code-signed yet: choose **More info › Run anyway**.
 3. Duri appears at the top of your screen. Right-click it or its tray icon for Settings.
 
-Duri updates itself: it checks GitHub for new versions and tells you, and you install with one click in **Settings › About**. Nothing installs without you.
+Duri updates itself: shortly after it starts and twice a day it checks GitHub for a new version, and when there is one the island opens and asks, like a Claude Code permission prompt: **Download** installs it and restarts Duri, **Not Now** leaves it for later (it won't ask about that version again, and **Settings › About** still has it). Nothing installs without you.
 
 ## Apps
 

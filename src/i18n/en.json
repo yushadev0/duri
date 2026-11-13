@@ -61,6 +61,10 @@
     "privacy": {
       "name": "Camera and Microphone",
       "description": "Shows a badge beside the island while an app uses the camera or microphone, and says which app started."
+    },
+    "update": {
+      "name": "Updates",
+      "description": "Asks when a new version of Duri is out."
     }
   },
   "music": {
@@ -367,8 +371,13 @@
     "downloading": "Downloading…",
     "downloadingProgress": "Downloading… {{percent}}%",
     "restartHint": "Duri restarts after the update. Your notes, clips and timers stay.",
-    "notifyTitle": "Duri {{version}} is available",
-    "notifyBody": "Open Settings › About to install it."
+    "available": "Duri {{version}} Is Available",
+    "download": "Download",
+    "notNow": "Not Now",
+    "close": "Close",
+    "installFailed": "Couldn’t Install Duri {{version}}",
+    "installFailedHint": "Try again from Settings › About.",
+    "promptHint": "Duri restarts once it’s installed."
   },
   "notifications": {
     "copied": "Copied",

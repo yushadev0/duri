@@ -53,7 +53,7 @@ Every app implements `DuriApp` (`src/apps/types.ts`). It provides four presentat
 
 Backend modules own their state and background threads. They expose `#[tauri::command]`s and emit `<app>://<event>` events. The frontend mirrors their state in small stores (`src/lib/store.ts`, read via `useSyncExternalStore`).
 
-Current priorities: timer finished 100 · battery critically low 99 · lock key 96 · volume / brightness 95 · charger plugged in or out 94 · copied 93 · battery low 92 · session needs you 90 · camera or microphone started 87 · notification / Bluetooth device 85 · timer 60 · music with lyrics in the pill 55 · session working 50 · music playing 40 · session just finished 35 · stopwatch running 30 · stopwatch paused 10.
+Current priorities: timer finished 100 · battery critically low 99 · lock key 96 · volume / brightness 95 · charger plugged in or out 94 · copied 93 · battery low 92 · session needs you 90 · update available 89 · camera or microphone started 87 · notification / Bluetooth device 85 · timer 60 · music with lyrics in the pill 55 · session working 50 · music playing 40 · session just finished 35 · stopwatch running 30 · stopwatch paused 10.
 
 ## Time
 
@@ -133,6 +133,10 @@ Optional and off by default (Settings › Taskbar Clock, `src/settings/TaskbarCl
 **Limits.** The DLL never unloads: XAML holds pointers into it. Reverted, it is inert until explorer restarts, and its file stays locked until then (older files are deleted on the next start). Windows 11 x64 with the stock taskbar only. To iterate on the DLL just rebuild: a changed DLL gets a new hash and loads next to the old one.
 
 When testing: restarting explorer closes the user's folder windows, so note them first (`Shell.Application.Windows()`) and reopen them.
+
+## Updates
+
+`src/lib/updates.ts` runs the Tauri updater against `latest.json` of the latest GitHub release: 30 s after launch and every 12 h (Settings › General › Check for Updates Automatically; never in development unless `VITE_DURI_UPDATE_CHECK=1`). A new version is not a Windows notification (those were easy to miss) but the `update` app (`src/apps/update/`): a `hidden`, `system` app (not in the dock, not in Settings › Apps) whose activity is an alert at priority 89, so the island bounces open in compact form and stays there until answered, the way a permission prompt does. **Download** calls `installUpdate` (progress in the same place; the NSIS installer runs passive and Duri restarts), **Not Now** stores the version in `localStorage` (`duri.update.dismissed`) so that version is not asked about again; Settings › About still offers it. A failed download shows in the prompt with a Close button. To try the prompt locally, lower the version in `package.json`, touch `src-tauri/tauri.conf.json` (otherwise the old binary keeps its version) and run `pnpm tauri dev` with `VITE_DURI_UPDATE_CHECK=1`.
 
 ## WebView2 runtime
 
