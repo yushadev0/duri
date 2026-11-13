@@ -1,4 +1,4 @@
-import type { ComponentType } from "react";
+import type { ComponentType, ReactNode } from "react";
 
 export interface Size {
   w: number;
@@ -58,12 +58,25 @@ export interface DuriApp {
   Pill: ComponentType;
   pillWidth: number;
   /**
+   * Optional: a different pill width while something needs the room (the
+   * music pill with lyrics). Null keeps `pillWidth` (or the idle info width).
+   * Keep it steady: it is a morph of the whole island each time it changes.
+   */
+  usePillWidth?: () => number | null;
+  /**
    * Width of each end of the pill (content at both edges). The idle info
    * (clock, CPU…) goes in between; defaults to `PILL_SIDE`.
    */
   pillSide?: number;
   /** Set false for pills that use their full width (e.g. the volume bar). */
   pillCenter?: boolean;
+  /**
+   * Optional: what goes in the middle of the pill instead of the idle info
+   * (the music pill shows the line being sung). Gets the idle info as
+   * `fallback` (null when it is off) and the width of each end (`side`). The
+   * pill keeps its size either way.
+   */
+  PillCenter?: ComponentType<{ fallback: ReactNode; side: number }>;
   Minimal: ComponentType;
   Compact: ComponentType;
   compactSize?: Size;

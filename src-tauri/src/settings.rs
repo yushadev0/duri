@@ -58,6 +58,16 @@ pub struct Settings {
     pub taskbar_clock_latitude: Option<f64>,
     pub taskbar_clock_longitude: Option<f64>,
     pub taskbar_clock_fahrenheit: bool,
+    /// Music › Idle Mode look: "auto" (Network, or Lyrics when the system
+    /// asks for reduced motion), "network", "lyrics" or "cover".
+    pub music_idle_style: String,
+    /// Music: the line being sung shows in the middle of the pill, for songs
+    /// with timed lyrics (asks LRCLIB for every song played while on).
+    pub music_pill_lyrics: bool,
+    /// Music: the time beside the lyrics in the pill.
+    pub music_pill_clock: bool,
+    /// Music › Idle Mode: a clock at the top of the screen.
+    pub music_idle_clock: bool,
 }
 
 impl Default for Settings {
@@ -93,6 +103,10 @@ impl Default for Settings {
             taskbar_clock_latitude: None,
             taskbar_clock_longitude: None,
             taskbar_clock_fahrenheit: false,
+            music_idle_style: "auto".into(),
+            music_pill_lyrics: false,
+            music_pill_clock: false,
+            music_idle_clock: true,
         }
     }
 }

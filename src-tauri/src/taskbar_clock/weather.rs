@@ -3,6 +3,7 @@
 //! the user picked in Settings; nothing is sent while no weather token is in
 //! use.
 
+use crate::http::percent_encode;
 use serde::{Deserialize, Serialize};
 
 /// How long a forecast is good for, and how soon to retry after a failure.
@@ -162,15 +163,6 @@ pub fn parse_forecast(json: &str, fahrenheit: bool) -> Result<Weather, String> {
     })
 }
 
-fn percent_encode(text: &str) -> String {
-    text.bytes()
-        .map(|byte| match byte {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => (byte as char).to_string(),
-            other => format!("%{other:02X}"),
-        })
-        .collect()
-}
-
 pub fn search_url(query: &str, turkish: bool) -> String {
     format!(
         "https://geocoding-api.open-meteo.com/v1/search?name={}&count=6&format=json&language={}",
@@ -211,109 +203,10 @@ pub fn parse_search(json: &str) -> Result<Vec<Place>, String> {
         .collect())
 }
 
-/// A blocking HTTPS GET with WinHTTP (Windows' own stack and certificate
-/// store; every phase times out). Call it off the UI thread.
-#[cfg(windows)]
-pub fn http_get(url: &str) -> Result<String, String> {
-    use std::ffi::c_void;
-    use windows::core::{w, HSTRING, PCWSTR};
-    use windows::Win32::Networking::WinHttp::{
-        WinHttpCloseHandle, WinHttpConnect, WinHttpOpen, WinHttpOpenRequest, WinHttpQueryDataAvailable,
-        WinHttpQueryHeaders, WinHttpReadData, WinHttpReceiveResponse, WinHttpSendRequest, WinHttpSetTimeouts,
-        WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, WINHTTP_FLAG_SECURE, WINHTTP_QUERY_FLAG_NUMBER, WINHTTP_QUERY_STATUS_CODE,
-    };
-
-    const TIMEOUT_MS: i32 = 10_000;
-    const MAX_BYTES: usize = 1 << 20;
-
-    struct Handle(*mut c_void);
-    impl Drop for Handle {
-        fn drop(&mut self) {
-            if !self.0.is_null() {
-                let _ = unsafe { WinHttpCloseHandle(self.0) };
-            }
-        }
-    }
-    let opened = |handle: *mut c_void, step: &str| {
-        if handle.is_null() {
-            Err(format!("{step}: {}", windows::core::Error::from_thread()))
-        } else {
-            Ok(Handle(handle))
-        }
-    };
-
-    let rest = url.strip_prefix("https://").ok_or("only https is supported")?;
-    let (host, path) = rest.split_once('/').unwrap_or((rest, ""));
-    let path = format!("/{path}");
-
-    unsafe {
-        let session = opened(
-            WinHttpOpen(w!("Duri"), WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, PCWSTR::null(), PCWSTR::null(), 0),
-            "open",
-        )?;
-        WinHttpSetTimeouts(session.0, TIMEOUT_MS, TIMEOUT_MS, TIMEOUT_MS, TIMEOUT_MS).map_err(|e| e.to_string())?;
-        let connection = opened(WinHttpConnect(session.0, &HSTRING::from(host), 443, 0), "connect")?;
-        let request = opened(
-            WinHttpOpenRequest(
-                connection.0,
-                w!("GET"),
-                &HSTRING::from(path),
-                PCWSTR::null(),
-                PCWSTR::null(),
-                std::ptr::null(),
-                WINHTTP_FLAG_SECURE,
-            ),
-            "request",
-        )?;
-        WinHttpSendRequest(request.0, None, None, 0, 0, 0).map_err(|e| format!("send: {e}"))?;
-        WinHttpReceiveResponse(request.0, std::ptr::null_mut()).map_err(|e| format!("receive: {e}"))?;
-
-        let (mut status, mut size) = (0u32, std::mem::size_of::<u32>() as u32);
-        WinHttpQueryHeaders(
-            request.0,
-            WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
-            PCWSTR::null(),
-            Some((&raw mut status).cast()),
-            &mut size,
-            std::ptr::null_mut(),
-        )
-        .map_err(|e| format!("status: {e}"))?;
-        if status != 200 {
-            return Err(format!("HTTP {status}"));
-        }
-
-        let mut body = Vec::new();
-        loop {
-            let mut available = 0u32;
-            WinHttpQueryDataAvailable(request.0, &mut available).map_err(|e| format!("read: {e}"))?;
-            if available == 0 {
-                break;
-            }
-            let start = body.len();
-            if start + available as usize > MAX_BYTES {
-                return Err("response too large".into());
-            }
-            body.resize(start + available as usize, 0u8);
-            let mut read = 0u32;
-            WinHttpReadData(request.0, body[start..].as_mut_ptr().cast(), available, &mut read)
-                .map_err(|e| format!("read: {e}"))?;
-            body.truncate(start + read as usize);
-            if read == 0 {
-                break;
-            }
-        }
-        String::from_utf8(body).map_err(|e| e.to_string())
-    }
-}
-
-#[cfg(not(windows))]
-pub fn http_get(_url: &str) -> Result<String, String> {
-    Err("unsupported".into())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::http::get as http_get;
 
     const FORECAST: &str = r#"{
         "latitude": 41.0, "longitude": 29.0, "timezone": "Europe/Istanbul",

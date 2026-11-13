@@ -235,7 +235,7 @@ pub async fn taskbar_clock_search_city(query: String, language: String) -> Resul
         return Ok(Vec::new());
     }
     let url = weather::search_url(&query, is_turkish(&language));
-    tauri::async_runtime::spawn_blocking(move || weather::parse_search(&weather::http_get(&url)?))
+    tauri::async_runtime::spawn_blocking(move || weather::parse_search(&crate::http::get(&url)?))
         .await
         .map_err(|e| e.to_string())?
 }
@@ -543,7 +543,7 @@ mod worker {
                 entry.fetching = true;
                 let (cache, fahrenheit) = (cache.clone(), config.fahrenheit);
                 let spawned = std::thread::Builder::new().name("duri-weather".into()).spawn(move || {
-                    let result = weather::http_get(&weather::forecast_url(latitude, longitude, fahrenheit))
+                    let result = crate::http::get(&weather::forecast_url(latitude, longitude, fahrenheit))
                         .and_then(|json| weather::parse_forecast(&json, fahrenheit));
                     let Ok(mut entry) = cache.lock() else { return };
                     entry.fetching = false;

@@ -522,7 +522,8 @@ fn fullscreen_window_in_front() -> bool {
     use windows::Win32::UI::WindowsAndMessaging::{GetClassNameW, GetWindowLongPtrW, GetWindowRect, GWL_STYLE};
 
     let raw = fg::current();
-    if raw == 0 || fg::is_ours(raw) {
+    // Duri's own Idle Mode counts like any fullscreen player.
+    if raw == 0 || (fg::is_ours(raw) && raw != crate::idle_window::hwnd()) {
         return false;
     }
     let hwnd = HWND(raw as _);

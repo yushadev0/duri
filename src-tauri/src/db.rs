@@ -42,6 +42,22 @@ const MIGRATIONS: &[&str] = &[
         updated_at INTEGER NOT NULL
     );
     CREATE INDEX notes_order ON notes (pinned DESC, updated_at DESC);",
+    // 4: lyrics cache (Music › Idle Mode), keyed by "artist|title"
+    "CREATE TABLE lyrics (
+        key          TEXT PRIMARY KEY,
+        found        INTEGER NOT NULL,
+        instrumental INTEGER NOT NULL,
+        synced       TEXT,
+        plain        TEXT,
+        fetched_at   INTEGER NOT NULL
+    );",
+    // 5: word-synced lyrics (LRCLIB's lyricsfile). Rows cached before this
+    // dropped the word times, so they are asked for again.
+    "DELETE FROM lyrics;
+    ALTER TABLE lyrics ADD COLUMN words TEXT;",
+    // 6: songs cached by 5 could have missed a word-synced record of a
+    // slightly different length; ask for them again.
+    "DELETE FROM lyrics;",
 ];
 
 pub struct Db(Mutex<Connection>);

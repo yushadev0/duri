@@ -1,5 +1,7 @@
 mod apps;
 mod db;
+mod http;
+mod idle_window;
 mod island_window;
 mod settings;
 mod shortcuts;
@@ -86,6 +88,10 @@ pub fn run() {
             apps::music::music_control,
             apps::music::music_seek,
             apps::music::music_select_source,
+            apps::lyrics::lyrics_get,
+            apps::meter::audio_meter,
+            idle_window::music_idle_open,
+            idle_window::music_idle_close,
             apps::sessions::sessions_get,
             apps::sessions::session_dismiss,
             apps::sessions::session_permission,

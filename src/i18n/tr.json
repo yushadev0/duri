@@ -72,7 +72,28 @@
     "previous": "Önceki Parça",
     "switchSource": "Başka bir oynatıcıya geç",
     "seek": "Çalma konumu",
-    "unknownTitle": "Bilinmeyen Parça"
+    "unknownTitle": "Bilinmeyen Parça",
+    "idle": {
+      "open": "Bekleme Modu",
+      "exit": "Bekleme Modundan Çık",
+      "style": "Görünüm",
+      "styles": {
+        "network": "Ağ",
+        "lyrics": "Sözler",
+        "cover": "Kapak"
+      },
+      "searching": "Şarkı sözleri aranıyor…",
+      "noLyrics": "Bu şarkının sözleri bulunamadı.",
+      "instrumental": "Enstrümantal",
+      "error": "Şarkı sözleri yüklenemedi. Bağlantınızı kontrol edin.",
+      "unsynced": "Bu sözler zamanlanmamış, bu yüzden şarkıyı takip etmiyor.",
+      "credit": "Sözler: LRCLIB",
+      "sync": {
+        "wordSynced": "Kelime senkronlu",
+        "lineSynced": "Satır senkronlu, kelime zamanları tahmini",
+        "unsyncedShort": "Senkronsuz"
+      }
+    }
   },
   "timer": {
     "title": "Zamanlayıcı",
@@ -142,6 +163,10 @@
     "sizeLarge": "Büyük",
     "replaceFlyout": "Windows Ses Penceresinin Yerine Geç",
     "replaceFlyoutHint": "Ses tuşlarına basınca Windows’un penceresi yerine Duri’nin göstergesi çıkar.",
+    "musicPillLyrics": "Şarkı Sözlerini Hapta Göster",
+    "musicPillLyricsHint": "Zamanlanmış sözü olan şarkılarda o an söylenen satır hapın ortasında görünür. Sözleri bulmak için her şarkının adı, sanatçısı ve süresi LRCLIB'e gönderilir.",
+    "musicPillClock": "Sözlerin Yanında Saati Göster",
+    "musicIdleClock": "Bekleme Modu'nda Saati Göster",
     "idleInfo": "Boştayken",
     "idleInfoHint": "Bir şey olmadığında pill’de ne görünsün.",
     "idleNone": "Hiçbiri",

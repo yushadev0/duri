@@ -123,20 +123,25 @@ const STEADY_MS = 180;
 const PRIVACY_BADGE = 22;
 
 const noBackdrop = () => null;
+const noPillWidth = () => null;
 
 interface ProbeProps {
   app: DuriApp;
   report: (id: string, a: Activity | null) => void;
   reportBackdrop: (id: string, b: string | null) => void;
+  reportPillWidth: (id: string, w: number | null) => void;
 }
 
 /** Mounts each app's hooks in its own component (hooks can't run in a loop). */
-function AppProbe({ app, report, reportBackdrop }: ProbeProps) {
+function AppProbe({ app, report, reportBackdrop, reportPillWidth }: ProbeProps) {
   const activity = app.useActivity();
   const useBackdrop = app.useBackdrop ?? noBackdrop;
   const backdrop = useBackdrop();
+  const usePillWidth = app.usePillWidth ?? noPillWidth;
+  const pillWidth = usePillWidth();
   useEffect(() => report(app.id, activity), [app.id, activity, report]);
   useEffect(() => reportBackdrop(app.id, backdrop), [app.id, backdrop, reportBackdrop]);
+  useEffect(() => reportPillWidth(app.id, pillWidth), [app.id, pillWidth, reportPillWidth]);
   return null;
 }
 
@@ -162,6 +167,11 @@ export function Island() {
   const report = useCallback(
     (id: string, a: Activity | null) =>
       setActivities((prev) => (sameActivity(prev[id], a) ? prev : { ...prev, [id]: a })),
+    [],
+  );
+  const [pillWidths, setPillWidths] = useState<Record<string, number | null>>({});
+  const reportPillWidth = useCallback(
+    (id: string, w: number | null) => setPillWidths((prev) => (prev[id] === w ? prev : { ...prev, [id]: w })),
     [],
   );
   const [backdrops, setBackdrops] = useState<Record<string, string | null>>({});
@@ -351,9 +361,11 @@ export function Island() {
   const base =
     view.kind === "empty"
       ? idlePill(settings.idleInfo, hour12)
-      : centerInfo && view.kind === "pill"
-        ? { w: idlePill(centerInfo, hour12).w + 2 * (view.app.pillSide ?? PILL_SIDE), h: PILL_HEIGHT }
-        : sizeOf(view);
+      : view.kind === "pill" && pillWidths[view.app.id]
+        ? { w: pillWidths[view.app.id]!, h: PILL_HEIGHT }
+        : centerInfo && view.kind === "pill"
+          ? { w: idlePill(centerInfo, hour12).w + 2 * (view.app.pillSide ?? PILL_SIDE), h: PILL_HEIGHT }
+          : sizeOf(view);
   const zoom = view.kind === "pill" || view.kind === "empty" ? PILL_SCALE[settings.pillSize] ?? 1 : 1;
   const size = handle ? HANDLE : { w: Math.round(base.w * zoom), h: Math.round(base.h * zoom) };
   const bubbleZoom = PILL_SCALE[settings.pillSize] ?? 1;
@@ -480,18 +492,21 @@ export function Island() {
     case "empty":
       content = <IdleInfo mode={settings.idleInfo} />;
       break;
-    case "pill":
+    case "pill": {
+      const Center = view.app.pillCenter !== false ? view.app.PillCenter : undefined;
+      const info = centerInfo ? <IdleInfo mode={centerInfo} /> : null;
       content = (
         <>
           <view.app.Pill />
-          {centerInfo && (
+          {(Center || info) && (
             <div className={styles.pillCenter}>
-              <IdleInfo mode={centerInfo} />
+              {Center ? <Center fallback={info} side={view.app.pillSide ?? PILL_SIDE} /> : info}
             </div>
           )}
         </>
       );
       break;
+    }
     case "home":
       content = <Home apps={apps} onOpen={open} onSettings={openSettings} />;
       break;
@@ -511,7 +526,13 @@ export function Island() {
     <IslandContext.Provider value={controls}>
     <div className={styles.stage} data-style={settings.islandStyle} style={{ "--top": `${top}px`, "--island-bg": `rgba(0, 0, 0, ${alpha})` } as CSSProperties}>
       {apps.map((app) => (
-        <AppProbe key={app.id} app={app} report={report} reportBackdrop={reportBackdrop} />
+        <AppProbe
+          key={app.id}
+          app={app}
+          report={report}
+          reportBackdrop={reportBackdrop}
+          reportPillWidth={reportPillWidth}
+        />
       ))}
 
       <div ref={scope} className={styles.anchor}>

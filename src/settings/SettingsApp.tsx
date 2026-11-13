@@ -284,6 +284,37 @@ function Apps() {
                   />
                 </Row>
               )}
+              {app.id === "music" && on && (
+                <>
+                  <Row
+                    title={t("settings.musicPillLyrics")}
+                    hint={t("settings.musicPillLyricsHint")}
+                    icon={<span className={styles.appIconSpacer} />}
+                  >
+                    <Switch
+                      checked={settings.musicPillLyrics}
+                      onChange={(musicPillLyrics) => updateSettings({ musicPillLyrics })}
+                      label={t("settings.musicPillLyrics")}
+                    />
+                  </Row>
+                  {settings.musicPillLyrics && (
+                    <Row title={t("settings.musicPillClock")} icon={<span className={styles.appIconSpacer} />}>
+                      <Switch
+                        checked={settings.musicPillClock}
+                        onChange={(musicPillClock) => updateSettings({ musicPillClock })}
+                        label={t("settings.musicPillClock")}
+                      />
+                    </Row>
+                  )}
+                  <Row title={t("settings.musicIdleClock")} icon={<span className={styles.appIconSpacer} />}>
+                    <Switch
+                      checked={settings.musicIdleClock}
+                      onChange={(musicIdleClock) => updateSettings({ musicIdleClock })}
+                      label={t("settings.musicIdleClock")}
+                    />
+                  </Row>
+                </>
+              )}
               {app.id === "privacy" && on && (
                 <>
                   <Row title={t("settings.privacyCamera")} icon={<span className={styles.appIconSpacer} />}>

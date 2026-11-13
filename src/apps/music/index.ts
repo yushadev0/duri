@@ -3,9 +3,15 @@ import { useMemo } from "react";
 import type { Activity, DuriApp } from "../types";
 import { startVolume } from "../volume/store";
 import { startMusic, useMusic } from "./store";
+import { MusicPillCenter, useMusicPillWidth, usePillLyricsActive } from "./lyricsViews";
 import { MusicCompact, MusicExpanded, MusicMinimal, MusicPill } from "./views";
 
 const PLAYING: Activity = { priority: 40 };
+/**
+ * With lyrics in the pill, music keeps the pill over a working Claude Code
+ * session (50), which moves to the bubble; alerts still come first.
+ */
+const PLAYING_LYRICS: Activity = { priority: 55 };
 
 export const musicApp: DuriApp = {
   id: "music",
@@ -19,8 +25,9 @@ export const musicApp: DuriApp = {
   },
   useActivity() {
     const { state } = useMusic();
+    const lyrics = usePillLyricsActive();
     const active = state.available && state.playing;
-    return useMemo(() => (active ? PLAYING : null), [active]);
+    return useMemo(() => (active ? (lyrics ? PLAYING_LYRICS : PLAYING) : null), [active, lyrics]);
   },
   useBackdrop() {
     const { state, artwork, accent } = useMusic();
@@ -30,6 +37,8 @@ export const musicApp: DuriApp = {
   },
   Pill: MusicPill,
   pillWidth: 200,
+  PillCenter: MusicPillCenter,
+  usePillWidth: useMusicPillWidth,
   Minimal: MusicMinimal,
   Compact: MusicCompact,
   compactSize: { w: 372, h: 72 },

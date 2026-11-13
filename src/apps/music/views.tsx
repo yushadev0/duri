@@ -1,4 +1,5 @@
-import { ChevronsUpDown, Music2, Pause, Play, SkipBack, SkipForward } from "lucide-react";
+import { invoke } from "@tauri-apps/api/core";
+import { ChevronsUpDown, Maximize2, Music2, Pause, Play, SkipBack, SkipForward } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { useRef, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
@@ -7,6 +8,7 @@ import { VolumeSlider } from "../../components/VolumeSlider";
 import { formatTrackTime } from "../../lib/format";
 import { useStep } from "../../lib/ticks";
 import { useNow } from "../../lib/useNow";
+import { ExpandedLyrics } from "./lyricsViews";
 import styles from "./music.module.css";
 import { sourceName } from "./sources";
 import { currentPosition, musicActions, useMusic } from "./store";
@@ -230,7 +232,11 @@ export function MusicExpanded() {
           )}
         </div>
         <Equalizer playing={state.playing} color={accent} height={18} smooth />
+        <IconButton label={t("music.idle.open")} size={32} onClick={() => invoke("music_idle_open").catch(() => {})}>
+          <Maximize2 size={16} />
+        </IconButton>
       </div>
+      <ExpandedLyrics />
       <Scrubber />
       <div className={styles.transport}>
         <IconButton label={t("music.previous")} size={40} disabled={!state.canPrev} onClick={musicActions.prev}>

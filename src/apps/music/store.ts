@@ -81,6 +81,14 @@ export function startMusic() {
   listen<Artwork>("music://artwork", (e) => applyArtwork(e.payload));
 }
 
+/** Current value outside React (render loops that read it every frame). */
+export function getMusic(): MusicStore {
+  return store.get();
+}
+
+/** Calls `listener` whenever the music state changes. */
+export const subscribeMusic = (listener: () => void) => store.subscribe(listener);
+
 export function useMusic() {
   return useStore(store);
 }

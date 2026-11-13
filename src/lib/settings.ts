@@ -10,6 +10,7 @@ export type IdleInfo = "none" | "clock" | "stats" | "both";
 export type ClockFormat = "system" | "12h" | "24h";
 export type Transparency = "off" | "low" | "high";
 export type ClockAlign = "left" | "center" | "right";
+export type MusicIdleStyle = "auto" | "network" | "lyrics" | "cover";
 
 export interface Settings {
   language: LanguagePref;
@@ -41,6 +42,14 @@ export interface Settings {
   taskbarClockLatitude: number | null;
   taskbarClockLongitude: number | null;
   taskbarClockFahrenheit: boolean;
+  /** Music › Idle Mode look; "auto" is Network, or Lyrics under reduced motion. */
+  musicIdleStyle: MusicIdleStyle;
+  /** Music: the line being sung shows in the middle of the pill (songs with timed lyrics). */
+  musicPillLyrics: boolean;
+  /** Music: the time beside the lyrics in the pill. */
+  musicPillClock: boolean;
+  /** Music › Idle Mode: a clock at the top of the screen. */
+  musicIdleClock: boolean;
 }
 
 export const settingsStore = createStore<Settings>({
@@ -70,6 +79,10 @@ export const settingsStore = createStore<Settings>({
   taskbarClockLatitude: null,
   taskbarClockLongitude: null,
   taskbarClockFahrenheit: false,
+  musicIdleStyle: "auto",
+  musicPillLyrics: false,
+  musicPillClock: false,
+  musicIdleClock: true,
 });
 
 let started = false;

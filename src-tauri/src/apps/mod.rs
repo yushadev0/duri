@@ -5,6 +5,9 @@
 pub mod bluetooth;
 pub mod clipboard;
 pub mod keys;
+pub mod lyrics;
+pub mod lyricsfile;
+pub mod meter;
 pub mod music;
 pub mod notes;
 pub mod notifications;

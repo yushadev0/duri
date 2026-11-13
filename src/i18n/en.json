@@ -72,7 +72,28 @@
     "previous": "Previous Track",
     "switchSource": "Switch to another player",
     "seek": "Playback position",
-    "unknownTitle": "Unknown Title"
+    "unknownTitle": "Unknown Title",
+    "idle": {
+      "open": "Idle Mode",
+      "exit": "Exit Idle Mode",
+      "style": "Style",
+      "styles": {
+        "network": "Network",
+        "lyrics": "Lyrics",
+        "cover": "Cover"
+      },
+      "searching": "Looking for lyrics…",
+      "noLyrics": "No lyrics found for this song.",
+      "instrumental": "Instrumental",
+      "error": "Couldn't load the lyrics. Check your connection.",
+      "unsynced": "These lyrics aren't timed, so they don't follow the song.",
+      "credit": "Lyrics from LRCLIB",
+      "sync": {
+        "wordSynced": "Word-synced",
+        "lineSynced": "Line-synced, word timing estimated",
+        "unsyncedShort": "Not synced"
+      }
+    }
   },
   "timer": {
     "title": "Timer",
@@ -142,6 +163,10 @@
     "sizeLarge": "Large",
     "replaceFlyout": "Replace Windows Volume Popup",
     "replaceFlyoutHint": "The volume keys show Duri’s indicator instead of the Windows popup.",
+    "musicPillLyrics": "Show Lyrics in the Pill",
+    "musicPillLyricsHint": "For songs with timed lyrics, the line being sung shows in the middle of the pill. Each song's title, artist and length are sent to LRCLIB to find them.",
+    "musicPillClock": "Show the Time Beside the Lyrics",
+    "musicIdleClock": "Show the Clock in Idle Mode",
     "idleInfo": "When Idle",
     "idleInfoHint": "What the pill shows when nothing is going on.",
     "idleNone": "Nothing",

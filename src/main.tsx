@@ -4,6 +4,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./design/tokens.css";
 import i18n from "./i18n";
+import { MusicIdle } from "./apps/music/idle/MusicIdle";
 import { Island } from "./island/Island";
 import { startSettingsSync } from "./lib/settings";
 import { SettingsApp } from "./settings/SettingsApp";
@@ -37,5 +38,7 @@ if (label === "island") {
 }
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>{label === "settings" ? <SettingsApp /> : <Island />}</React.StrictMode>,
+  <React.StrictMode>
+    {label === "settings" ? <SettingsApp /> : label === "idle" ? <MusicIdle /> : <Island />}
+  </React.StrictMode>,
 );

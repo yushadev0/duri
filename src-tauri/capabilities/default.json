@@ -1,8 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Permissions for the island and settings windows",
-  "windows": ["island", "settings"],
+  "description": "Permissions for the island, settings and idle windows",
+  "windows": ["island", "settings", "idle"],
   "permissions": [
     "core:default",
     "core:window:allow-set-title",

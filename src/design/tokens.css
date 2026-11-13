@@ -102,6 +102,14 @@ button {
   color: inherit;
 }
 
+/* Music › Idle Mode fills the screen; always dark, like the island. */
+html[data-window="idle"],
+html[data-window="idle"] body {
+  background: #000;
+  color: #fff;
+  overflow: hidden;
+}
+
 /* The island window is a transparent overlay. */
 html[data-window="island"],
 html[data-window="island"] body {

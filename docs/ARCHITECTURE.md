@@ -19,6 +19,8 @@ duri/
    ├─ island_window.rs          overlay window, click-through hit testing
    ├─ tray.rs                   tray icon/menu, settings window
    ├─ settings.rs  db.rs        settings, SQLite + migrations
+   ├─ idle_window.rs            Music › Idle Mode fullscreen window
+   ├─ http.rs                   small WinHTTP client (weather, lyrics)
    └─ apps/                     backend half of each app
 ```
 
@@ -51,7 +53,7 @@ Every app implements `DuriApp` (`src/apps/types.ts`). It provides four presentat
 
 Backend modules own their state and background threads. They expose `#[tauri::command]`s and emit `<app>://<event>` events. The frontend mirrors their state in small stores (`src/lib/store.ts`, read via `useSyncExternalStore`).
 
-Current priorities: timer finished 100 · battery critically low 99 · lock key 96 · volume / brightness 95 · charger plugged in or out 94 · copied 93 · battery low 92 · session needs you 90 · camera or microphone started 87 · notification / Bluetooth device 85 · timer 60 · session working 50 · music playing 40 · session just finished 35 · stopwatch running 30 · stopwatch paused 10.
+Current priorities: timer finished 100 · battery critically low 99 · lock key 96 · volume / brightness 95 · charger plugged in or out 94 · copied 93 · battery low 92 · session needs you 90 · camera or microphone started 87 · notification / Bluetooth device 85 · timer 60 · music with lyrics in the pill 55 · session working 50 · music playing 40 · session just finished 35 · stopwatch running 30 · stopwatch paused 10.
 
 ## Time
 
@@ -60,6 +62,17 @@ Timers and the stopwatch store absolute Unix-ms timestamps (`endsAt`, `runningSi
 ## Music
 
 `apps/music.rs` has one worker thread that owns the WinRT `GlobalSystemMediaTransportControlsSessionManager`. Commands reach it over a channel. Between commands it polls every 500 ms, emits `music://state` when anything changes and `music://artwork` (a data URL) when the track changes. The UI extrapolates the playback position from `positionMs` + `positionUpdatedAt`, and derives an accent color from the cover art.
+
+**Lyrics in the island.** The expanded view shows three lines between the song and the controls: the one before, the one being sung and the next (`ExpandedLyrics` in `lyricsViews.tsx`; a fixed 49 px band, so the controls never move, with a status line for songs without timed lyrics). With Settings › Apps › Music › Show Lyrics in the Pill, the music pill's `PillCenter` puts the line being sung in the middle of the pill on one line, optionally with the time; between lines the usual idle info stays. For songs with timed lyrics `usePillWidth` widens the pill to fit about 7–8 words (steady for the whole song, capped so the bubble still fits in the window), and music's priority rises to 55 so a working Claude Code session takes the bubble instead of covering the lyrics. Lyrics live in one store per window (`useLyrics`), so the pill and the expanded view ask for a song once, and `useLineIndex` re-renders on line changes only (a timer for the next line), keeping the pill's idle cost.
+
+**Idle Mode.** The button in Music's expanded view calls `music_idle_open` (`idle_window.rs`), which opens a borderless fullscreen window labelled `idle` on the primary monitor; `main.tsx` renders `MusicIdle` in it (`src/apps/music/idle/`). Esc or the close button calls `music_idle_close`. While it is in front, `fullscreen_window_in_front` treats it like any fullscreen player, so the island steps aside. An optional clock sits at the top (`musicIdleClock`). Three looks, saved as `musicIdleStyle` ("auto" = Network, or Lyrics under reduced motion; keys 1–3 switch):
+
+- **Network** (`IdleConstellation.tsx`, `constellation.ts`): each line of the song is a constellation. Its words land one by one at random spots, each joined by a line drawn from the word before (the stroke starts 300 ms early so the word lands on the beat); when the line is over the figure fades over 900 ms while the next one starts on an empty screen. Spots are seeded by the line, so a seek redraws the same figure: each word tries 60 random spots and keeps the one with no overlapping labels, a comfortable step from the previous word and no crossing lines. Untimed lyrics fall back to Lyrics. Around it: faint stars twinkling over seconds, a ripple where each word lands, a spark at the tip of the line being drawn, and finished figures drift up as they fade. Where nothing is sung (intro, breaks, outro, a whole instrumental) a circle breathes with the sound and steps aside 700 ms before the next line. Its level comes from `apps/meter.rs`: the default speakers' peak meter (`IAudioMeterInformation`, one number, no audio captured), read every 33 ms only while the Network look is open and sent to the idle window as `audio://level`; `meter.ts` turns it into a VU-like envelope (fast rise, slow fall, scaled to the song's own recent peak) so the ring breathes rather than flickers.
+- The canvas loop runs while playing or fading and stops at rest. Glows rise softly and fade over seconds, never flash.
+- **Lyrics** (`IdleViews.tsx`): the current line centered and bright, the list gliding to it; a timer set for the next line's start re-renders, not every frame. Clicking a line seeks.
+- **Cover**: big artwork and progress. Also the fallback while lyrics are loading or missing; this look never asks for lyrics.
+
+Lyrics come from LRCLIB (`apps/lyrics.rs`, no key): the exact `/api/get` (needs the length), then `/api/search` with a cleaned title and artist ("(Official Video)", "- 2011 Remaster", "feat.", "X - Topic") and with "Artist - Title" split out of video titles, keeping records within 4 s of the song's length and preferring word-synced, then line-synced ones. Word-synced records (`hasWordSync`) carry a `lyricsfile`, YAML with every line's start and end and every word's start; `apps/lyricsfile.rs` reads just that shape (no YAML dependency) and the UI joins syllables without a trailing space into one word. Answers are cached in the `lyrics` table, misses for 3 days; network errors are not cached. Otherwise the UI parses the LRC (`lyrics.ts`): `[mm:ss.xx]` lines, repeats, `[offset:]`, enhanced `<mm:ss.xx>` word times when present; otherwise each line's words are spread over the line by length. Plain (untimed) lyrics show as a page. The credit in the corner says whether the lyrics are word-synced, line-synced (word times estimated) or not synced. HTTP goes through `http.rs` (WinHTTP, shared with the weather).
 
 ## Clipboard
 
