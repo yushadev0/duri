@@ -36,7 +36,7 @@ Duri's features are called **apps**. Each one can be switched off in Settings �
     <td width="50%"><img src="docs/media/sessions.png" alt="Sessions app" /></td>
   </tr>
   <tr>
-    <td><b>🎵 Music.</b> What's playing in Spotify, your browser or any media app, tinted with the cover's color. Play, pause, skip, seek, set the volume and switch players.</td>
+    <td><b>🎵 Music.</b> What's playing in Spotify, your browser or any media app, tinted with the cover's color. Play, pause, skip, seek, set the volume and switch players, and sing along: <a href="#lyrics-and-idle-mode">lyrics and a fullscreen Idle Mode</a>.</td>
     <td><b>🤖 Sessions.</b> Follows your Claude Code and Codex sessions: working, needs you, done. When Claude asks for permission, the island opens and tells you which project, and can answer it for you: Allow or Deny right from the island (opt-in, Settings › Apps).</td>
   </tr>
   <tr>
@@ -76,6 +76,46 @@ Duri's features are called **apps**. Each one can be switched off in Settings �
   <img src="docs/media/timer-done.png" height="72" alt="A finished timer" />
   <img src="docs/media/volume.png" height="56" alt="The volume indicator" />
 </p>
+
+## Lyrics and Idle Mode
+
+Music follows the lyrics of the song that's playing, in any player. They come from [LRCLIB](https://lrclib.net), an open lyrics library: word by word when LRCLIB has the timing for each word, line by line otherwise.
+
+<p align="center">
+  <img src="docs/media/pill-lyrics.png" width="640" alt="The pill showing the line being sung and the time, with a working Claude Code session in the bubble beside it" />
+</p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/media/music-lyrics.png" alt="The expanded Music app with three lines of lyrics between the song and the controls" /></td>
+    <td>
+      <ul>
+        <li><b>In the Music app</b>, three lines sit between the song and the controls: the one before, the one being sung, and the next.</li>
+        <li><b>In the pill</b> (Settings › Apps › Music), the line being sung, on one line, with the time beside it if you like. The pill widens for it, and music keeps the pill while a Claude Code session works, which moves to the bubble.</li>
+        <li><b>Idle Mode</b>: the ⤢ button opens the song full screen, for when the music plays and you step away.</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
+<img src="docs/media/idle-network.png" alt="Idle Mode, Network: the words of a line landing one by one at random spots, joined by lines" />
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/media/idle-lyrics.png" alt="Idle Mode, Lyrics: the cover beside scrolling lyrics, the current line bright" /></td>
+    <td width="50%"><img src="docs/media/idle-circle.png" alt="Idle Mode: a circle breathing with the music where nothing is sung" /></td>
+  </tr>
+</table>
+
+Idle Mode has three looks, switched at the top or with the 1, 2 and 3 keys:
+
+- **Network.** Every line becomes a small constellation: each word lands at a random spot as it's sung, a line reaches it from the word before, and when the line is over the figure fades and the next one starts on an empty sky. Where nothing is sung (the intro, a break, an instrumental) a circle breathes with the music instead.
+- **Lyrics.** The cover beside the lyrics, the current line bright and centered. Click a line to jump there.
+- **Cover.** Just the cover, the song and its progress.
+
+Nothing flashes, and with Windows' "Animation effects" turned off, Idle Mode starts in Lyrics and drops the moving effects. An optional clock sits at the top. Esc closes it, Space plays or pauses.
+
+To find the lyrics, the song's title, artist, album and length are sent to LRCLIB, only while lyrics are on screen (the Music app open, Idle Mode, or the pill with lyrics turned on). Answers are kept in Duri's database, so a song is looked up once. The circle reads only the loudness of what your speakers play, the number the Windows volume mixer shows; no sound is recorded.
 
 ## How it behaves
 
@@ -141,13 +181,13 @@ Duri is meant to sit there all day, so it stays out of the way. Measured on an I
 | music is playing | 1.9% | 0.16% | 135 MB |
 | a Claude Code session is working | 1.5% | 0.13% | 141 MB |
 
-CPU is the time used by Duri and its WebView2 processes; memory is the private working set, as Task Manager shows it. Most of the memory is WebView2 itself. Up to 0.1.1 the animated pill kept the island repainting at the display's refresh rate and used up to 20% of a core while music played; it now changes a few times a second. Measure it yourself with `powershell -ExecutionPolicy Bypass -File scriptsench.ps1`.
+CPU is the time used by Duri and its WebView2 processes; memory is the private working set, as Task Manager shows it. Most of the memory is WebView2 itself. Up to 0.1.1 the animated pill kept the island repainting at the display's refresh rate and used up to 20% of a core while music played; it now changes a few times a second. Measure it yourself with `powershell -ExecutionPolicy Bypass -File scripts\bench.ps1`.
 
 ## Settings
 
 <img src="docs/media/settings.png" width="560" alt="Duri settings" />
 
-Style (floating, or attached to the top edge like a notch), pill size, transparency, auto-hide, what the idle pill shows, 12/24-hour clock, hide in fullscreen, keyboard shortcuts, open at login, automatic update checks, and English or Turkish. Apps can be turned off one by one (with options such as replacing the Windows volume popup), and the taskbar clock has a tab of its own.
+Style (floating, or attached to the top edge like a notch), pill size, transparency, auto-hide, what the idle pill shows, 12/24-hour clock, hide in fullscreen, keyboard shortcuts, open at login, automatic update checks, and English or Turkish. Apps can be turned off one by one (with options such as replacing the Windows volume popup, lyrics in the pill, or a clock in Idle Mode), and the taskbar clock has a tab of its own.
 
 ## Build from source
 
@@ -167,10 +207,10 @@ Ideas and pull requests are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.m
 
 ## Türkçe
 
-Duri, Windows için bir dinamik ada. Ekranın üstünde küçük bir hap olarak durur: o an olanı gösterir, üzerine gelince açılır, tıklayınca büyür. İçinde Müzik, Claude Code ve Codex oturum takibi, Pano geçmişi, Notlar, Zamanlayıcı, Kronometre ve ses göstergesi var. İstersen görev çubuğundaki Windows saatinin yerine üç satıra kadar kendi yazını, istediğin biçimde saat ve tarihi, CPU, RAM, GPU, ağ ve disk kullanımını, hava durumunu ve çalan şarkıyı da gösterir; bu özellik Windows Gezgini'ne küçük bir yardımcı yüklediği için varsayılan olarak kapalıdır (ayrıntılar yukarıda, "Taskbar clock" başlığında). Tam ekran bir uygulama ya da video açıkken kendini gizler, yeni sürümleri kendisi bulur. Arayüz Türkçe ve İngilizce.
+Duri, Windows için bir dinamik ada. Ekranın üstünde küçük bir hap olarak durur: o an olanı gösterir, üzerine gelince açılır, tıklayınca büyür. İçinde Müzik (şarkı sözleriyle: çalan şarkının sözleri müzik uygulamasında, istersen hapta, ve şarkıyı tam ekranda gösteren Bekleme Modu'nda), Claude Code ve Codex oturum takibi, Pano geçmişi, Notlar, Zamanlayıcı, Kronometre ve ses göstergesi var. İstersen görev çubuğundaki Windows saatinin yerine üç satıra kadar kendi yazını, istediğin biçimde saat ve tarihi, CPU, RAM, GPU, ağ ve disk kullanımını, hava durumunu ve çalan şarkıyı da gösterir; bu özellik Windows Gezgini'ne küçük bir yardımcı yüklediği için varsayılan olarak kapalıdır (ayrıntılar yukarıda, "Taskbar clock" başlığında). Tam ekran bir uygulama ya da video açıkken kendini gizler, yeni sürümleri kendisi bulur. Arayüz Türkçe ve İngilizce.
 
 Kurmak için [son sürümden](https://github.com/yushadev0/duri/releases/latest) `Duri_x.y.z_x64-setup.exe` dosyasını indirip çalıştır. SmartScreen uyarırsa **Ek bilgi › Yine de çalıştır**'ı seç.
 
 ## License
 
-[MIT](LICENSE). The demo video and screenshots use generated content only (music, cover art, sessions, clips and notes).
+[MIT](LICENSE). The demo video and the app screenshots use generated content (music, cover art, sessions, clips and notes). The lyrics screenshots show "Lovesong" by Adele, from the album *21*, with lyrics from LRCLIB; the song, cover and lyrics belong to their owners.
