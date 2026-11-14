@@ -75,6 +75,7 @@
     "next": "Next Track",
     "previous": "Previous Track",
     "switchSource": "Switch to another player",
+    "openPlayer": "Open {{app}}",
     "seek": "Playback position",
     "unknownTitle": "Unknown Title",
     "idle": {
@@ -83,6 +84,7 @@
       "style": "Style",
       "styles": {
         "network": "Network",
+        "reactive": "Reactive",
         "lyrics": "Lyrics",
         "cover": "Cover"
       },
@@ -90,6 +92,8 @@
       "noLyrics": "No lyrics found for this song.",
       "instrumental": "Instrumental",
       "error": "Couldn't load the lyrics. Check your connection.",
+      "showRecord": "Turn into a record",
+      "showCover": "Show the cover",
       "unsynced": "These lyrics aren't timed, so they don't follow the song.",
       "credit": "Lyrics from LRCLIB",
       "sync": {

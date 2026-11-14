@@ -209,7 +209,18 @@ export function MusicExpanded() {
   return (
     <div className={styles.expanded}>
       <div className={styles.head}>
-        <Artwork size={64} radius={18} />
+        <button
+          type="button"
+          className={styles.coverButton}
+          title={t("music.openPlayer", { app: sourceName(state.sourceAppId) })}
+          aria-label={t("music.openPlayer", { app: sourceName(state.sourceAppId) })}
+          onClick={(e) => {
+            e.stopPropagation();
+            musicActions.openPlayer().catch(() => {});
+          }}
+        >
+          <Artwork size={64} radius={18} />
+        </button>
         <div className={styles.meta}>
           <span className={styles.titleLarge}>{state.title || t("music.unknownTitle")}</span>
           <span className={styles.artist}>{state.artist}</span>

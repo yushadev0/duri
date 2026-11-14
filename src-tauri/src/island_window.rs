@@ -323,6 +323,27 @@ pub fn bring_to_front(win: &WebviewWindow) {
     let _ = win.set_focus();
 }
 
+/// Brings another app's window (e.g. the music player) to the front from a
+/// click in the island, restoring it if minimized. It also becomes the window
+/// focus is handed back to, so the island doesn't pull the old one forward.
+#[cfg(windows)]
+pub fn activate_external(app: &AppHandle, h: isize) {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::{IsIconic, ShowWindow, SW_RESTORE};
+    if h == 0 {
+        return;
+    }
+    if let Ok(mut s) = app.state::<IslandState>().0.lock() {
+        s.last_external = h;
+    }
+    unsafe {
+        if IsIconic(HWND(h as _)).as_bool() {
+            let _ = ShowWindow(HWND(h as _), SW_RESTORE);
+        }
+    }
+    fg::force_activate(h);
+}
+
 #[cfg(windows)]
 fn island_hwnd(app: &AppHandle) -> Option<isize> {
     app.get_webview_window(LABEL).and_then(|w| w.hwnd().ok()).map(|h| h.0 as isize)

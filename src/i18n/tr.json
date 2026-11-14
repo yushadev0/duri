@@ -75,6 +75,7 @@
     "next": "Sonraki Parça",
     "previous": "Önceki Parça",
     "switchSource": "Başka bir oynatıcıya geç",
+    "openPlayer": "{{app}} uygulamasını aç",
     "seek": "Çalma konumu",
     "unknownTitle": "Bilinmeyen Parça",
     "idle": {
@@ -83,6 +84,7 @@
       "style": "Görünüm",
       "styles": {
         "network": "Ağ",
+        "reactive": "Duyarlı",
         "lyrics": "Sözler",
         "cover": "Kapak"
       },
@@ -90,6 +92,8 @@
       "noLyrics": "Bu şarkının sözleri bulunamadı.",
       "instrumental": "Enstrümantal",
       "error": "Şarkı sözleri yüklenemedi. Bağlantınızı kontrol edin.",
+      "showRecord": "Plağa çevir",
+      "showCover": "Kapağı göster",
       "unsynced": "Bu sözler zamanlanmamış, bu yüzden şarkıyı takip etmiyor.",
       "credit": "Sözler: LRCLIB",
       "sync": {

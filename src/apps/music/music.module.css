@@ -5,6 +5,37 @@
   background: var(--island-fill);
 }
 
+/* The expanded view's cover opens the player app. */
+.coverButton {
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: none;
+  cursor: pointer;
+  transition: transform 160ms ease, filter 160ms ease;
+}
+
+.coverButton:hover {
+  transform: scale(1.04);
+  filter: brightness(1.08);
+}
+
+.coverButton:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coverButton {
+    transition: none;
+  }
+
+  .coverButton:hover,
+  .coverButton:active {
+    transform: none;
+  }
+}
+
 .artworkEmpty {
   display: grid;
   place-items: center;

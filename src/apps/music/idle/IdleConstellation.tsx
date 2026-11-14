@@ -38,7 +38,7 @@ interface Star {
  * spots one by one, each joined to the one before; at the end of the line
  * the figure drifts up and fades, and the next line starts on an empty sky
  * (see `constellation.ts`). Where nothing is sung (intro, breaks, outro, or
- * an instrumental) a circle breathes with the sound instead.
+ * an instrumental) a circle breathes and sways with the sound instead.
  *
  * Everything moves slowly and softly: stars twinkle over seconds, glows rise
  * and fade, the circle follows a VU-like envelope. Under reduced motion only
@@ -49,13 +49,21 @@ export function IdleConstellation({
   timeline,
   accent,
   reduceMotion,
+  size = 1,
+  backdrop = false,
 }: {
-  /** Null for an instrumental: only the circle. */
+  /** Null when there's nothing to draw but the sound: only the circle. */
   timeline: Timeline | null;
   accent: string;
   reduceMotion: boolean;
+  /** The circle's size, relative to the one between lines. */
+  size?: number;
+  /** Let the whole background swell with the music too (the Reactive look). */
+  backdrop?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const sizeRef = useRef(size);
+  const backdropRef = useRef(backdrop);
   const accentRef = useRef(accent);
   const reduceRef = useRef(reduceMotion);
   const kickRef = useRef<() => void>(() => {});
@@ -63,8 +71,10 @@ export function IdleConstellation({
   useEffect(() => {
     accentRef.current = accent;
     reduceRef.current = reduceMotion;
+    sizeRef.current = size;
+    backdropRef.current = backdrop;
     kickRef.current();
-  }, [accent, reduceMotion]);
+  }, [accent, reduceMotion, size, backdrop]);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -87,6 +97,11 @@ export function IdleConstellation({
     let head = 0;
     let circleAlpha = 0;
     let spin = 0;
+    /** The ring's sway, two waves drifting at their own speeds. */
+    const phase = [0, 1.3];
+    /** The level over the last few seconds, and the background light it drives. */
+    let slow = 0;
+    let swell = 0;
 
     const wordsOf = (li: number) => {
       const out: number[] = [];
@@ -225,34 +240,37 @@ export function IdleConstellation({
     const drawCircle = (alpha: number, color: string, reduce: boolean) => {
       const cx = width / 2;
       const cy = height * 0.465;
-      const radius = Math.min(width, height) * 0.13;
+      const radius = Math.min(width, height) * 0.13 * sizeRef.current;
       const level = env.value;
 
       // Soft light in the middle.
       const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius * 2.4);
       glow.addColorStop(0, color);
       glow.addColorStop(1, "rgba(0, 0, 0, 0)");
-      ctx.globalAlpha = alpha * (0.1 + level * 0.14);
+      ctx.globalAlpha = alpha * (0.1 + level * 0.16);
       ctx.fillStyle = glow;
       ctx.fillRect(cx - radius * 2.4, cy - radius * 2.4, radius * 4.8, radius * 4.8);
 
-      // Inner ring, barely moving.
+      // Inner ring, breathing a little with the beat.
       ctx.globalAlpha = alpha * 0.22;
       ctx.strokeStyle = "#fff";
       ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.arc(cx, cy, radius * (0.78 + level * 0.03), 0, Math.PI * 2);
+      ctx.arc(cx, cy, radius * (0.78 + level * 0.06), 0, Math.PI * 2);
       ctx.stroke();
 
-      // Outer ring: the newest level at the top, older ones around both sides.
+      // Outer ring: the newest level at the top, older ones around both
+      // sides, and a faint sway that stays a circle but never sits still.
+      const sway = reduce ? 0 : radius * (0.012 + level * 0.03);
       const n = 180;
       ctx.beginPath();
       for (let i = 0; i <= n; i++) {
         const u = Math.abs((i / n) * 2 - 1);
         const age = Math.round((1 - u) * (HISTORY - 1));
         const h = reduce ? level : history[(head - 1 - age + HISTORY * 2) % HISTORY];
-        const r = radius * (1 + level * 0.05) + h * radius * 0.26;
         const angle = (i / n) * Math.PI * 2 - Math.PI / 2 + spin;
+        const wave = 0.6 * Math.sin(2 * angle + phase[0]) + 0.4 * Math.sin(3 * angle - phase[1]);
+        const r = radius * (1 + level * 0.08) + h * radius * 0.34 + sway * wave;
         const x = cx + Math.cos(angle) * r;
         const y = cy + Math.sin(angle) * r;
         if (i === 0) ctx.moveTo(x, y);
@@ -262,23 +280,44 @@ export function IdleConstellation({
       ctx.globalAlpha = alpha * 0.9;
       ctx.strokeStyle = color;
       ctx.lineWidth = 2.2;
+      ctx.lineJoin = "round";
       ctx.shadowColor = color;
       ctx.shadowBlur = 18;
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Three small moons circling it, a little faster when it's loud.
+      // Three small moons circling it, faster and a little farther out when it's loud.
       if (!reduce) {
         ctx.fillStyle = "#fff";
         for (let m = 0; m < 3; m++) {
           const a = spin * (1.6 + m * 0.35) + (m * Math.PI * 2) / 3;
-          const r = radius * (1.42 + m * 0.12);
+          const r = radius * (1.42 + m * 0.12) * (1 + level * 0.06);
           ctx.globalAlpha = alpha * (0.35 + level * 0.3);
           ctx.beginPath();
           ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 2.2, 0, Math.PI * 2);
           ctx.fill();
         }
       }
+    };
+
+    /**
+     * The background light: steady with the song's loudness, rising when a
+     * hit stands out from the last few seconds. It rises over ~0.5 s and
+     * fades over ~2 s, so it swells, never flashes.
+     */
+    const drawBackdrop = (alpha: number, color: string, dt: number, reduce: boolean) => {
+      slow += (env.value - slow) * Math.min(1, dt / 2200);
+      const target = reduce ? 0.3 * env.value : clamp(0.3 * env.value + 1.8 * Math.max(0, env.value - slow), 0, 1);
+      swell += (target - swell) * Math.min(1, dt / (target > swell ? 500 : 2000));
+      const cx = width / 2;
+      const cy = height * 0.465;
+      const r = Math.hypot(width, height) * 0.62;
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      g.addColorStop(0, color);
+      g.addColorStop(0.55, "rgba(0, 0, 0, 0)");
+      ctx.globalAlpha = alpha * (0.04 + swell * 0.22);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, width, height);
     };
 
     const frame = () => {
@@ -294,6 +333,8 @@ export function IdleConstellation({
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // Before the level is read below: one frame behind is invisible.
+      if (backdropRef.current) drawBackdrop(circleAlpha, color, dt, reduce);
       drawStars(now, reduce);
 
       // The line being sung (or about to be: its first stroke leads it), and the one fading out.
@@ -317,11 +358,16 @@ export function IdleConstellation({
       env = follow(env, state.playing ? getLevel() : 0, dt);
       history[head] = env.value;
       head = (head + 1) % HISTORY;
-      if (!reduce && state.playing) spin += dt * (0.00012 + env.value * 0.00025);
+      if (!reduce && state.playing) {
+        spin += dt * (0.00012 + env.value * 0.00025);
+        const drift = dt * (0.0004 + env.value * 0.0012);
+        phase[0] += drift;
+        phase[1] += drift * 1.37;
+      }
       if (circleAlpha > 0.01) drawCircle(circleAlpha, color, reduce);
       ctx.globalAlpha = 1;
 
-      const settling = Math.abs(target - circleAlpha) > 0.01 || env.value > 0.01;
+      const settling = Math.abs(target - circleAlpha) > 0.01 || env.value > 0.01 || swell > 0.01;
       if (state.playing || busy || settling || now < wakeUntil) raf = requestAnimationFrame(frame);
       else lastFrame = 0;
     };

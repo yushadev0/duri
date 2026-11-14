@@ -9,6 +9,7 @@ pub mod lyrics;
 pub mod lyricsfile;
 pub mod meter;
 pub mod music;
+pub mod music_player;
 pub mod notes;
 pub mod notifications;
 pub mod power;

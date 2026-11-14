@@ -117,4 +117,6 @@ export const musicActions = {
     return invoke("music_seek", { positionMs: Math.round(positionMs) });
   },
   selectSource: (sourceAppId: string | null) => invoke("music_select_source", { sourceAppId }),
+  /** Brings the player app (Spotify, the browser…) to the front. */
+  openPlayer: () => invoke("music_open_player"),
 };

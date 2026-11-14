@@ -88,6 +88,7 @@ pub fn run() {
             apps::music::music_control,
             apps::music::music_seek,
             apps::music::music_select_source,
+            apps::music_player::music_open_player,
             apps::lyrics::lyrics_get,
             apps::meter::audio_meter,
             idle_window::music_idle_open,

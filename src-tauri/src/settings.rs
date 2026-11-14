@@ -59,7 +59,7 @@ pub struct Settings {
     pub taskbar_clock_longitude: Option<f64>,
     pub taskbar_clock_fahrenheit: bool,
     /// Music › Idle Mode look: "auto" (Network, or Lyrics when the system
-    /// asks for reduced motion), "network", "lyrics" or "cover".
+    /// asks for reduced motion), "network", "reactive", "lyrics" or "cover".
     pub music_idle_style: String,
     /// Music: the line being sung shows in the middle of the pill, for songs
     /// with timed lyrics (asks LRCLIB for every song played while on).

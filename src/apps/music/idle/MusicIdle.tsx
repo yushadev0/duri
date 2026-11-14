@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { Disc3, MicVocal, Pause, Play, SkipBack, SkipForward, Waypoints, X } from "lucide-react";
+import { AudioLines, Disc3, MicVocal, Pause, Play, SkipBack, SkipForward, Waypoints, X } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,6 +18,7 @@ type Variant = Exclude<MusicIdleStyle, "auto">;
 
 const VARIANTS: { id: Variant; Icon: typeof Waypoints }[] = [
   { id: "network", Icon: Waypoints },
+  { id: "reactive", Icon: AudioLines },
   { id: "lyrics", Icon: MicVocal },
   { id: "cover", Icon: Disc3 },
 ];
@@ -72,7 +73,8 @@ function useChrome() {
   return { visible, hoverProps };
 }
 
-function statusNote(status: LyricsStatus, t: (k: string) => string): string | undefined {
+/** Why the lyrics look shows the cover instead. */
+function lyricsNote(status: LyricsStatus, t: (k: string) => string): string | undefined {
   switch (status.kind) {
     case "loading":
       return t("music.idle.searching");
@@ -102,10 +104,10 @@ export function MusicIdle() {
   const settings = useSettings();
   const reduceMotion = useReducedMotion() ?? false;
   const variant = resolveVariant(settings.musicIdleStyle, reduceMotion);
-  const lyrics = useLyrics(state, variant !== "cover");
+  const lyrics = useLyrics(state, variant === "network" || variant === "lyrics");
   const { visible, hoverProps } = useChrome();
-  // The sound-reactive circle only lives in the network look.
-  useAudioMeter(variant === "network" && state.available);
+  // The sound-reactive circle lives in the network and reactive looks.
+  useAudioMeter((variant === "network" || variant === "reactive") && state.available);
 
   useEffect(() => {
     startMusic();
@@ -117,7 +119,7 @@ export function MusicIdle() {
       else if (e.key === " " && !(e.target instanceof HTMLButtonElement)) {
         e.preventDefault();
         musicActions.toggle();
-      } else if (["1", "2", "3"].includes(e.key)) {
+      } else if (/^[1-9]$/.test(e.key) && Number(e.key) <= VARIANTS.length) {
         updateSettings({ musicIdleStyle: VARIANTS[Number(e.key) - 1].id });
       }
     };
@@ -134,16 +136,23 @@ export function MusicIdle() {
         <p className={styles.coverArtist}>{t("music.nothingPlayingHint")}</p>
       </div>
     );
-  } else if (variant === "network" && lyrics.kind === "instrumental") {
-    // Nothing to sing: the circle breathes with the music the whole time.
+  } else if (variant === "reactive" || (variant === "network" && !timeline)) {
+    // Just the sound: also the network's look while there are no lyrics to
+    // draw (searching, instrumental, none found, offline).
     stage = (
       <>
-        <IdleConstellation timeline={null} accent={accent} reduceMotion={reduceMotion} />
+        <IdleConstellation
+          timeline={null}
+          accent={accent}
+          reduceMotion={reduceMotion}
+          size={variant === "reactive" ? 1.35 : 1}
+          backdrop={variant === "reactive"}
+        />
         <NowPlaying />
       </>
     );
   } else if (variant === "cover" || !timeline) {
-    stage = <CoverView note={variant === "cover" ? undefined : statusNote(lyrics, t)} />;
+    stage = <CoverView note={variant === "cover" ? undefined : lyricsNote(lyrics, t)} />;
   } else if (variant === "lyrics" || (variant === "network" && !timeline.synced)) {
     // Untimed lyrics can't be drawn word by word: they show as a page.
     stage = <LyricsView timeline={timeline} reduceMotion={reduceMotion} />;
@@ -206,7 +215,7 @@ export function MusicIdle() {
           <IconButton label={t("music.next")} size={44} disabled={!state.canNext} onClick={musicActions.next}>
             <SkipForward size={20} {...filled} />
           </IconButton>
-          {variant !== "cover" && timeline && (
+          {(variant === "network" || variant === "lyrics") && timeline && (
             <span className={styles.credit}>
               <span>{t("music.idle.credit")}</span>
               <span className={styles.creditSync}>{t(syncKey(timeline))}</span>

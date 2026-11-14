@@ -107,9 +107,10 @@ Music follows the lyrics of the song that's playing, in any player. They come fr
   </tr>
 </table>
 
-Idle Mode has three looks, switched at the top or with the 1, 2 and 3 keys:
+Idle Mode has four looks, switched at the top or with the 1–4 keys:
 
-- **Network.** Every line becomes a small constellation: each word lands at a random spot as it's sung, a line reaches it from the word before, and when the line is over the figure fades and the next one starts on an empty sky. Where nothing is sung (the intro, a break, an instrumental) a circle breathes with the music instead.
+- **Network.** Every line becomes a small constellation: each word lands at a random spot as it's sung, a line reaches it from the word before, and when the line is over the figure fades and the next one starts on an empty sky. Where nothing is sung (the intro, a break, an instrumental, a song with no lyrics found) a circle breathes with the music instead.
+- **Reactive.** Just that circle, larger, swaying with the sound the whole song, and the background swells with it.
 - **Lyrics.** The cover beside the lyrics, the current line bright and centered. Click a line to jump there.
 - **Cover.** Just the cover, the song and its progress.
 

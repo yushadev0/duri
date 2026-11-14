@@ -10,7 +10,7 @@ export type IdleInfo = "none" | "clock" | "stats" | "both";
 export type ClockFormat = "system" | "12h" | "24h";
 export type Transparency = "off" | "low" | "high";
 export type ClockAlign = "left" | "center" | "right";
-export type MusicIdleStyle = "auto" | "network" | "lyrics" | "cover";
+export type MusicIdleStyle = "auto" | "network" | "reactive" | "lyrics" | "cover";
 
 export interface Settings {
   language: LanguagePref;

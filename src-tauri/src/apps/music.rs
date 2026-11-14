@@ -81,6 +81,17 @@ pub struct Music {
     latest: Mutex<MusicSnapshot>,
 }
 
+impl Music {
+    /// Source key and title of the current session; empty while nothing plays.
+    pub fn current_source(&self) -> (String, String) {
+        let Ok(latest) = self.latest.lock() else { return Default::default() };
+        if !latest.state.available {
+            return Default::default();
+        }
+        (latest.state.source_app_id.clone(), latest.state.title.clone())
+    }
+}
+
 /// Title and artist of the current track; empty while nothing is playing.
 pub fn now_playing(app: &AppHandle) -> (String, String) {
     let Some(music) = app.try_state::<Music>() else { return Default::default() };
