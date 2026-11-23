@@ -29,7 +29,7 @@ export const MINIMAL_SIZE = 34;
 export const PILL_SIDE = 48;
 export const MINIMAL_GAP = 8;
 export const COMPACT_DEFAULT: Size = { w: 372, h: 72 };
-/** Clock + launcher; wide enough for every app icon plus Settings. */
+/** Clock + launcher (the 3 most recently used apps and Settings). */
 export const HOME_SIZE: Size = { w: 500, h: 72 };
 /** Height of the shared app dock at the bottom of the expanded island. */
 export const EXPANDED_DOCK = 44;

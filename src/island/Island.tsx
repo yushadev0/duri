@@ -16,6 +16,7 @@ import { updateSettings, useSettings } from "../lib/settings";
 import type { ShortcutAction } from "../lib/shortcuts";
 import { startSystemStats } from "../lib/systemStats";
 import { startUpdateChecks } from "../lib/updates";
+import { noteAppOpened } from "../lib/recentApps";
 import { IslandContext, setIslandFocus, type IslandControls } from "./context";
 import { ExpandedChrome } from "./ExpandedChrome";
 import {
@@ -324,6 +325,11 @@ export function Island() {
       un.then((f) => f());
     };
   }, []);
+
+  // The home view offers the apps opened most recently.
+  useEffect(() => {
+    if (state.mode === "expanded" && state.appId) noteAppOpened(state.appId);
+  }, [state.mode, state.appId]);
 
   const resolved: View =
     dragPaths && dropApp
