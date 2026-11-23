@@ -4,6 +4,7 @@
 
 pub mod bluetooth;
 pub mod clipboard;
+pub mod convert;
 pub mod keys;
 pub mod lyrics;
 pub mod lyricsfile;
@@ -36,4 +37,5 @@ pub fn init(app: &AppHandle, db: Arc<Db>, data_dir: &Path) {
     bluetooth::init(app);
     power::init(app);
     privacy::init(app);
+    convert::init(app);
 }

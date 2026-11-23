@@ -1,5 +1,6 @@
 mod apps;
 mod db;
+mod drop_catcher;
 mod http;
 mod idle_window;
 mod island_window;
@@ -43,6 +44,7 @@ pub fn run() {
             system::init(app.handle());
             taskbar_clock::init(app.handle(), db, &dir);
             island_window::create(app.handle())?;
+            drop_catcher::spawn(app.handle().clone());
             island_window::spawn_hit_test(app.handle().clone());
             island_window::spawn_fullscreen_watch(app.handle().clone());
             tray::create(app.handle())?;
@@ -54,6 +56,7 @@ pub fn run() {
             island_window::island_set_focus,
             island_window::island_pointer,
             island_window::island_set_hud,
+            island_window::island_set_drop,
             apps::clipboard::clips_list,
             apps::clipboard::clip_copy,
             apps::clipboard::clip_paste,
@@ -101,6 +104,15 @@ pub fn run() {
             apps::sessions::claude_hooks_install,
             apps::sessions::claude_hooks_uninstall,
             apps::keys::keys_get,
+            apps::convert::convert_get,
+            apps::convert::convert_install,
+            apps::convert::convert_cancel_install,
+            apps::convert::convert_uninstall,
+            apps::convert::convert_probe,
+            apps::convert::convert_start,
+            apps::convert::convert_cancel,
+            apps::convert::convert_clear,
+            apps::convert::convert_open,
             apps::volume::volume_get,
             apps::volume::volume_set,
             apps::volume::volume_toggle_mute,

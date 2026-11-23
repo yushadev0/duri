@@ -95,4 +95,12 @@ export interface DuriApp {
    * pick a size here.
    */
   expandedSize?: Size;
+  /**
+   * Files dropped on the island go to the app that has this (the
+   * Converter). While they are dragged over it, the island turns into
+   * `Drop` at `dropSize`; on drop it calls `onDrop` and opens the app.
+   */
+  onDrop?: (paths: string[]) => void;
+  Drop?: ComponentType<{ paths: string[] }>;
+  dropSize?: Size;
 }

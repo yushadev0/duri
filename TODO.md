@@ -2,6 +2,12 @@
 
 ## Next
 
+- [ ] Converter, not yet tried live (1.4.0):
+  - [ ] No drop target while the island is tucked away or auto-hidden
+  - [ ] Not Now on the FFmpeg prompt lets the files go and converts nothing
+  - [ ] Typing a trim (Start / End) in Advanced: focus, invalid times, the result's length
+  - [ ] The prompt after a failed FFmpeg download (offline, damaged file) and Try Again
+
 
 ## Suggestions (from Claude, to discuss)
 
@@ -33,3 +39,4 @@
 - [x] Taskbar clock: up to 3 lines, alignment, time/date formats, CPU/RAM/GPU/battery, network and disk speed, weather and forecast (Open-Meteo), song in the Windows tray clock; own Settings pane (opt-in, helper DLL inside explorer; v1.2.0)
 - [x] Lyrics from LRCLIB (word-synced when available) in Music's expanded view and optionally the pill; fullscreen Idle Mode with a word constellation, scrolling lyrics or cover, a sound-reactive circle in instrumental parts and an optional clock (v1.3.0)
 - [x] Update prompt in the island (Download / Not Now) instead of a Windows notification; Idle Mode clock no longer overlaps the lyrics (v1.3.1)
+- [x] Converter: drop files on the pill, convert video, audio and pictures with FFmpeg (downloaded on first use, after asking), 3 quality presets + Advanced

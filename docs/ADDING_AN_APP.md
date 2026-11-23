@@ -18,6 +18,7 @@ An app has a UI half (`src/apps/<id>/`) and, if it needs Windows APIs, backgroun
    - the four presentations: `Minimal` (34×34 bubble), `Pill` (height 34, `pillWidth` wide), `Compact` (hover, default 372×72), `Expanded` (click; the bottom 44 px are the shared app dock);
    - a `useActivity()` hook returning `null` or a **stable** `Activity` object (use constants or `useMemo`).
 2. Export a `DuriApp` object and add it to `src/apps/registry.ts`. Set `hidden: true` for system apps that should only appear on their own (like Volume).
+   - To take files dragged onto the island, give it `onDrop(paths)`, a `Drop` view and a `dropSize` (see the Converter and ARCHITECTURE › Drag and drop). One app takes drops: the first in the registry that has them.
 3. Add `apps.<id>.name` / `apps.<id>.description` and every string you use to `src/i18n/en.json` and `tr.json`.
 
 ## Design checklist

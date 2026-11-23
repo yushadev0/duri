@@ -52,6 +52,7 @@ import styles from "./Island.module.css";
 import { initialIslandState, islandReducer, type IslandState } from "./state";
 
 type View =
+  | { kind: "drop"; app: DuriApp }
   | { kind: "empty" }
   | { kind: "pill"; app: DuriApp }
   | { kind: "home" }
@@ -60,6 +61,8 @@ type View =
 
 function sizeOf(view: View): Size {
   switch (view.kind) {
+    case "drop":
+      return view.app.dropSize ?? COMPACT_DEFAULT;
     case "empty":
       return EMPTY_PILL;
     case "pill":
@@ -298,7 +301,34 @@ export function Island() {
     }
   }, [alertKey, alertAppId, reduceMotion, animate, scope]);
 
-  const resolved = resolveView(state.mode, state.appId, state.attention, state.peek, primary?.app, apps);
+  // Files dragged over the island (see src-tauri/src/drop_catcher.rs): it
+  // becomes the drop target of the app that takes files.
+  const dropApp = apps.find((a) => a.onDrop && a.Drop);
+  const [dragPaths, setDragPaths] = useState<string[] | null>(null);
+  const dropAppRef = useRef(dropApp);
+  useEffect(() => {
+    dropAppRef.current = dropApp;
+  });
+  useEffect(() => {
+    type DragEvent = { kind: "enter"; paths: string[] } | { kind: "leave" } | { kind: "drop"; paths: string[] };
+    const un = listen<DragEvent>("island://drag", (e) => {
+      const app = dropAppRef.current;
+      if (e.payload.kind === "enter") setDragPaths(e.payload.paths);
+      else setDragPaths(null);
+      if (e.payload.kind === "drop" && app?.onDrop) {
+        app.onDrop(e.payload.paths);
+        dispatch({ type: "open", appId: app.id });
+      }
+    });
+    return () => {
+      un.then((f) => f());
+    };
+  }, []);
+
+  const resolved: View =
+    dragPaths && dropApp
+      ? { kind: "drop", app: dropApp }
+      : resolveView(state.mode, state.appId, state.attention, state.peek, primary?.app, apps);
   const view = useSteadyView(resolved);
 
   // Tuck away: dragging the island up shrinks it to a handle at the top
@@ -436,6 +466,13 @@ export function Island() {
     invoke("island_set_hit_rects", { rects }).catch(() => {});
   }, [size.w, size.h, showMinimal, top, bubble, handle, away, holding]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Files can be dropped on the island only while it shows (not tucked
+  // away or auto-hidden); the backend's drop catcher waits for this.
+  const dropOk = !handle && !away && !!dropApp;
+  useEffect(() => {
+    invoke("island_set_drop", { enabled: dropOk }).catch(() => {});
+  }, [dropOk]);
+
   const transition = reduceMotion ? reducedTransition : state.growing ? morphSpring : settleSpring;
 
   const open = (appId: string) => {
@@ -507,6 +544,11 @@ export function Island() {
       );
       break;
     }
+    case "drop": {
+      const Drop = view.app.Drop!;
+      content = <Drop paths={dragPaths ?? []} />;
+      break;
+    }
     case "home":
       content = <Home apps={apps} onOpen={open} onSettings={openSettings} />;
       break;
@@ -550,7 +592,7 @@ export function Island() {
           role="region"
           aria-label={handle ? t("island.handle") : t("island.label")}
           initial={false}
-          animate={{ width: size.w, height: size.h, ...corners(mode, size, settings.islandStyle) }}
+          animate={{ width: size.w, height: size.h, ...corners(view.kind === "drop" ? "compact" : mode, size, settings.islandStyle) }}
           style={{ y: dragging ? dragOffset(dragY, tucked) : 0 }}
           transition={transition}
           onClick={onIslandClick}

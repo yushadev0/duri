@@ -62,6 +62,9 @@ struct Inner {
     /// Last foreground window that isn't Duri's (raw HWND): where focus
     /// returns and where pasting goes.
     last_external: isize,
+    /// Files may be dropped on the island right now (the UI says so: the
+    /// pill is showing and an app takes drops).
+    drop_ok: bool,
 }
 
 #[derive(Default)]
@@ -416,6 +419,9 @@ pub fn island_set_focus(app: AppHandle, focused: bool) {
 /// it is elsewhere on screen.
 const HIT_TEST_NEAR: Duration = Duration::from_millis(20);
 const HIT_TEST_FAR: Duration = Duration::from_millis(60);
+/// How long the drop catcher stays after the button comes up, so the drag
+/// loop can still deliver the drop to it.
+const DROP_GRACE: Duration = Duration::from_millis(400);
 /// "Near" = within this many logical px of the island window.
 const NEAR_MARGIN: f64 = 80.0;
 /// The window's position and scale only change on display changes; re-read
@@ -443,12 +449,52 @@ pub fn near_window(x: f64, y: f64, margin: f64) -> bool {
     x >= -margin && y >= -margin && x <= WIDTH + margin && y <= HEIGHT + margin
 }
 
+/// Whether the primary mouse button is down (the physical right one when
+/// the buttons are swapped).
+#[cfg(windows)]
+fn primary_button_down() -> bool {
+    use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON, VK_RBUTTON};
+    use windows::Win32::UI::WindowsAndMessaging::{GetSystemMetrics, SM_SWAPBUTTON};
+    let key = if unsafe { GetSystemMetrics(SM_SWAPBUTTON) } != 0 { VK_RBUTTON } else { VK_LBUTTON };
+    (unsafe { GetAsyncKeyState(key.0 as i32) }) < 0
+}
+
+#[cfg(not(windows))]
+fn primary_button_down() -> bool {
+    false
+}
+
+/// The island's hit rects as one physical screen rectangle.
+fn screen_bounds(rects: &[Rect], origin: (f64, f64), scale: f64) -> Option<(i32, i32, i32, i32)> {
+    let first = rects.first()?;
+    let (mut l, mut t, mut r, mut b) = (first.x, first.y, first.x + first.w, first.y + first.h);
+    for rect in &rects[1..] {
+        l = l.min(rect.x);
+        t = t.min(rect.y);
+        r = r.max(rect.x + rect.w);
+        b = b.max(rect.y + rect.h);
+    }
+    let px = |v: f64| v * scale;
+    Some((
+        (origin.0 + px(l)).round() as i32,
+        (origin.1 + px(t)).round() as i32,
+        px(r - l).round() as i32,
+        px(b - t).round() as i32,
+    ))
+}
+
 pub fn spawn_hit_test(app: AppHandle) {
     std::thread::Builder::new()
         .name("duri-hit-test".into())
         .spawn(move || {
             let mut geometry: Option<((f64, f64), f64, std::time::Instant)> = None;
             let mut interval = HIT_TEST_NEAR;
+            // Drag and drop: whether the button went down on the island
+            // (a click or the tuck gesture, not a drag from elsewhere), and
+            // where the drop catcher is now.
+            let (mut was_down, mut pressed_on_island) = (false, false);
+            let mut released_at: Option<std::time::Instant> = None;
+            let mut catcher: crate::drop_catcher::Placement = None;
             loop {
                 std::thread::sleep(interval);
                 let Some(win) = app.get_webview_window(LABEL) else {
@@ -473,6 +519,31 @@ pub fn spawn_hit_test(app: AppHandle) {
                 track_foreground(&mut s);
                 let inside = s.visible() && s.rects.iter().any(|r| r.contains(lx, ly));
                 interval = if inside || near_window(lx, ly, NEAR_MARGIN) { HIT_TEST_NEAR } else { HIT_TEST_FAR };
+
+                // Something dragged in from elsewhere with the button held:
+                // put the drop catcher over the island (see drop_catcher.rs).
+                let down = primary_button_down();
+                if down && !was_down {
+                    pressed_on_island = inside;
+                }
+                if was_down && !down {
+                    released_at = Some(std::time::Instant::now());
+                }
+                was_down = down;
+                // The button state changes before the drag loop delivers the
+                // drop: hiding at once would turn the drop into a "leave".
+                // The catcher hides itself after a drop.
+                let settling = catcher.is_some() && released_at.is_some_and(|t| t.elapsed() < DROP_GRACE);
+                let place = if (down || settling) && !pressed_on_island && inside && s.drop_ok {
+                    screen_bounds(&s.rects, (ox, oy), scale)
+                } else {
+                    None
+                };
+                if place != catcher {
+                    catcher = place;
+                    crate::drop_catcher::place(place);
+                }
+
                 if inside != s.inside {
                     s.inside = inside;
                     drop(s);
@@ -610,6 +681,14 @@ pub fn island_pointer(state: State<'_, IslandState>) -> bool {
     state.0.lock().map(|s| s.inside).unwrap_or(false)
 }
 
+/// Whether files may be dropped on the island now.
+#[tauri::command]
+pub fn island_set_drop(state: State<'_, IslandState>, enabled: bool) {
+    if let Ok(mut s) = state.0.lock() {
+        s.drop_ok = enabled;
+    }
+}
+
 /// Rectangles are in logical pixels relative to the window's top-left corner.
 #[tauri::command]
 pub fn island_set_hit_rects(state: State<'_, IslandState>, rects: Vec<Rect>) {
@@ -620,7 +699,7 @@ pub fn island_set_hit_rects(state: State<'_, IslandState>, rects: Vec<Rect>) {
 
 #[cfg(test)]
 mod tests {
-    use super::{is_fullscreen, near_window, placement, Rect};
+    use super::{is_fullscreen, near_window, placement, screen_bounds, Rect};
 
     #[test]
     fn placed_top_center_of_the_monitor() {
@@ -660,6 +739,15 @@ mod tests {
     fn borderless_window_covering_the_screen_counts() {
         assert!(is_fullscreen((0, 0, 1920, 1080), MONITOR, 0x9600_0000));
         assert!(!is_fullscreen((0, 0, 1920, 1040), MONITOR, 0x9600_0000));
+    }
+
+    #[test]
+    fn drop_catcher_covers_every_rect() {
+        let pill = Rect { x: 245.0, y: 0.0, w: 150.0, h: 34.0 };
+        let bubble = Rect { x: 403.0, y: 0.0, w: 34.0, h: 34.0 };
+        // 125%, window at x = 560.
+        assert_eq!(screen_bounds(&[pill, bubble], (560.0, 0.0), 1.25), Some((866, 0, 240, 43)));
+        assert_eq!(screen_bounds(&[], (0.0, 0.0), 1.0), None);
     }
 
     #[test]
