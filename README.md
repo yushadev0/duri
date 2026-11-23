@@ -59,6 +59,14 @@ Duri's features are called **apps**. Each one can be switched off in Settings �
 
 **🔄 Converter.** Drag files from Explorer onto the pill and the island turns into a drop target. Pick a format, a quality (High, Balanced, Small) and, under Advanced, the resolution, frame rate, bitrate or a trim, and the new file appears next to the original (nothing is overwritten). Videos (MP4, MKV, WebM, MOV, GIF, or just the sound), songs (MP3, M4A, WAV, FLAC, OGG, Opus, AIFF) and pictures (PNG, JPG, WebP, AVIF, GIF, BMP, TIFF, ICO). It runs [FFmpeg](https://ffmpeg.org), which Duri downloads once (67 MB, LGPL build) the first time you convert something, after asking; if you'd rather not, the converter stays off. High quality copies the video and sound as they are when the new container can hold them, so it's lossless and instant. Several files at once are converted one after another, and the pill shows the progress.
 
+<p>
+  <img src="docs/media/convert.png" width="420" alt="The Converter: a video and the formats it can become" />
+</p>
+<p>
+  <img src="docs/media/convert-drop.png" height="72" alt="The island as a drop target while a file is dragged over it" />
+  <img src="docs/media/convert-done.png" height="72" alt="A finished conversion with Show in Folder" />
+</p>
+
 **🔔 Notifications.** Windows notifications show up in the pill as they arrive, and the island keeps the recent ones (in memory only). Dismissing one there removes it from Action Center too. Copying something shows a short "Copied" confirmation.
 
 **🔊 Volume.** The pill shows the level when the volume changes, and can replace the Windows volume popup. It shows even over fullscreen apps and while the island is hidden.
