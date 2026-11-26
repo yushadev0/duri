@@ -338,17 +338,34 @@ fn store(db: &Db, key: &str, l: &Lyrics) {
     }
 }
 
+/// Where a miss is cached: per length too, because a miss is often only the
+/// length being wrong. Windows reports a new song's title a moment before
+/// its length, so the first ask can carry the previous song's length, and
+/// that miss must not hide the song once the right length arrives.
+fn miss_key(key: &str, q: &Query) -> String {
+    match q.duration_s {
+        Some(d) => format!("{key}|{}", d.round() as i64),
+        None => format!("{key}|-"),
+    }
+}
+
 pub fn lookup(db: &Db, q: &Query) -> Result<Lyrics, String> {
+    lookup_with(db, q, get_optional)
+}
+
+fn lookup_with(db: &Db, q: &Query, http: impl Fn(&str) -> Result<Option<String>, String>) -> Result<Lyrics, String> {
     let key = cache_key(q);
     if key == "|" {
         return Ok(Lyrics::default());
     }
-    if let Some(l) = cached(db, &key) {
+    let miss = miss_key(&key, q);
+    // Misses stored under the song's own key by older versions are ignored.
+    if let Some(l) = cached(db, &key).filter(|l| l.found).or_else(|| cached(db, &miss)) {
         return Ok(l);
     }
     // Network errors are not cached: the next try may work.
-    let lyrics = fetch(q, get_optional)?;
-    store(db, &key, &lyrics);
+    let lyrics = fetch(q, http)?;
+    store(db, if lyrics.found { &key } else { &miss }, &lyrics);
     Ok(lyrics)
 }
 
@@ -515,6 +532,31 @@ mod tests {
         db.with_conn(|c| c.execute("UPDATE lyrics SET fetched_at = 0", [])).unwrap();
         assert_eq!(cached(&db, "c|d"), None, "an old miss is asked again");
         assert!(cached(&db, "a|b").is_some(), "a hit never expires");
+    }
+
+    #[test]
+    fn a_miss_from_a_stale_length_does_not_hide_the_song() {
+        let db = Db::open_in_memory().unwrap();
+        let body = r#"[{"duration": 311, "syncedLyrics": "[00:01.00] a", "plainLyrics": "a"}]"#;
+        let http = |u: &str| Ok(if u.contains("/get?") { None } else { Some(body.to_string()) });
+        // The title of the new song with the length of the one before it.
+        let stale = q("Duman", "Kolay Değildir", Some(222.0));
+        assert!(!lookup_with(&db, &stale, http).unwrap().found);
+        let right = q("Duman", "Kolay Değildir", Some(311.0));
+        assert!(lookup_with(&db, &right, http).unwrap().found, "the right length asks again");
+        // A hit is the song's, whatever length asks for it later.
+        let offline = |_: &str| Err::<Option<String>, String>("offline".into());
+        assert!(lookup_with(&db, &stale, offline).unwrap().found);
+    }
+
+    #[test]
+    fn misses_cached_under_the_song_key_are_ignored() {
+        let db = Db::open_in_memory().unwrap();
+        let query = q("Duman", "Kolay Değildir", Some(311.0));
+        store(&db, &cache_key(&query), &Lyrics::default());
+        let body = r#"[{"duration": 311, "plainLyrics": "a"}]"#;
+        let http = |u: &str| Ok(if u.contains("/get?") { None } else { Some(body.to_string()) });
+        assert!(lookup_with(&db, &query, http).unwrap().found);
     }
 
     #[test]

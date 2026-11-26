@@ -251,8 +251,9 @@ export type LyricsStatus =
 /**
  * Lyrics per track, shared by everything in the window that shows them (the
  * pill, the expanded view, Idle Mode), so a song is asked for only once.
- * Keyed by track and by whether its length was known, since the length is
- * part of the lookup and often arrives a moment after the title.
+ * Keyed by track and length, since the length is part of the lookup and
+ * Windows often reports a new song's title while the length is still the
+ * previous song's: the first answer can be a miss that the right length fixes.
  */
 const lyricsStore = createStore<ReadonlyMap<string, LyricsStatus>>(new Map());
 const requested = new Set<string>();
@@ -291,20 +292,32 @@ function request(key: string, query: { artist: string; title: string; album: str
  */
 export function useLyrics(state: MusicState, enabled: boolean): LyricsStatus {
   const { trackKey, title, artist, album, durationMs, available } = state;
-  // Rounded, so small corrections of the length don't ask again.
-  const duration = Math.round(durationMs / 1000);
-  const wanted = enabled && available && title ? `${trackKey}|${duration > 0 ? "timed" : "untimed"}` : "";
+  // Whole seconds, so sub-second corrections of the length don't ask again.
+  const duration = Math.max(0, Math.round(durationMs / 1000));
+  const wanted = enabled && available && title ? `${trackKey}|${duration}` : "";
   const statuses = useStore(lyricsStore);
 
   useEffect(() => {
     if (!wanted) return;
     const id = setTimeout(() => request(wanted, { artist, title, album, durationMs: duration * 1000 }), 350);
     return () => clearTimeout(id);
-    // The key covers the track and whether the length is known.
+    // The key covers the track and its length.
   }, [wanted]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!wanted) return { kind: "idle" };
-  return statuses.get(wanted) ?? { kind: "loading" };
+  return statuses.get(wanted) ?? shownWhileLoading(statuses, trackKey);
+}
+
+/**
+ * While the same song is asked for again with a corrected length, keep
+ * showing lyrics it already has instead of blinking to loading.
+ */
+function shownWhileLoading(statuses: ReadonlyMap<string, LyricsStatus>, trackKey: string): LyricsStatus {
+  let shown: LyricsStatus = { kind: "loading" };
+  for (const [key, status] of statuses) {
+    if (key.startsWith(`${trackKey}|`) && (status.kind === "ready" || status.kind === "instrumental")) shown = status;
+  }
+  return shown;
 }
 
 /**
